@@ -1,4 +1,4 @@
-#Gestión de Compras y Proveedores
+## Gestión de Compras y Proveedores
 
 Sistema ERP orientado a la gestión del proceso de compras y proveedores de un supermercado.
 
@@ -6,9 +6,10 @@ Sistema ERP orientado a la gestión del proceso de compras y proveedores de un s
 
 Este proyecto tiene como objetivo centralizar y optimizar el proceso de adquisición de productos, insumos y materiales necesarios para el funcionamiento de un supermercado.
 
+Para el Primer Sprint:
 El microservicio de Proveedores y Catálogos permite gestionar la información de los proveedores y los productos que estos ofrecen, proporcionando información que puede ser utilizada posteriormente en procesos de cotización, comparación y selección de proveedores.
 
-## Alcance del microservicio
+## Alcance del microservicio "proveedores y catalogo"
 
 El microservicio contempla las siguientes funcionalidades:
 
@@ -125,8 +126,8 @@ Las versiones específicas se establecerán de acuerdo con la configuración uti
 ### 1. Clonar el repositorio
 
 ```bash
-git clone <esterepo>
-cd <esterepo>
+git clone <https://github.com/nataliaaytia/ERPsupermercado.git>
+cd <https://github.com/nataliaaytia/ERPsupermercado.git>
 ```
 
 ### 2. Configurar PostgreSQL
@@ -173,7 +174,7 @@ npm run dev
 
 El proyecto se encuentra en desarrollo.
 
-Actualmente se trabaja en el primer microservicio:
+Actualmente se trabaja en el primer sprint, enfocado en el microservicio:
 
 **Gestión de Proveedores y Catálogos**
 
