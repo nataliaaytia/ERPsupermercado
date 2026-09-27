@@ -1,0 +1,45 @@
+.home-container {
+    position: relative;
+    width: 100%;
+    min-height: calc(100vh - 64px);
+    overflow: hidden;
+    background-color: var(--bg-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.4s ease;
+}
+
+.home-background {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+}
+
+.home-content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    color: var(--text-primary);
+    padding: 2rem;
+    max-width: 900px;
+    pointer-events: none;
+    transition: color 0.4s ease;
+}
+
+.home-title {
+    font-size: 3rem;
+    font-weight: 800;
+    margin-bottom: 1.2rem;
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+    transition: color 0.4s ease;
+}
+
+.home-subtitle {
+    font-size: 1.25rem;
+    color: var(--text-secondary);
+    transition: color 0.4s ease;
+}
