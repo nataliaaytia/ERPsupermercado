@@ -17,7 +17,7 @@ export interface Documento {
   numeroDocumento: string;
   fechaVencimiento: string;
   archivo: string;
-  estadoValidacion: 'Válido' | 'Vencido' | 'Pendiente';
+  estadoValidacion: 'Valido' | 'Vencido' | 'Pendiente';
 }
 
 export interface ProductoCatalogo {
@@ -225,22 +225,22 @@ const proveedoresIniciales: Proveedor[] = [
   }
 ];
 
-//esto igual a futuro vamos a cambiar xd
+//esto igual lo leen del back sanjdkajsbd
 const datosFrecuenciaMensual = [
-  { mes: 'Ene', ordenes: 12, monto: 22000 },
-  { mes: 'Feb', ordenes: 18, monto: 34000 },
-  { mes: 'Mar', ordenes: 15, monto: 28000 },
-  { mes: 'Abr', ordenes: 22, monto: 45000 },
-  { mes: 'May', ordenes: 28, monto: 56000 },
-  { mes: 'Jun', ordenes: 21, monto: 41000 }
+  { mes: 'Abr', ordenes: 12, monto: 22000 },
+  { mes: 'May', ordenes: 18, monto: 34000 },
+  { mes: 'Jun', ordenes: 15, monto: 28000 },
+  { mes: 'Jul', ordenes: 22, monto: 45000 },
+  { mes: 'Ago', ordenes: 28, monto: 56000 },
+  { mes: 'Sep', ordenes: 21, monto: 41000 }
 ];
 
 const menuItems = [
   'Gestionar Proveedores',
   'Asociar Catálogo',
-  'Ver Información',
-  'Ver Catálogo',
-  'Ranking e Indicadores'
+  'Comparacion de Productos',
+  'Ver Catalogo',
+  'Ranking de proveedores'
 ];
 
 export const Catalogo = () => {
@@ -404,7 +404,7 @@ export const Catalogo = () => {
       <section className="catalogo-content">
         <header className="catalogo-header">
           <h1 className="catalogo-title">{menuItems[activeIndex]}</h1>
-          <p className="catalogo-subtitle">Módulo de Proveedores y Toma de Decisiones</p>
+          <p className="catalogo-subtitle">Proveedores y Catalogo</p>
         </header>
 
         {activeIndex === 0 && (
@@ -554,10 +554,10 @@ export const Catalogo = () => {
                     <thead>
                       <tr>
                         <th>Tipo Documento</th>
-                        <th>Número</th>
+                        <th>Numero</th>
                         <th>Vencimiento</th>
                         <th>Archivo Adjunto</th>
-                        <th>Estado Doc.</th>
+                        <th>Estado Documento </th>
                       </tr>
                     </thead>
                     <tbody>
@@ -704,7 +704,7 @@ export const Catalogo = () => {
               <div className="tabla-header-info">
                 <div className="titulo-tabla-group">
                   <Package size={18} className="icono-seccion" />
-                  <h3 className="titulo-tabla">Catálogo Oficial de Productos</h3>
+                  <h3 className="titulo-tabla">Catalogo de productos</h3>
                 </div>
                 <span className="conteo-resultados">
                   Mostrando {productosFiltrados.length} de {proveedorSeleccionado.catalogoProductos.length} productos
