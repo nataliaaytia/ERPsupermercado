@@ -1,41 +1,57 @@
 import React, { useState } from 'react';
-import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { User, Lock, Eye, EyeOff } from 'lucide-react';
 import './Login.css';
 
 interface LoginProps {
     onSuccess?: () => void;
 }
+//predeterminados noma 
+const PREDEFINED_USER = 'admin';
+const PREDEFINED_PASSWORD = 'sonic123';
 
 export const Login: React.FC<LoginProps> = ({ onSuccess }) => {
-    const [email, setEmail] = useState('');
+    const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [rememberMe, setRememberMe] = useState(false);
+    const [error, setError] = useState('');
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (onSuccess) onSuccess();
+
+        if (username === PREDEFINED_USER && password === PREDEFINED_PASSWORD) {
+            setError('');
+            if (onSuccess) onSuccess();
+        } else {
+            setError('Usuario o contraseña incorrectos');
+        }
     };
 
     return (
         <div className="login-container">
             <div className="login-card">
                 <div className="login-header">
-                    <h2 className="login-title">Iniciar Sesión</h2>
-                    <p className="login-subtitle">Ingresa tus credenciales para acceder a la plataforma</p>
+                    <h2 className="login-title">inicio de sesion</h2>
+                    <p className="login-subtitle">Ingresa tus datos para iniciar sesion</p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="login-form">
+                    {error && (
+                        <div style={{ color: '#ef4444', fontSize: '0.85rem', textAlign: 'center' }}>
+                            {error}
+                        </div>
+                    )}
+
                     <div className="form-group">
-                        <label className="form-label">Correo Electrónico</label>
+                        <label className="form-label">Usuario</label>
                         <div className="input-wrapper">
-                            <Mail className="input-icon" size={18} />
+                            <User className="input-icon" size={18} />
                             <input
-                                type="email"
+                                type="text"
                                 required
-                                placeholder="usuario@ejemplo.com"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
+                                placeholder="Nombre de usuario"
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
                                 className="form-input"
                             />
                         </div>
