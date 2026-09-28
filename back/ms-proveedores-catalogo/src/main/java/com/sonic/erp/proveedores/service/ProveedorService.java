@@ -85,4 +85,28 @@ public class ProveedorService {
                 .errores(errores)
                 .build();
     }
+
+    @Transactional
+    public Proveedor actualizarEstado(Long idProveedor, String nuevoEstado) {
+
+        Proveedor proveedor = proveedorRepository.findById(idProveedor)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("Proveedor no encontrado"));
+
+        List<String> estadosPermitidos = List.of(
+                "Registrado",
+                "Activo",
+                "Inactivo"
+        );
+
+        if (nuevoEstado == null || !estadosPermitidos.contains(nuevoEstado)) {
+            throw new IllegalArgumentException(
+                    "Estado no válido. Los estados permitidos son: Registrado, Activo e Inactivo"
+            );
+        }
+
+        proveedor.setEstado(nuevoEstado);
+
+        return proveedorRepository.save(proveedor);
+    }
 }
