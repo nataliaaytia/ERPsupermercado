@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.sonic.erp.proveedores.dto.response.ProveedorValidacionResponse;
 
 @RestController
 @RequestMapping("/proveedores")
@@ -19,5 +20,11 @@ public class ProveedorController {
         Proveedor nuevoProveedor = proveedorService.registrarProveedor(request);
 
         return new ResponseEntity<>(nuevoProveedor, HttpStatus.CREATED);
+    }
+
+    @PostMapping("/{id}/validar")
+    public ResponseEntity<ProveedorValidacionResponse> validar(@PathVariable Long id) {
+        ProveedorValidacionResponse resultado = proveedorService.validarProveedor(id);
+        return ResponseEntity.ok(resultado);
     }
 }

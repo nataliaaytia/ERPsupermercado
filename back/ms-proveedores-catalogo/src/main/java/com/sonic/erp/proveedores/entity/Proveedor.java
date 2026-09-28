@@ -35,6 +35,12 @@ public class Proveedor {
     @Column (name = "estado", nullable = false, length = 30)
     private String estado;
 
+    @Column(name = "validado")
+    private Boolean validado;
+
+    @Column(name = "fecha_validacion")
+    private LocalDateTime fechaValidacion;
+
     @Column (name = "fecha_creacion", updatable = false)
     private LocalDateTime fechaCreacion;
 
