@@ -36,8 +36,9 @@ export const Home = () => {
             <div className="home-content">
                 <h1 className="home-title">
                     <TextType
+                        /* hijas cambien lo que vean aki no se k poner xdxxddxdd */
                         text={[
-                            'Bienvenido a nuestra plataforma',
+                            'Bienvenido a este sistema',
                             'Gestión de compras y proveedores',
                             'Todo en un solo lugar'
                         ]}
