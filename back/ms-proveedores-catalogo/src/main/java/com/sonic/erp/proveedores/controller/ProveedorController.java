@@ -27,4 +27,13 @@ public class ProveedorController {
         ProveedorValidacionResponse resultado = proveedorService.validarProveedor(id);
         return ResponseEntity.ok(resultado);
     }
+
+    @PatchMapping("/{id}/estado")
+    public ResponseEntity<Proveedor> actualizarEstado(
+            @PathVariable Long id,
+            @RequestParam String estado) {
+
+        Proveedor proveedor = proveedorService.actualizarEstado(id, estado);
+        return ResponseEntity.ok(proveedor);
+    }
 }
