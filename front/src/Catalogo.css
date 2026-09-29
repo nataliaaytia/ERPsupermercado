@@ -1641,3 +1641,206 @@
 .fill-cumplimiento {
     background: #3b82f6;
 }
+
+.ranking-header-control {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    background: var(--bg-card, rgba(255, 255, 255, 0.03));
+    border: 1px solid var(--border-color, rgba(0, 0, 0, 0.08));
+    border-top: 1px solid var(--text-primary);
+    padding: 1.5rem 2rem;
+}
+
+.ranking-select-container {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.ranking-select-label {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text-secondary);
+}
+
+.ranking-combobox {
+    background: rgba(0, 0, 0, 0.03);
+    border: none;
+    border-bottom: 1px solid var(--border-color, rgba(0, 0, 0, 0.15));
+    color: var(--text-primary);
+    font-family: var(--cat-display);
+    font-size: 0.875rem;
+    padding: 0.5rem 0.75rem;
+    outline: none;
+    cursor: pointer;
+}
+
+[data-theme='dark'] .ranking-combobox {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.ranking-combobox option {
+    background: var(--bg-primary, #ffffff);
+    color: var(--text-primary, #000000);
+}
+
+.ranking-top3-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+}
+
+.ranking-top-card {
+    background: var(--bg-card, rgba(255, 255, 255, 0.03));
+    border: 1px solid var(--border-color, rgba(0, 0, 0, 0.08));
+    border-top: 2px solid var(--accent, #818cf8);
+    padding: 1.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    position: relative;
+}
+
+.ranking-top-card.pos-1 {
+    border-top-color: #eab308;
+    background: rgba(234, 179, 8, 0.03);
+}
+
+.ranking-top-card.pos-2 {
+    border-top-color: #94a3b8;
+}
+
+.ranking-top-card.pos-3 {
+    border-top-color: #b45309;
+}
+
+.top-badge-pos {
+    align-self: flex-start;
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 0.25rem 0.6rem;
+    background: rgba(0, 0, 0, 0.05);
+    color: var(--text-primary);
+}
+
+.pos-1 .top-badge-pos {
+    background: rgba(234, 179, 8, 0.15);
+    color: #ca8a04;
+}
+
+.pos-2 .top-badge-pos {
+    background: rgba(148, 163, 184, 0.15);
+    color: #64748b;
+}
+
+.pos-3 .top-badge-pos {
+    background: rgba(180, 83, 9, 0.15);
+    color: #b45309;
+}
+
+.top-card-nombre {
+    font-family: var(--cat-display);
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.top-card-sub {
+    font-size: 0.6875rem;
+    color: var(--text-secondary);
+    letter-spacing: 0.05em;
+}
+
+.top-card-metric {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--border-color, rgba(0, 0, 0, 0.06));
+}
+
+.metric-valor-destacado {
+    font-family: var(--cat-display);
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #16a34a;
+}
+
+.metric-etiqueta {
+    font-size: 0.625rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text-secondary);
+}
+
+.dashboard-filtros-bar {
+    background: var(--bg-card, rgba(255, 255, 255, 0.03));
+    border: 1px solid var(--border-color, rgba(0, 0, 0, 0.08));
+    border-top: 1px solid var(--text-primary);
+    padding: 1.25rem 1.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.filtros-bar-label {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.filtros-checkboxes-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+}
+
+.checkbox-indicador-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: transparent;
+    border: 1px solid var(--border-color, rgba(0, 0, 0, 0.12));
+    padding: 0.5rem 0.9rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.checkbox-indicador-btn.active {
+    background: rgba(129, 140, 248, 0.1);
+    border-color: var(--accent, #818cf8);
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.dashboard-grid-personalizado {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+}
+
+@media (max-width: 900px) {
+    .ranking-top3-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-grid-personalizado {
+        grid-template-columns: 1fr;
+    }
+}
