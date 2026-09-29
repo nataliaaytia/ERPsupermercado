@@ -40,7 +40,7 @@ export interface Proveedor {
   telefono: string;
   correo: string;
   estado: EstadoProveedor;
-  puntajeDesempeno: number; // 0 - 100
+  puntajeDesempeno: number;
   ordenesCompra: number;
   montoTotalComprado: number;
   documentos: Documento[];
@@ -249,7 +249,6 @@ const menuItems = [
   'Ranking de proveedores'
 ];
 
-// Paleta de colores distintivos para diferenciar proveedores en comparativas
 const COLORES_PROVEEDORES = ['#38bdf8', '#34d399', '#f59e0b', '#a78bfa', '#f43f5e'];
 
 const extraerHorasMinimas = (tiempoStr: string): number => {
@@ -263,7 +262,6 @@ const extraerHorasMinimas = (tiempoStr: string): number => {
   return minNum;
 };
 
-// Interfaces para el histórico de entregas por proveedor
 export interface HistoricoEntrega {
   mes: string;
   diasEntrega: number;
@@ -313,6 +311,16 @@ const historicoEntregasData: HistoricoProveedorEntrega[] = [
     ]
   }
 ];
+
+const obtenerMetricasCalidadEntrega = (idProveedor: number) => {
+  const metricas: Record<number, { porcentajeAceptados: number; porcentajeEntregasCompletas: number }> = {
+    1: { porcentajeAceptados: 98, porcentajeEntregasCompletas: 95 },
+    2: { porcentajeAceptados: 82, porcentajeEntregasCompletas: 75 },
+    3: { porcentajeAceptados: 60, porcentajeEntregasCompletas: 50 },
+    4: { porcentajeAceptados: 94, porcentajeEntregasCompletas: 90 }
+  };
+  return metricas[idProveedor] || { porcentajeAceptados: 90, porcentajeEntregasCompletas: 88 };
+};
 
 export const Catalogo = () => {
   const [activeIndex, setActiveIndex] = useState<number>(0);
@@ -633,6 +641,14 @@ export const Catalogo = () => {
                   <div className="dato-field">
                     <span className="field-label">Desempeño / Puntuacion </span>
                     <span className="field-value">{proveedorSeleccionado.puntajeDesempeno}% de cumplimiento</span>
+                  </div>
+                  <div className="dato-field">
+                    <span className="field-label">Productos Aceptados</span>
+                    <span className="field-value">{obtenerMetricasCalidadEntrega(proveedorSeleccionado.idProveedor).porcentajeAceptados}%</span>
+                  </div>
+                  <div className="dato-field">
+                    <span className="field-label">Entregas Completas</span>
+                    <span className="field-value">{obtenerMetricasCalidadEntrega(proveedorSeleccionado.idProveedor).porcentajeEntregasCompletas}%</span>
                   </div>
                 </div>
               </div>
@@ -1223,6 +1239,8 @@ export const Catalogo = () => {
                     <th>Órdenes Emitidas</th>
                     <th>Monto Acumulado</th>
                     <th>Puntuacion Desempeño</th>
+                    <th>% Prod. Aceptados</th>
+                    <th>% Entregas Completas</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1240,10 +1258,80 @@ export const Catalogo = () => {
                       <td>
                         <span className="font-semibold">{p.puntajeDesempeno}%</span>
                       </td>
+                      <td>
+                        <span className="font-semibold" style={{ color: '#16a34a' }}>
+                          {obtenerMetricasCalidadEntrega(p.idProveedor).porcentajeAceptados}%
+                        </span>
+                      </td>
+                      <td>
+                        <span className="font-semibold" style={{ color: '#2563eb' }}>
+                          {obtenerMetricasCalidadEntrega(p.idProveedor).porcentajeEntregasCompletas}%
+                        </span>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
+            </div>
+
+            <div className="charts-grid">
+              <div className="chart-card">
+                <div className="chart-header">
+                  <div>
+                    <h3 className="chart-title">Productos de Buena Calidad</h3>
+                    <p className="chart-subtitle">Porcentaje de productos aceptados sin observaciones por proveedor</p>
+                  </div>
+                  <ShieldCheck size={18} className="chart-header-icon" />
+                </div>
+                <div className="ranking-bars-list">
+                  {proveedores.map((p) => {
+                    const m = obtenerMetricasCalidadEntrega(p.idProveedor);
+                    return (
+                      <div key={p.idProveedor} className="ranking-item">
+                        <div className="ranking-item-info">
+                          <span className="ranking-name">{p.razonSocial}</span>
+                          <span className="ranking-score score-calidad">{m.porcentajeAceptados}%</span>
+                        </div>
+                        <div className="ranking-bar-track">
+                          <div
+                            className="ranking-bar-fill fill-calidad"
+                            style={{ width: `${m.porcentajeAceptados}%` }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="chart-card">
+                <div className="chart-header">
+                  <div>
+                    <h3 className="chart-title">Cumplimiento de Entregas</h3>
+                    <p className="chart-subtitle">Porcentaje de entregas completas sin pendientes por proveedor</p>
+                  </div>
+                  <Truck size={18} className="chart-header-icon" />
+                </div>
+                <div className="ranking-bars-list">
+                  {proveedores.map((p) => {
+                    const m = obtenerMetricasCalidadEntrega(p.idProveedor);
+                    return (
+                      <div key={p.idProveedor} className="ranking-item">
+                        <div className="ranking-item-info">
+                          <span className="ranking-name">{p.razonSocial}</span>
+                          <span className="ranking-score score-cumplimiento">{m.porcentajeEntregasCompletas}%</span>
+                        </div>
+                        <div className="ranking-bar-track">
+                          <div
+                            className="ranking-bar-fill fill-cumplimiento"
+                            style={{ width: `${m.porcentajeEntregasCompletas}%` }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           </div>
         )}
