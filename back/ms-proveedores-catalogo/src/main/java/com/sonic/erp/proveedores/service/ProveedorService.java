@@ -2,7 +2,10 @@ package com.sonic.erp.proveedores.service;
 
 import com.sonic.erp.proveedores.dto.request.ProveedorCreateRequest;
 import com.sonic.erp.proveedores.dto.request.ProveedorUpdateRequest;
+import com.sonic.erp.proveedores.dto.response.ProveedorDetalleResponse;
+import com.sonic.erp.proveedores.entity.CatalogoComercial;
 import com.sonic.erp.proveedores.entity.Proveedor;
+import com.sonic.erp.proveedores.repository.CatalogoComercialRepository;
 import com.sonic.erp.proveedores.repository.ProveedorRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +23,7 @@ import java.util.regex.Pattern;
 public class ProveedorService {
 
     private final ProveedorRepository proveedorRepository;
+    private final CatalogoComercialRepository catalogoComercialRepository;
 
     @Transactional
     public Proveedor registrarProveedor(ProveedorCreateRequest request) {
@@ -156,5 +160,41 @@ public class ProveedorService {
                 .orElseThrow(() -> new IllegalArgumentException("No se encontro el proveedor con el ID: " + id));
     }
 
+    public ProveedorDetalleResponse consultarDetalleProveedor(Long id) {
+        Proveedor proveedor = proveedorRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("No se encontro el proveedor con ID: " + id));
+
+        List<CatalogoComercial> catalogo = catalogoComercialRepository.findByProveedor_IdProveedor(id);
+
+        List<ProveedorDetalleResponse.ProductoCatalogoDTO> productosDTO = catalogo.stream()
+                .map(item -> {
+                    var prod = item.getProducto();
+                    return ProveedorDetalleResponse.ProductoCatalogoDTO.builder()
+                            .idProducto(prod.getIdProducto())
+                            .codigoSku(prod.getCodigoSku())
+                            .descripcion(prod.getDescripcion())
+                            .unidad(prod.getUnidad())
+                            .precioReferencial(prod.getPrecioReferencial())
+                            .estadoProducto(prod.getEstado())
+                            .condiciones(item.getCondiciones())
+                            .fechaInicio(item.getFechaInicio())
+                            .fechaFin(item.getFechaFin())
+                            .build();
+                })
+                .toList();
+
+        return ProveedorDetalleResponse.builder()
+                .idProveedor(proveedor.getIdProveedor())
+                .nitRuc(proveedor.getNitRuc())
+                .razonSocial(proveedor.getRazonSocial())
+                .direccion(proveedor.getDireccion())
+                .telefono(proveedor.getTelefono())
+                .correo(proveedor.getCorreo())
+                .estado(proveedor.getEstado())
+                .validado(proveedor.getValidado())
+                .fechaValidacion(proveedor.getFechaValidacion())
+                .productos(productosDTO)
+                .build();
+    }
 
 }

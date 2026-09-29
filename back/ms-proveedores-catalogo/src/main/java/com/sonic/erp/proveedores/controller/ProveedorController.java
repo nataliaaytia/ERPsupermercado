@@ -1,6 +1,7 @@
 package com.sonic.erp.proveedores.controller;
 import com.sonic.erp.proveedores.dto.request.ProveedorCreateRequest;
 import com.sonic.erp.proveedores.dto.request.ProveedorUpdateRequest;
+import com.sonic.erp.proveedores.dto.response.ProveedorDetalleResponse;
 import com.sonic.erp.proveedores.entity.Proveedor;
 import com.sonic.erp.proveedores.service.ProveedorService;
 import jakarta.validation.Valid;
@@ -58,5 +59,11 @@ public class ProveedorController {
     public ResponseEntity<Proveedor> obtenerPorId(@PathVariable Long id) {
         Proveedor proveedor = proveedorService.obtenerProveedorPorId(id);
         return ResponseEntity.ok(proveedor);
+    }
+
+    @GetMapping("/{id}/catalogo")
+    public ResponseEntity<ProveedorDetalleResponse> consultarPorId(@PathVariable Long id) {
+        ProveedorDetalleResponse detalle = proveedorService.consultarDetalleProveedor(id);
+        return ResponseEntity.ok(detalle);
     }
 }
