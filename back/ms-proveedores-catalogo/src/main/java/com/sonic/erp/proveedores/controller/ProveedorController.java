@@ -1,5 +1,7 @@
 package com.sonic.erp.proveedores.controller;
 import com.sonic.erp.proveedores.dto.request.ProveedorCreateRequest;
+import com.sonic.erp.proveedores.dto.request.ProveedorUpdateRequest;
+import com.sonic.erp.proveedores.dto.response.ProveedorDetalleResponse;
 import com.sonic.erp.proveedores.entity.Proveedor;
 import com.sonic.erp.proveedores.service.ProveedorService;
 import jakarta.validation.Valid;
@@ -8,6 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.sonic.erp.proveedores.dto.response.ProveedorValidacionResponse;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/proveedores")
@@ -20,6 +24,14 @@ public class ProveedorController {
         Proveedor nuevoProveedor = proveedorService.registrarProveedor(request);
 
         return new ResponseEntity<>(nuevoProveedor, HttpStatus.CREATED);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Proveedor> actualizar(
+            @PathVariable Long id,
+            @Valid @RequestBody ProveedorUpdateRequest request){
+        Proveedor proveedorActualizado = proveedorService.actualizarProveedor(id, request);
+        return ResponseEntity.ok(proveedorActualizado);
     }
 
     @PostMapping("/{id}/validar")
@@ -35,5 +47,23 @@ public class ProveedorController {
 
         Proveedor proveedor = proveedorService.actualizarEstado(id, estado);
         return ResponseEntity.ok(proveedor);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<Proveedor>> listar() {
+        List<Proveedor> proveedores = proveedorService.listarProveedores();
+        return ResponseEntity.ok(proveedores);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Proveedor> obtenerPorId(@PathVariable Long id) {
+        Proveedor proveedor = proveedorService.obtenerProveedorPorId(id);
+        return ResponseEntity.ok(proveedor);
+    }
+
+    @GetMapping("/{id}/catalogo")
+    public ResponseEntity<ProveedorDetalleResponse> consultarPorId(@PathVariable Long id) {
+        ProveedorDetalleResponse detalle = proveedorService.consultarDetalleProveedor(id);
+        return ResponseEntity.ok(detalle);
     }
 }
