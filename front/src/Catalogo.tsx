@@ -5,10 +5,9 @@ import {
   ShieldCheck, CheckCircle2, XCircle, AlertCircle, FileText,
   Search, RefreshCw, Power, Clock, BarChart3, TrendingUp,
   Award, ShoppingBag, Calendar, ArrowUpRight, Package, Truck,
-  Tag, Filter, Building2, Plus, Upload, X, Paperclip
+  Tag, Filter, Building2, Plus, Upload, X, Paperclip, Timer, Zap
 } from 'lucide-react';
 import './Catalogo.css';
-
 
 export type EstadoProveedor = 'Activo' | 'Inactivo' | 'Pendiente' | 'Observado';
 
@@ -48,8 +47,6 @@ export interface Proveedor {
   catalogoProductos: ProductoCatalogo[];
 }
 
-//hijas cambien esto por la conexion la back garcias
-
 const proveedoresIniciales: Proveedor[] = [
   {
     idProveedor: 1,
@@ -64,7 +61,6 @@ const proveedoresIniciales: Proveedor[] = [
     montoTotalComprado: 125000,
     documentos: [
       {
-        //nosequevaaqui
         idDocumento: 101,
         tipoDocumento: 'Ficha RUC',
         numeroDocumento: '20601234567',
@@ -83,7 +79,6 @@ const proveedoresIniciales: Proveedor[] = [
     ],
     catalogoProductos: [
       {
-        //esto igual lo cambian alv
         idProducto: 1,
         sku: 'PROD-LOG-001',
         nombre: 'Caja de Cartón Corrugado Doble Canal (50x40x40)',
@@ -140,6 +135,17 @@ const proveedoresIniciales: Proveedor[] = [
       }
     ],
     catalogoProductos: [
+      {
+        idProducto: 8,
+        sku: 'PROD-LOG-001',
+        nombre: 'Caja de Cartón Corrugado Doble Canal (50x40x40)',
+        categoria: 'Empaque y Embalaje',
+        descripcion: 'Caja de alta resistencia para transporte pesado e importaciones.',
+        precioPactado: 4.10,
+        tiempoEntregaEstimado: '48 a 72 horas',
+        stockDisponible: 3000,
+        unidadMedida: 'Unidad'
+      },
       {
         idProducto: 4,
         sku: 'PROD-NOR-101',
@@ -226,7 +232,6 @@ const proveedoresIniciales: Proveedor[] = [
   }
 ];
 
-//esto igual lo leen del back sanjdkajsbd
 const datosFrecuenciaMensual = [
   { mes: 'Abr', ordenes: 12, monto: 22000 },
   { mes: 'May', ordenes: 18, monto: 34000 },
@@ -242,6 +247,71 @@ const menuItems = [
   'Comparacion de Productos',
   'Ver Catalogo',
   'Ranking de proveedores'
+];
+
+// Paleta de colores distintivos para diferenciar proveedores en comparativas
+const COLORES_PROVEEDORES = ['#38bdf8', '#34d399', '#f59e0b', '#a78bfa', '#f43f5e'];
+
+const extraerHorasMinimas = (tiempoStr: string): number => {
+  if (!tiempoStr) return 999;
+  const numMatches = tiempoStr.match(/\d+/g);
+  if (!numMatches) return 999;
+  const minNum = Math.min(...numMatches.map(Number));
+  if (tiempoStr.toLowerCase().includes('día') || tiempoStr.toLowerCase().includes('dias')) {
+    return minNum * 24;
+  }
+  return minNum;
+};
+
+// Interfaces para el histórico de entregas por proveedor
+export interface HistoricoEntrega {
+  mes: string;
+  diasEntrega: number;
+}
+
+export interface HistoricoProveedorEntrega {
+  idProveedor: number;
+  sku: string;
+  historico: HistoricoEntrega[];
+}
+
+const historicoEntregasData: HistoricoProveedorEntrega[] = [
+  {
+    idProveedor: 1,
+    sku: 'PROD-LOG-001',
+    historico: [
+      { mes: 'Ene', diasEntrega: 2.5 },
+      { mes: 'Feb', diasEntrega: 2.0 },
+      { mes: 'Mar', diasEntrega: 1.8 },
+      { mes: 'Abr', diasEntrega: 2.2 },
+      { mes: 'May', diasEntrega: 1.5 },
+      { mes: 'Jun', diasEntrega: 1.5 }
+    ]
+  },
+  {
+    idProveedor: 2,
+    sku: 'PROD-LOG-001',
+    historico: [
+      { mes: 'Ene', diasEntrega: 4.0 },
+      { mes: 'Feb', diasEntrega: 3.5 },
+      { mes: 'Mar', diasEntrega: 3.8 },
+      { mes: 'Abr', diasEntrega: 3.0 },
+      { mes: 'May', diasEntrega: 2.8 },
+      { mes: 'Jun', diasEntrega: 2.5 }
+    ]
+  },
+  {
+    idProveedor: 4,
+    sku: 'PROD-TEC-501',
+    historico: [
+      { mes: 'Ene', diasEntrega: 2.0 },
+      { mes: 'Feb', diasEntrega: 1.8 },
+      { mes: 'Mar', diasEntrega: 1.5 },
+      { mes: 'Abr', diasEntrega: 1.5 },
+      { mes: 'May', diasEntrega: 1.2 },
+      { mes: 'Jun', diasEntrega: 1.0 }
+    ]
+  }
 ];
 
 export const Catalogo = () => {
@@ -269,6 +339,8 @@ export const Catalogo = () => {
   const [busquedaProducto, setBusquedaProducto] = useState<string>('');
   const [categoriaFiltro, setCategoriaFiltro] = useState<string>('Todas');
   const [productoSeleccionado, setProductoSeleccionado] = useState<ProductoCatalogo | null>(null);
+
+  const [productoCompararSKU, setProductoCompararSKU] = useState<string>('PROD-LOG-001');
 
   const cambiarEstadoProveedor = (nuevoEstado: EstadoProveedor) => {
     const listaActualizada = proveedores.map(p =>
@@ -389,6 +461,35 @@ export const Catalogo = () => {
   const totalOrdenes = proveedores.reduce((sum, p) => sum + p.ordenesCompra, 0);
   const promedioDesempeno = Math.round(proveedores.reduce((sum, p) => sum + p.puntajeDesempeno, 0) / proveedores.length);
   const maxOrdenes = Math.max(...datosFrecuenciaMensual.map(d => d.ordenes));
+
+  const todosLosProductosComparacion = proveedores.flatMap(p =>
+    p.catalogoProductos.map(prod => ({
+      ...prod,
+      proveedor: p
+    }))
+  );
+
+  const listaProductosUnicos = Array.from(
+    new Map(todosLosProductosComparacion.map(p => [p.sku, p])).values()
+  );
+
+  const proveedoresParaProducto = todosLosProductosComparacion.filter(
+    item => item.sku === productoCompararSKU
+  );
+
+  const productoActualComparativo = listaProductosUnicos.find(p => p.sku === productoCompararSKU) || listaProductosUnicos[0];
+
+  const precioMinimo = proveedoresParaProducto.length > 0
+    ? Math.min(...proveedoresParaProducto.map(p => p.precioPactado))
+    : 0;
+
+  const menorTiempoHoras = proveedoresParaProducto.length > 0
+    ? Math.min(...proveedoresParaProducto.map(p => extraerHorasMinimas(p.tiempoEntregaEstimado)))
+    : 999;
+
+  const mejorProveedorEntrega = proveedoresParaProducto.find(
+    p => extraerHorasMinimas(p.tiempoEntregaEstimado) === menorTiempoHoras
+  );
 
   return (
     <div className="catalogo-container">
@@ -633,6 +734,218 @@ export const Catalogo = () => {
           </div>
         )}
 
+        {activeIndex === 2 && (
+          <div className="catalogo-productos-layout">
+            <div className="selector-proveedor-card">
+              <div className="selector-header">
+                <div className="selector-info">
+                  <span className="selector-label">Seleccionar Producto a Comparar:</span>
+                  <div className="select-wrapper">
+                    <Package size={16} className="select-icon" />
+                    <select
+                      className="proveedor-dropdown"
+                      value={productoCompararSKU}
+                      onChange={(e) => setProductoCompararSKU(e.target.value)}
+                    >
+                      {listaProductosUnicos.map((prod) => (
+                        <option key={prod.sku} value={prod.sku}>
+                          {prod.nombre} ({prod.sku})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {productoActualComparativo && (
+                  <div className="proveedor-meta-pills">
+                    <span className="pill-metric">
+                      Categoría: <strong>{productoActualComparativo.categoria}</strong>
+                    </span>
+                    <span className="pill-metric">
+                      Proveedores: <strong>{proveedoresParaProducto.length}</strong>
+                    </span>
+                    <span className="pill-metric">
+                      Mejor Precio: <strong>{precioMinimo.toFixed(2)} Bs.</strong>
+                    </span>
+                    <span className="pill-metric">
+                      <Timer size={13} style={{ marginRight: '4px', verticalAlign: 'middle' }} />
+                      Menor Abastecimiento: <strong>{mejorProveedorEntrega?.tiempoEntregaEstimado || 'N/A'}</strong>
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="tabla-catalogo-card">
+              <div className="tabla-header-info">
+                <div className="titulo-tabla-group">
+                  <BarChart3 size={18} className="icono-seccion" />
+                  <h3 className="titulo-tabla">Comparativa de Tiempos de Entrega y Precios por Proveedor</h3>
+                </div>
+                <span className="conteo-resultados">
+                  Mostrando {proveedoresParaProducto.length} ofertas para consideración de tiempo de abastecimiento
+                </span>
+              </div>
+
+              <div className="documentos-tabla-wrapper">
+                <table className="documentos-tabla">
+                  <thead>
+                    <tr>
+                      <th>Proveedor / RUC</th>
+                      <th>Estado Proveedor</th>
+                      <th>Precio Pactado</th>
+                      <th>Diferencia vs Mínimo</th>
+                      <th>Tiempo Estimado de Entrega (Abastecimiento)</th>
+                      <th>Stock Dispon.</th>
+                      <th>Desempeño</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {proveedoresParaProducto.length > 0 ? (
+                      proveedoresParaProducto.map((item) => {
+                        const esMejorPrecio = item.precioPactado === precioMinimo;
+                        const diferencia = item.precioPactado - precioMinimo;
+                        const horasItem = extraerHorasMinimas(item.tiempoEntregaEstimado);
+                        const esMasRapido = horasItem === menorTiempoHoras && menorTiempoHoras < 999;
+
+                        return (
+                          <tr key={item.proveedor.idProveedor}>
+                            <td>
+                              <div className="producto-info-cell">
+                                <span className="producto-nombre">{item.proveedor.razonSocial}</span>
+                                <span className="producto-desc">RUC / NIT: {item.proveedor.nitRuc}</span>
+                              </div>
+                            </td>
+                            <td>
+                              <span className={`badge-estado badge-${item.proveedor.estado.toLowerCase()}`}>
+                                {item.proveedor.estado}
+                              </span>
+                            </td>
+                            <td>
+                              <span className="precio-pactado-tag">
+                                {item.precioPactado.toFixed(2)} Bs.
+                              </span>
+                              <span className="unidad-sub"> / {item.unidadMedida}</span>
+                            </td>
+                            <td>
+                              {esMejorPrecio ? (
+                                <span className="badge-estado badge-activo">
+                                  Mejor Precio
+                                </span>
+                              ) : (
+                                <span style={{ color: '#dc2626', fontWeight: 600, fontSize: '0.8125rem' }}>
+                                  +{diferencia.toFixed(2)} Bs.
+                                </span>
+                              )}
+                            </td>
+                            <td>
+                              <div className="entrega-cell" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <Truck size={14} className="icon-truck" />
+                                <span style={{ fontWeight: 600 }}>{item.tiempoEntregaEstimado}</span>
+                                {esMasRapido && (
+                                  <span className="badge-estado badge-activo" style={{ fontSize: '0.75rem', padding: '2px 6px', display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
+                                    <Zap size={10} /> Entrega Más Rápida
+                                  </span>
+                                )}
+                              </div>
+                            </td>
+                            <td>
+                              <span className="stock-val">
+                                {item.stockDisponible} {item.unidadMedida}s
+                              </span>
+                            </td>
+                            <td>
+                              <span className="font-semibold">{item.proveedor.puntajeDesempeno}%</span>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    ) : (
+                      <tr>
+                        <td colSpan={7} className="tabla-vacia">
+                          No se encontraron proveedores registrados para el producto seleccionado.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="tabla-catalogo-card" style={{ marginTop: '1.5rem' }}>
+              <div className="tabla-header-info">
+                <div className="titulo-tabla-group">
+                  <Clock size={18} className="icono-seccion" />
+                  <h3 className="titulo-tabla">Histórico de Tiempos de Entrega</h3>
+                </div>
+                <span className="conteo-resultados">
+                  Evolución del tiempo de abastecimiento en días por proveedor
+                </span>
+              </div>
+
+              <div className="freq-bar-chart historico-bar-chart">
+                {['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'].map((mes) => (
+                  <div key={mes} className="freq-bar-col">
+                    <div className="historico-bars-group">
+                      {proveedoresParaProducto.map((p, idx) => {
+                        const colorProveedor = COLORES_PROVEEDORES[idx % COLORES_PROVEEDORES.length];
+                        const hData = historicoEntregasData.find(
+                          h => h.idProveedor === p.proveedor.idProveedor && h.sku === p.sku
+                        );
+                        const itemMes = hData?.historico.find(h => h.mes === mes);
+                        const dias = itemMes ? itemMes.diasEntrega : (extraerHorasMinimas(p.tiempoEntregaEstimado) / 24);
+                        const maxDias = 5;
+                        const heightPercent = Math.min(100, Math.round((dias / maxDias) * 100));
+
+                        return (
+                          <div key={p.proveedor.idProveedor} className="historico-bar-col-item">
+                            <span className="historico-bar-val">
+                              {dias.toFixed(1)}d
+                            </span>
+                            <div className="freq-bar-container historico-bar-container">
+                              <div
+                                className="freq-bar"
+                                style={{
+                                  height: `${heightPercent}%`,
+                                  backgroundColor: colorProveedor
+                                }}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <span className="freq-bar-label">{mes}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="leyenda-historico-container">
+                {proveedoresParaProducto.map((p, idx) => {
+                  const colorProveedor = COLORES_PROVEEDORES[idx % COLORES_PROVEEDORES.length];
+                  const hData = historicoEntregasData.find(h => h.idProveedor === p.proveedor.idProveedor && h.sku === p.sku);
+                  const prom = hData
+                    ? (hData.historico.reduce((a, b) => a + b.diasEntrega, 0) / hData.historico.length)
+                    : (extraerHorasMinimas(p.tiempoEntregaEstimado) / 24);
+
+                  return (
+                    <div key={p.proveedor.idProveedor} className="leyenda-historico-item">
+                      <span
+                        className="leyenda-color-indicator"
+                        style={{ backgroundColor: colorProveedor }}
+                      />
+                      <span className="leyenda-nombre-proveedor">{p.proveedor.razonSocial}:</span>
+                      <span className="leyenda-promedio-texto">
+                        Promedio Histórico {prom.toFixed(1)} días
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
         {activeIndex === 3 && (
           <div className="catalogo-productos-layout">
             <div className="selector-proveedor-card">
@@ -729,10 +1042,10 @@ export const Catalogo = () => {
                   <tbody>
                     {productosFiltrados.length > 0 ? (
                       productosFiltrados.map((prod) => (
-                        <tr 
-                        key={prod.idProducto}
-                        onClick={() => setProductoSeleccionado(prod)}
-                        className="producto-fila"
+                        <tr
+                          key={prod.idProducto}
+                          onClick={() => setProductoSeleccionado(prod)}
+                          className="producto-fila"
                         >
                           <td>
                             <span className="sku-badge">
@@ -935,7 +1248,7 @@ export const Catalogo = () => {
           </div>
         )}
 
-        {activeIndex !== 0 && activeIndex !== 3 && activeIndex !== 4 && (
+        {activeIndex !== 0 && activeIndex !== 2 && activeIndex !== 3 && activeIndex !== 4 && (
           <div className="catalogo-card">
             <p className="catalogo-card-text">
               Contenido correspondiente a: {menuItems[activeIndex]}
