@@ -147,5 +147,14 @@ public class ProveedorService {
         return proveedorRepository.save(proveedor);
     }
 
+    public List<Proveedor> listarProveedores() {
+        return proveedorRepository.findAll();
+    }
+
+    public Proveedor obtenerProveedorPorId(Long id) {
+        return proveedorRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("No se encontro el proveedor con el ID: " + id));
+    }
+
 
 }
