@@ -29,8 +29,14 @@ public class IncidenciaProveedor {
     @Column(name = "descripcion", nullable = false, length = 200)
     private String descripcion;
 
-
     @ManyToOne (fetch = FetchType.LAZY)
     @JoinColumn(name = "id_proveedor", nullable = false)
     private Proveedor proveedor;
+
+    @PrePersist
+    public void asignarFechaCreacion() {
+        if (this.fecha == null) {
+            this.fecha = LocalDateTime.now();
+        }
+    }
 }
