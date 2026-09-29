@@ -2,6 +2,7 @@ package com.sonic.erp.proveedores.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDate;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
 @Table(name = "documentos_proveedor")
@@ -11,6 +12,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @Builder
 
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class DocumentoProveedor {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,5 +34,6 @@ public class DocumentoProveedor {
     //Asosiacion de muchos a uno a proveedores
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_proveedor", nullable = false)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Proveedor proveedor;
 }
