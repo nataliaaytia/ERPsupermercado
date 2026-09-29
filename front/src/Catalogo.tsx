@@ -5,7 +5,8 @@ import {
   ShieldCheck, CheckCircle2, XCircle, AlertCircle, FileText,
   Search, RefreshCw, Power, Clock, BarChart3, TrendingUp,
   Award, ShoppingBag, Calendar, ArrowUpRight, Package, Truck,
-  Tag, Filter, Building2, Plus, Upload, X, Paperclip, Timer, Zap
+  Tag, Filter, Building2, Plus, Upload, X, Paperclip, Timer, Zap,
+  Sliders, Percent, CheckSquare, Square, DollarSign
 } from 'lucide-react';
 import './Catalogo.css';
 
@@ -45,6 +46,8 @@ export interface Proveedor {
   montoTotalComprado: number;
   documentos: Documento[];
   catalogoProductos: ProductoCatalogo[];
+  descuentoVolumen: number;
+  tiempoPromedioDias: number;
 }
 
 const proveedoresIniciales: Proveedor[] = [
@@ -59,6 +62,8 @@ const proveedoresIniciales: Proveedor[] = [
     puntajeDesempeno: 95,
     ordenesCompra: 48,
     montoTotalComprado: 125000,
+    descuentoVolumen: 18,
+    tiempoPromedioDias: 1.5,
     documentos: [
       {
         idDocumento: 101,
@@ -124,6 +129,8 @@ const proveedoresIniciales: Proveedor[] = [
     puntajeDesempeno: 72,
     ordenesCompra: 24,
     montoTotalComprado: 58000,
+    descuentoVolumen: 10,
+    tiempoPromedioDias: 3.2,
     documentos: [
       {
         idDocumento: 103,
@@ -181,6 +188,8 @@ const proveedoresIniciales: Proveedor[] = [
     puntajeDesempeno: 45,
     ordenesCompra: 8,
     montoTotalComprado: 14200,
+    descuentoVolumen: 5,
+    tiempoPromedioDias: 5.0,
     documentos: [],
     catalogoProductos: []
   },
@@ -195,6 +204,8 @@ const proveedoresIniciales: Proveedor[] = [
     puntajeDesempeno: 88,
     ordenesCompra: 36,
     montoTotalComprado: 94000,
+    descuentoVolumen: 15,
+    tiempoPromedioDias: 1.8,
     documentos: [
       {
         idDocumento: 104,
@@ -246,7 +257,8 @@ const menuItems = [
   'Asociar Catálogo',
   'Comparacion de Productos',
   'Ver Catalogo',
-  'Ranking de proveedores'
+  'Ranking de proveedores',
+  'Dashboard de Reportes'
 ];
 
 const COLORES_PROVEEDORES = ['#38bdf8', '#34d399', '#f59e0b', '#a78bfa', '#f43f5e'];
@@ -349,6 +361,44 @@ export const Catalogo = () => {
   const [productoSeleccionado, setProductoSeleccionado] = useState<ProductoCatalogo | null>(null);
 
   const [productoCompararSKU, setProductoCompararSKU] = useState<string>('PROD-LOG-001');
+
+  const [criterioRanking, setCriterioRanking] = useState<'descuento' | 'puntuacion' | 'tiempo'>('descuento');
+  const [indicadoresActivos, setIndicadoresActivos] = useState<{
+    precios: boolean;
+    descuentos: boolean;
+    tiempos: boolean;
+    calidad: boolean;
+  }>({
+    precios: true,
+    descuentos: true,
+    tiempos: true,
+    calidad: true
+  });
+
+  const proveedoresOrdenadosRanking = [...proveedores].sort((a, b) => {
+    if (criterioRanking === 'descuento') {
+      return b.descuentoVolumen - a.descuentoVolumen;
+    }
+    if (criterioRanking === 'puntuacion') {
+      return b.puntajeDesempeno - a.puntajeDesempeno;
+    }
+    return a.tiempoPromedioDias - b.tiempoPromedioDias;
+  });
+
+  const top3Proveedores = proveedoresOrdenadosRanking.slice(0, 3);
+
+  const toggleIndicador = (clave: keyof typeof indicadoresActivos) => {
+    setIndicadoresActivos(prev => ({
+      ...prev,
+      [clave]: !prev[clave]
+    }));
+  };
+
+  const obtenerPrecioPromedioProveedor = (p: Proveedor) => {
+    if (p.catalogoProductos.length === 0) return 0;
+    const suma = p.catalogoProductos.reduce((acc, prod) => acc + prod.precioPactado, 0);
+    return suma / p.catalogoProductos.length;
+  };
 
   const cambiarEstadoProveedor = (nuevoEstado: EstadoProveedor) => {
     const listaActualizada = proveedores.map(p =>
@@ -1152,7 +1202,7 @@ export const Catalogo = () => {
                 </div>
                 <div className="kpi-content">
                   <span className="kpi-title">Proveedor Líder</span>
-                  <span className="kpi-value">Logística Global</span>
+                  <span className="kpi-value">Pedrauser</span>
                   <span className="kpi-sub">95% puntualidad</span>
                 </div>
               </div>
@@ -1169,54 +1219,120 @@ export const Catalogo = () => {
               </div>
             </div>
 
+            <div className="ranking-header-control">
+              <div>
+                <h3 className="chart-title">Ranking de Proveedores por Descuentos y Desempeño</h3>
+                <p className="chart-subtitle">Selecciona el criterio para filtrar los proveedores y actualizar la gráfica dinámicamente</p>
+              </div>
+
+              <div className="ranking-select-container">
+                <span className="ranking-select-label">Ordenar por:</span>
+                <select
+                  className="ranking-combobox"
+                  value={criterioRanking}
+                  onChange={(e) => setCriterioRanking(e.target.value as 'descuento' | 'puntuacion' | 'tiempo')}
+                >
+                  <option value="descuento">Los que más descuentos ofrecen</option>
+                  <option value="puntuacion">Los que más puntuación tienen</option>
+                  <option value="tiempo">Los que menos tardan en entregar</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="ranking-top3-grid">
+              {top3Proveedores.map((p, idx) => (
+                <div key={p.idProveedor} className={`ranking-top-card pos-${idx + 1}`}>
+                  <span className="top-badge-pos">{idx + 1}er Lugar</span>
+                  <h4 className="top-card-nombre">{p.razonSocial}</h4>
+                  <span className="top-card-sub">RUC: {p.nitRuc}</span>
+
+                  <div className="top-card-metric">
+                    <span className="metric-valor-destacado">
+                      {criterioRanking === 'descuento' && `${p.descuentoVolumen}%`}
+                      {criterioRanking === 'puntuacion' && `${p.puntajeDesempeno}%`}
+                      {criterioRanking === 'tiempo' && `${p.tiempoPromedioDias} días`}
+                    </span>
+                    <span className="metric-etiqueta">
+                      {criterioRanking === 'descuento' && 'Descuento por Cantidad'}
+                      {criterioRanking === 'puntuacion' && 'Puntaje de Desempeño'}
+                      {criterioRanking === 'tiempo' && 'Tiempo Promedio de Entrega'}
+                    </span>
+                  </div>
+
+                  <div>
+                    <span className={`badge-estado badge-${p.estado.toLowerCase()}`}>
+                      {p.estado}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
             <div className="charts-grid">
               <div className="chart-card">
                 <div className="chart-header">
                   <div>
-                    <h3 className="chart-title">Desempeño y Calificación de Proveedores</h3>
-                    <p className="chart-subtitle">Evaluación porcentual basada en cumplimiento de entrega y calidad</p>
+                    <h3 className="chart-title">Gráfica Comparativa de Ranking</h3>
+                    <p className="chart-subtitle">
+                      {criterioRanking === 'descuento' && 'Porcentaje de descuento ofrecido para compras por volumen'}
+                      {criterioRanking === 'puntuacion' && 'Evaluación global de desempeño y cumplimiento'}
+                      {criterioRanking === 'tiempo' && 'Días promedios de tiempo de respuesta y abastecimiento'}
+                    </p>
                   </div>
-                  <Award size={18} className="chart-header-icon" />
+                  <BarChart3 size={18} className="chart-header-icon" />
                 </div>
 
                 <div className="ranking-bars-list">
-                  {proveedores.map((p) => (
-                    <div key={p.idProveedor} className="ranking-item">
-                      <div className="ranking-item-info">
-                        <span className="ranking-name">{p.razonSocial}</span>
-                        <span className="ranking-score">{p.puntajeDesempeno}%</span>
+                  {proveedoresOrdenadosRanking.map((p) => {
+                    let textoValor = '';
+                    let porcentajeAncho = 0;
+
+                    if (criterioRanking === 'descuento') {
+                      textoValor = `${p.descuentoVolumen}%`;
+                      porcentajeAncho = Math.round((p.descuentoVolumen / 20) * 100);
+                    } else if (criterioRanking === 'puntuacion') {
+                      textoValor = `${p.puntajeDesempeno}%`;
+                      porcentajeAncho = p.puntajeDesempeno;
+                    } else {
+                      textoValor = `${p.tiempoPromedioDias} días`;
+                      porcentajeAncho = Math.round(((6 - p.tiempoPromedioDias) / 5) * 100);
+                    }
+
+                    return (
+                      <div key={p.idProveedor} className="ranking-item">
+                        <div className="ranking-item-info">
+                          <span className="ranking-name">{p.razonSocial}</span>
+                          <span className="ranking-score">{textoValor}</span>
+                        </div>
+                        <div className="ranking-bar-track">
+                          <div
+                            className={`ranking-bar-fill ${porcentajeAncho >= 75 ? 'fill-high' : porcentajeAncho >= 45 ? 'fill-mid' : 'fill-low'}`}
+                            style={{ width: `${Math.min(100, Math.max(5, porcentajeAncho))}%` }}
+                          />
+                        </div>
                       </div>
-                      <div className="ranking-bar-track">
-                        <div
-                          className={`ranking-bar-fill ${p.puntajeDesempeno >= 85 ? 'fill-high' : p.puntajeDesempeno >= 60 ? 'fill-mid' : 'fill-low'}`}
-                          style={{ width: `${p.puntajeDesempeno}%` }}
-                        />
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
 
               <div className="chart-card">
                 <div className="chart-header">
                   <div>
-                    <h3 className="chart-title">Frecuencia de Compra (Últimos 6 meses)</h3>
-                    <p className="chart-subtitle">Cantidad de órdenes de compra emitidas mensualmente</p>
+                    <h3 className="chart-title">Frecuencia Mensual de Órdenes</h3>
+                    <p className="chart-subtitle">Volumen de solicitudes procesadas en los últimos meses</p>
                   </div>
-                  <Calendar size={18} className="chart-header-icon" />
+                  <ShoppingBag size={18} className="chart-header-icon" />
                 </div>
 
                 <div className="freq-bar-chart">
                   {datosFrecuenciaMensual.map((item) => {
-                    const heightPercent = Math.round((item.ordenes / maxOrdenes) * 100);
+                    const alturaPct = Math.round((item.ordenes / maxOrdenes) * 100);
                     return (
                       <div key={item.mes} className="freq-bar-col">
-                        <div className="freq-bar-val">{item.ordenes}</div>
+                        <span className="freq-bar-val">{item.ordenes}</span>
                         <div className="freq-bar-container">
-                          <div
-                            className="freq-bar"
-                            style={{ height: `${heightPercent}%` }}
-                          />
+                          <div className="freq-bar" style={{ height: `${alturaPct}%` }} />
                         </div>
                         <span className="freq-bar-label">{item.mes}</span>
                       </div>
@@ -1225,221 +1341,341 @@ export const Catalogo = () => {
                 </div>
               </div>
             </div>
-
-            <div className="chart-card">
-              <div className="chart-header">
-                <h3 className="chart-title">Análisis de Volumen de Compra y Estado</h3>
-              </div>
-              <table className="documentos-tabla">
-                <thead>
-                  <tr>
-                    <th>Proveedor</th>
-                    <th>RUC</th>
-                    <th>Estado</th>
-                    <th>Órdenes Emitidas</th>
-                    <th>Monto Acumulado</th>
-                    <th>Puntuacion Desempeño</th>
-                    <th>% Prod. Aceptados</th>
-                    <th>% Entregas Completas</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {proveedores.map(p => (
-                    <tr key={p.idProveedor}>
-                      <td className="font-semibold">{p.razonSocial}</td>
-                      <td>{p.nitRuc}</td>
-                      <td>
-                        <span className={`badge-estado badge-${p.estado.toLowerCase()}`}>
-                          {p.estado}
-                        </span>
-                      </td>
-                      <td>{p.ordenesCompra} órdenes</td>
-                      <td>{p.montoTotalComprado.toLocaleString()} Bs.</td>
-                      <td>
-                        <span className="font-semibold">{p.puntajeDesempeno}%</span>
-                      </td>
-                      <td>
-                        <span className="font-semibold" style={{ color: '#16a34a' }}>
-                          {obtenerMetricasCalidadEntrega(p.idProveedor).porcentajeAceptados}%
-                        </span>
-                      </td>
-                      <td>
-                        <span className="font-semibold" style={{ color: '#2563eb' }}>
-                          {obtenerMetricasCalidadEntrega(p.idProveedor).porcentajeEntregasCompletas}%
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            <div className="charts-grid">
-              <div className="chart-card">
-                <div className="chart-header">
-                  <div>
-                    <h3 className="chart-title">Productos de Buena Calidad</h3>
-                    <p className="chart-subtitle">Porcentaje de productos aceptados sin observaciones por proveedor</p>
-                  </div>
-                  <ShieldCheck size={18} className="chart-header-icon" />
-                </div>
-                <div className="ranking-bars-list">
-                  {proveedores.map((p) => {
-                    const m = obtenerMetricasCalidadEntrega(p.idProveedor);
-                    return (
-                      <div key={p.idProveedor} className="ranking-item">
-                        <div className="ranking-item-info">
-                          <span className="ranking-name">{p.razonSocial}</span>
-                          <span className="ranking-score score-calidad">{m.porcentajeAceptados}%</span>
-                        </div>
-                        <div className="ranking-bar-track">
-                          <div
-                            className="ranking-bar-fill fill-calidad"
-                            style={{ width: `${m.porcentajeAceptados}%` }}
-                          />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div className="chart-card">
-                <div className="chart-header">
-                  <div>
-                    <h3 className="chart-title">Cumplimiento de Entregas</h3>
-                    <p className="chart-subtitle">Porcentaje de entregas completas sin pendientes por proveedor</p>
-                  </div>
-                  <Truck size={18} className="chart-header-icon" />
-                </div>
-                <div className="ranking-bars-list">
-                  {proveedores.map((p) => {
-                    const m = obtenerMetricasCalidadEntrega(p.idProveedor);
-                    return (
-                      <div key={p.idProveedor} className="ranking-item">
-                        <div className="ranking-item-info">
-                          <span className="ranking-name">{p.razonSocial}</span>
-                          <span className="ranking-score score-cumplimiento">{m.porcentajeEntregasCompletas}%</span>
-                        </div>
-                        <div className="ranking-bar-track">
-                          <div
-                            className="ranking-bar-fill fill-cumplimiento"
-                            style={{ width: `${m.porcentajeEntregasCompletas}%` }}
-                          />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
           </div>
         )}
 
-        {activeIndex !== 0 && activeIndex !== 2 && activeIndex !== 3 && activeIndex !== 4 && (
-          <div className="catalogo-card">
-            <p className="catalogo-card-text">
-              Contenido correspondiente a: {menuItems[activeIndex]}
-            </p>
-          </div>
-        )}
-      </section>
+        {activeIndex === 5 && (
+          <div className="dashboard-container">
+            <div className="dashboard-filtros-bar">
+              <span className="filtros-bar-label">
+                <Sliders size={15} />
+                Personalizar Indicadores del Dashboard:
+              </span>
+              <div className="filtros-checkboxes-group">
+                <button
+                  className={`checkbox-indicador-btn ${indicadoresActivos.precios ? 'active' : ''}`}
+                  onClick={() => toggleIndicador('precios')}
+                >
+                  {indicadoresActivos.precios ? <CheckSquare size={14} /> : <Square size={14} />}
+                  <span>Precios Promedio</span>
+                </button>
 
-      {modalDocAbierto && (
-        <div className="modal-overlay">
-          <div className="modal-card">
-            <div className="modal-header">
-              <div>
-                <h3 className="modal-title">Registrar Documento del Proveedor</h3>
-                <span className="modal-subtitle">Asociar nuevo respaldo a: <strong>{proveedorSeleccionado.razonSocial}</strong></span>
+                <button
+                  className={`checkbox-indicador-btn ${indicadoresActivos.descuentos ? 'active' : ''}`}
+                  onClick={() => toggleIndicador('descuentos')}
+                >
+                  {indicadoresActivos.descuentos ? <CheckSquare size={14} /> : <Square size={14} />}
+                  <span>Descuentos por Cantidad</span>
+                </button>
+
+                <button
+                  className={`checkbox-indicador-btn ${indicadoresActivos.tiempos ? 'active' : ''}`}
+                  onClick={() => toggleIndicador('tiempos')}
+                >
+                  {indicadoresActivos.tiempos ? <CheckSquare size={14} /> : <Square size={14} />}
+                  <span>Tiempos de Entrega</span>
+                </button>
+
+                <button
+                  className={`checkbox-indicador-btn ${indicadoresActivos.calidad ? 'active' : ''}`}
+                  onClick={() => toggleIndicador('calidad')}
+                >
+                  {indicadoresActivos.calidad ? <CheckSquare size={14} /> : <Square size={14} />}
+                  <span>Calidad y Cumplimiento</span>
+                </button>
               </div>
-              <button className="btn-close-modal" onClick={() => setModalDocAbierto(false)}>
-                <X size={18} />
-              </button>
             </div>
 
-            <form onSubmit={handleRegistrarDocumento} className="modal-form">
-              {errorFormDoc && (
-                <div className="form-error-msg">
-                  <AlertCircle size={14} />
-                  <span>{errorFormDoc}</span>
+            <div className="dashboard-grid-personalizado">
+              {indicadoresActivos.precios && (
+                <div className="chart-card">
+                  <div className="chart-header">
+                    <div>
+                      <h3 className="chart-title">Comparativo de Precios Promedio</h3>
+                      <p className="chart-subtitle">Promedio de precios pactados en catálogo por proveedor</p>
+                    </div>
+                    <DollarSign size={18} className="chart-header-icon" />
+                  </div>
+
+                  <div className="ranking-bars-list">
+                    {proveedores.map((p) => {
+                      const precioProm = obtenerPrecioPromedioProveedor(p);
+                      const pct = Math.round((precioProm / 300) * 100);
+                      return (
+                        <div key={p.idProveedor} className="ranking-item">
+                          <div className="ranking-item-info">
+                            <span className="ranking-name">{p.razonSocial}</span>
+                            <span className="ranking-score">{precioProm > 0 ? `${precioProm.toFixed(2)} Bs.` : '0.00 Bs.'}</span>
+                          </div>
+                          <div className="ranking-bar-track">
+                            <div
+                              className="ranking-bar-fill fill-mid"
+                              style={{ width: `${Math.min(100, Math.max(5, pct))}%` }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
 
-              <div className="form-group">
-                <label className="form-label">Tipo de Documento</label>
-                <select
-                  className="form-input"
-                  value={nuevoDoc.tipoDocumento}
-                  onChange={(e) => setNuevoDoc({ ...nuevoDoc, tipoDocumento: e.target.value })}
-                >
-                  <option value="Ficha RUC">Ficha RUC</option>
-                  <option value="Certificado de Homologación">Certificado de Homologación</option>
-                  <option value="Licencia de Funcionamiento">Licencia de Funcionamiento</option>
-                  <option value="Estado Financiero Auditable">Estado Financiero Auditable</option>
-                  <option value="Constancia de No Habido">Constancia de No Habido</option>
-                  <option value="Certificación ISO / Calidad">Certificación ISO / Calidad</option>
-                </select>
+              {indicadoresActivos.descuentos && (
+                <div className="chart-card">
+                  <div className="chart-header">
+                    <div>
+                      <h3 className="chart-title">Descuentos por Cantidad</h3>
+                      <p className="chart-subtitle">Porcentaje máximo de descuento por volumen ofertado</p>
+                    </div>
+                    <Percent size={18} className="chart-header-icon" />
+                  </div>
+
+                  <div className="ranking-bars-list">
+                    {proveedores.map((p) => {
+                      const pct = Math.round((p.descuentoVolumen / 20) * 100);
+                      return (
+                        <div key={p.idProveedor} className="ranking-item">
+                          <div className="ranking-item-info">
+                            <span className="ranking-name">{p.razonSocial}</span>
+                            <span className="ranking-score">{p.descuentoVolumen}%</span>
+                          </div>
+                          <div className="ranking-bar-track">
+                            <div
+                              className="ranking-bar-fill fill-high"
+                              style={{ width: `${Math.min(100, Math.max(5, pct))}%` }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {indicadoresActivos.tiempos && (
+                <div className="chart-card">
+                  <div className="chart-header">
+                    <div>
+                      <h3 className="chart-title">Tiempos Promedio de Entrega</h3>
+                      <p className="chart-subtitle">Días estimados para la recepción de pedidos</p>
+                    </div>
+                    <Clock size={18} className="chart-header-icon" />
+                  </div>
+
+                  <div className="ranking-bars-list">
+                    {proveedores.map((p) => {
+                      const pct = Math.round(((6 - p.tiempoPromedioDias) / 5) * 100);
+                      return (
+                        <div key={p.idProveedor} className="ranking-item">
+                          <div className="ranking-item-info">
+                            <span className="ranking-name">{p.razonSocial}</span>
+                            <span className="ranking-score">{p.tiempoPromedioDias} días</span>
+                          </div>
+                          <div className="ranking-bar-track">
+                            <div
+                              className="ranking-bar-fill fill-mid"
+                              style={{ width: `${Math.min(100, Math.max(5, pct))}%` }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {indicadoresActivos.calidad && (
+                <div className="chart-card">
+                  <div className="chart-header">
+                    <div>
+                      <h3 className="chart-title">Porcentaje de Calidad y Aceptación</h3>
+                      <p className="chart-subtitle">Índice de productos aceptados sin observaciones</p>
+                    </div>
+                    <Award size={18} className="chart-header-icon" />
+                  </div>
+
+                  <div className="ranking-bars-list">
+                    {proveedores.map((p) => {
+                      const met = obtenerMetricasCalidadEntrega(p.idProveedor);
+                      return (
+                        <div key={p.idProveedor} className="ranking-item">
+                          <div className="ranking-item-info">
+                            <span className="ranking-name">{p.razonSocial}</span>
+                            <span className="ranking-score">{met.porcentajeAceptados}%</span>
+                          </div>
+                          <div className="ranking-bar-track">
+                            <div
+                              className="ranking-bar-fill fill-high"
+                              style={{ width: `${met.porcentajeAceptados}%` }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="tabla-catalogo-card">
+              <div className="tabla-header-info">
+                <div className="titulo-tabla-group">
+                  <BarChart3 size={18} className="icono-seccion" />
+                  <h3 className="titulo-tabla">Resumen Comparativo de Desempeño</h3>
+                </div>
+                <span className="conteo-resultados">
+                  Análisis conjunto de precios, descuentos, tiempos y calidad
+                </span>
               </div>
 
-              <div className="form-group">
-                <label className="form-label">Número / Código de Documento</label>
-                <input
-                  type="text"
-                  placeholder="Ej. 20601234567 o CERT-2026-99"
-                  className="form-input"
-                  value={nuevoDoc.numeroDocumento}
-                  onChange={(e) => setNuevoDoc({ ...nuevoDoc, numeroDocumento: e.target.value })}
-                />
+              <div className="documentos-tabla-wrapper">
+                <table className="documentos-tabla">
+                  <thead>
+                    <tr>
+                      <th>Proveedor</th>
+                      <th>Precio Promedio</th>
+                      <th>Descuento por Volumen</th>
+                      <th>Tiempo Entrega</th>
+                      <th>Aceptación Calidad</th>
+                      <th>Puntaje Desempeño</th>
+                      <th>Estado</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {proveedores.map((p) => {
+                      const precioProm = obtenerPrecioPromedioProveedor(p);
+                      const calidadPct = obtenerMetricasCalidadEntrega(p.idProveedor).porcentajeAceptados;
+                      return (
+                        <tr key={p.idProveedor}>
+                          <td>
+                            <div className="producto-info-cell">
+                              <span className="producto-nombre">{p.razonSocial}</span>
+                              <span className="producto-desc">RUC: {p.nitRuc}</span>
+                            </div>
+                          </td>
+                          <td>
+                            <span className="precio-pactado-tag">
+                              {precioProm > 0 ? `${precioProm.toFixed(2)} Bs.` : 'N/A'}
+                            </span>
+                          </td>
+                          <td>
+                            <span className="font-semibold">{p.descuentoVolumen}%</span>
+                          </td>
+                          <td>
+                            <div className="entrega-cell">
+                              <Truck size={14} className="icon-truck" />
+                              <span>{p.tiempoPromedioDias} días</span>
+                            </div>
+                          </td>
+                          <td>
+                            <span className="score-calidad">{calidadPct}%</span>
+                          </td>
+                          <td>
+                            <span className="font-semibold">{p.puntajeDesempeno}%</span>
+                          </td>
+                          <td>
+                            <span className={`badge-estado badge-${p.estado.toLowerCase()}`}>
+                              {p.estado}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {modalDocAbierto && (
+          <div className="modal-overlay">
+            <div className="modal-card">
+              <div className="modal-header">
+                <div>
+                  <h3 className="modal-title">Registrar Documento</h3>
+                  <p className="modal-subtitle">Adjunta nuevos documentos de soporte del proveedor</p>
+                </div>
+                <button className="btn-close-modal" onClick={() => setModalDocAbierto(false)}>
+                  <X size={18} />
+                </button>
               </div>
 
-              <div className="form-group">
-                <label className="form-label">Fecha de Vencimiento</label>
-                <input
-                  type="date"
-                  className="form-input"
-                  value={nuevoDoc.fechaVencimiento}
-                  onChange={(e) => setNuevoDoc({ ...nuevoDoc, fechaVencimiento: e.target.value })}
-                />
-              </div>
+              <form onSubmit={handleRegistrarDocumento} className="modal-form">
+                {errorFormDoc && (
+                  <div className="form-error-msg">
+                    <AlertCircle size={14} />
+                    <span>{errorFormDoc}</span>
+                  </div>
+                )}
 
-              <div className="form-group">
-                <label className="form-label">Archivo de Respaldo (.PDF / .ZIP)</label>
-                <div className="upload-dropzone">
-                  <Upload size={20} className="upload-icon" />
-                  <span className="upload-text">
-                    {nuevoDoc.archivoNombre ? nuevoDoc.archivoNombre : 'Seleccionar o arrastrar archivo PDF'}
-                  </span>
+                <div className="form-group">
+                  <label className="form-label">Tipo de Documento</label>
+                  <select
+                    className="form-input"
+                    value={nuevoDoc.tipoDocumento}
+                    onChange={(e) => setNuevoDoc({ ...nuevoDoc, tipoDocumento: e.target.value })}
+                  >
+                    <option value="Ficha RUC">Ficha RUC</option>
+                    <option value="Certificado de Homologación">Certificado de Homologación</option>
+                    <option value="Licencia de Funcionamiento">Licencia de Funcionamiento</option>
+                    <option value="Certificación ISO">Certificación ISO</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Número de Documento</label>
                   <input
-                    type="file"
-                    accept=".pdf,.png,.jpg,.zip"
-                    className="file-input-hidden"
-                    onChange={(e) => {
-                      if (e.target.files && e.target.files[0]) {
-                        setNuevoDoc({ ...nuevoDoc, archivoNombre: e.target.files[0].name });
-                      }
-                    }}
+                    type="text"
+                    className="form-input"
+                    placeholder="Ej. 20601234567 / CH-2026-101"
+                    value={nuevoDoc.numeroDocumento}
+                    onChange={(e) => setNuevoDoc({ ...nuevoDoc, numeroDocumento: e.target.value })}
                   />
                 </div>
-              </div>
 
-              <div className="modal-footer">
-                <button
-                  type="button"
-                  className="btn-cancelar"
-                  onClick={() => setModalDocAbierto(false)}
-                >
-                  Cancelar
-                </button>
-                <button type="submit" className="btn-guardar">
-                  Guardar y Asociar Documento
-                </button>
-              </div>
-            </form>
+                <div className="form-group">
+                  <label className="form-label">Fecha de Vencimiento</label>
+                  <input
+                    type="date"
+                    className="form-input"
+                    value={nuevoDoc.fechaVencimiento}
+                    onChange={(e) => setNuevoDoc({ ...nuevoDoc, fechaVencimiento: e.target.value })}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Archivo Adjunto (Simulado)</label>
+                  <div className="upload-dropzone">
+                    <Upload size={20} className="upload-icon" />
+                    <span className="upload-text">
+                      {nuevoDoc.archivoNombre || 'Haz clic o arrastra un archivo PDF para adjuntar'}
+                    </span>
+                    <input
+                      type="file"
+                      className="file-input-hidden"
+                      onChange={(e) => {
+                        if (e.target.files && e.target.files[0]) {
+                          setNuevoDoc({ ...nuevoDoc, archivoNombre: e.target.files[0].name });
+                        }
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <div className="modal-footer">
+                  <button type="button" className="btn-cancelar" onClick={() => setModalDocAbierto(false)}>
+                    Cancelar
+                  </button>
+                  <button type="submit" className="btn-guardar">
+                    Guardar Documento
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
-        </div>
-      )}
-
+        )}
+      </section>
     </div>
   );
 };
