@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { LineSidebar } from './LineSidebar';
+import ProductoDetalle from './ProductoDetalle';
 import {
   ShieldCheck, CheckCircle2, XCircle, AlertCircle, FileText,
   Search, RefreshCw, Power, Clock, BarChart3, TrendingUp,
@@ -17,7 +18,7 @@ export interface Documento {
   numeroDocumento: string;
   fechaVencimiento: string;
   archivo: string;
-  estadoValidacion: 'Valido' | 'Vencido' | 'Pendiente';
+  estadoValidacion: 'Válido' | 'Vencido' | 'Pendiente';
 }
 
 export interface ProductoCatalogo {
@@ -267,6 +268,7 @@ export const Catalogo = () => {
 
   const [busquedaProducto, setBusquedaProducto] = useState<string>('');
   const [categoriaFiltro, setCategoriaFiltro] = useState<string>('Todas');
+  const [productoSeleccionado, setProductoSeleccionado] = useState<ProductoCatalogo | null>(null);
 
   const cambiarEstadoProveedor = (nuevoEstado: EstadoProveedor) => {
     const listaActualizada = proveedores.map(p =>
@@ -648,6 +650,7 @@ export const Catalogo = () => {
                           setProveedorSeleccionado(prov);
                           setBusquedaProducto('');
                           setCategoriaFiltro('Todas');
+                          setProductoSeleccionado(null);
                         }
                       }}
                     >
@@ -726,7 +729,11 @@ export const Catalogo = () => {
                   <tbody>
                     {productosFiltrados.length > 0 ? (
                       productosFiltrados.map((prod) => (
-                        <tr key={prod.idProducto}>
+                        <tr 
+                        key={prod.idProducto}
+                        onClick={() => setProductoSeleccionado(prod)}
+                        className="producto-fila"
+                        >
                           <td>
                             <span className="sku-badge">
                               <Tag size={12} />
@@ -774,6 +781,14 @@ export const Catalogo = () => {
                 </table>
               </div>
             </div>
+            {productoSeleccionado && (
+              <ProductoDetalle
+                producto={productoSeleccionado}
+                productos={proveedorSeleccionado.catalogoProductos}
+                onCerrar={() => setProductoSeleccionado(null)}
+                onCambiarProducto={setProductoSeleccionado}
+              />
+            )}
           </div>
         )}
 
@@ -1023,6 +1038,7 @@ export const Catalogo = () => {
           </div>
         </div>
       )}
+
     </div>
   );
 };

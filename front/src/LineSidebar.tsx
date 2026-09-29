@@ -41,7 +41,7 @@ const DEFAULT_ITEMS = [
 
 export const LineSidebar = ({
     items = DEFAULT_ITEMS,
-    accentColor = '#818cf8',
+    accentColor = '#e9b949',
     textColor = '#9ca3af',
     markerColor = '#4b5563',
     showIndex = true,
