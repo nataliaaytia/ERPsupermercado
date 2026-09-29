@@ -1424,3 +1424,139 @@
 .chart-card .freq-bar-chart {
     margin-bottom: 1.75rem;
 }
+
+.producto-fila {
+  cursor: pointer;
+}
+
+.producto-fila td {
+  transition:
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.producto-fila:hover td {
+  background-color: #FFF1C2;
+}
+
+.producto-fila:hover td:first-child {
+  box-shadow: inset 4px 0 0 #E9B949;
+}
+
+[data-theme='dark'] .producto-fila:hover td {
+  background-color: #3A3425;
+}
+
+[data-theme='dark'] .producto-fila:hover td:first-child {
+  box-shadow: inset 4px 0 0 #E9B949;  /*mostaza dorado o golden mustard*/
+}
+
+/* ================================
+   DETALLE DE PRODUCTO
+   ================================ */
+
+.producto-detalle-modal {
+  width: min(680px, calc(100vw - 2rem));
+  max-height: 85vh;
+  overflow-y: auto;
+
+  background: var(--bg-card, #ffffff);
+  color: var(--text-primary);
+
+  border: 1px solid var(--border-color, rgba(0, 0, 0, 0.1));
+
+  padding: 2.5rem;
+  box-sizing: border-box;
+
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.18);
+}
+
+.producto-detalle-descripcion {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.producto-detalle-descripcion p {
+  margin: 0;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.producto-detalle-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.75rem 2.5rem;
+
+  padding: 1.5rem;
+  background: rgba(0, 0, 0, 0.015);
+  border-left: 1px solid var(--border-color);
+}
+
+.producto-detalle-precio {
+  color: #16a34a;
+}
+
+.producto-detalle-icono {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.producto-detalle-navegacion {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 1rem;
+
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.btn-producto-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-producto-nav:last-child {
+  justify-self: end;
+}
+
+.btn-producto-nav:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.producto-contador {
+  font-size: 0.6875rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+[data-theme='dark'] .producto-detalle-grid {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+@media (max-width: 600px) {
+  .producto-detalle-modal {
+    padding: 1.5rem;
+  }
+
+  .producto-detalle-grid {
+    grid-template-columns: 1fr;
+  }
+}
