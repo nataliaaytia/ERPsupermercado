@@ -1,6 +1,7 @@
 package com.sonic.erp.proveedores.service;
 
 import com.sonic.erp.proveedores.dto.request.ProveedorCreateRequest;
+import com.sonic.erp.proveedores.dto.request.ProveedorUpdateRequest;
 import com.sonic.erp.proveedores.entity.Proveedor;
 import com.sonic.erp.proveedores.repository.ProveedorRepository;
 import jakarta.transaction.Transactional;
@@ -34,6 +35,42 @@ public class ProveedorService {
                 .build();
         return proveedorRepository.save(nuevoProveedor);
 
+    }
+
+
+    @Transactional
+    public Proveedor actualizarProveedor(Long id, ProveedorUpdateRequest request) {
+        Proveedor proveedor = proveedorRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("No se encontro el proveedor con el ID: " + id));
+
+        if (request.getNitRuc() != null && !request.getNitRuc().isBlank()) {
+            if (proveedorRepository.existsByNitRucAndIdProveedorNot(request.getNitRuc(), id)) {
+                throw new IllegalArgumentException("El NIT o RUC ya esta registrado para otro proveedor");
+            }
+            proveedor.setNitRuc(request.getNitRuc());
+        }
+
+        if (request.getRazonSocial() != null && !request.getRazonSocial().isBlank()) {
+            proveedor.setRazonSocial(request.getRazonSocial());
+        }
+
+        if (request.getDireccion() != null && !request.getDireccion().isBlank()) {
+            proveedor.setDireccion(request.getDireccion());
+        }
+
+        if (request.getTelefono() != null && !request.getTelefono().isBlank()) {
+            proveedor.setTelefono(request.getTelefono());
+        }
+
+        if (request.getCorreo() != null && !request.getCorreo().isBlank()) {
+            proveedor.setCorreo(request.getCorreo());
+        }
+
+        if (request.getEstado() != null && !request.getEstado().isBlank()) {
+            proveedor.setEstado(request.getEstado());
+        }
+
+        return proveedorRepository.save(proveedor);
     }
 
     public ProveedorValidacionResponse validarProveedor(Long idProveedor) {
@@ -109,4 +146,6 @@ public class ProveedorService {
 
         return proveedorRepository.save(proveedor);
     }
+
+
 }
