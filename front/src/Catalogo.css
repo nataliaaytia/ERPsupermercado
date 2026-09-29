@@ -48,7 +48,7 @@
 
 .catalogo-title {
     font-family: var(--cat-display);
-    font-size: 2 rem;
+    font-size: 2rem;
     font-weight: 500;
     line-height: 1.1;
     margin: 0;
@@ -1449,12 +1449,7 @@
 
 [data-theme='dark'] .producto-fila:hover td:first-child {
     box-shadow: inset 4px 0 0 #E9B949;
-    /*mostaza dorado o golden mustard*/
 }
-
-/* ================================
-   DETALLE DE PRODUCTO
-   ================================ */
 
 .producto-detalle-modal {
     width: min(680px, calc(100vw - 2rem));
@@ -1598,7 +1593,6 @@
     width: 100%;
 }
 
-/* --- Leyenda del Histórico --- */
 .leyenda-historico-container {
     display: flex;
     gap: 1.5rem;
@@ -1628,4 +1622,22 @@
 
 .leyenda-promedio-texto {
     color: var(--text-secondary);
+}
+
+.score-calidad {
+    color: #16a34a;
+    font-weight: 600;
+}
+
+.score-cumplimiento {
+    color: #2563eb;
+    font-weight: 600;
+}
+
+.fill-calidad {
+    background: #22c55e;
+}
+
+.fill-cumplimiento {
+    background: #3b82f6;
 }
