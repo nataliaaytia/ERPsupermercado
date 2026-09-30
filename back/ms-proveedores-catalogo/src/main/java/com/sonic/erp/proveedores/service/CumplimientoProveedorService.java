@@ -1,7 +1,6 @@
 package com.sonic.erp.proveedores.service;
 
 import com.sonic.erp.proveedores.dto.response.CumplimientoPlazosResponse;
-import com.sonic.erp.proveedores.dto.response.CumplimientoEntregasResponse;
 import com.sonic.erp.proveedores.entity.Proveedor;
 import com.sonic.erp.proveedores.entity.RecepcionMercaderia;
 import com.sonic.erp.proveedores.repository.ProveedorRepository;
@@ -41,7 +40,8 @@ public class CumplimientoProveedorService {
         }
 
         int aTiempo = (int) recepciones.stream()
-                .filter(r -> r.getFechaComprometida() != null && !r.getFechaRecepcion().isAfter(r.getFechaComprometida()))
+                .filter(r -> r.getFechaComprometida() != null
+                        && !r.getFechaRecepcion().isAfter(r.getFechaComprometida()))
                 .count();
 
         int conRetraso = total - aTiempo;

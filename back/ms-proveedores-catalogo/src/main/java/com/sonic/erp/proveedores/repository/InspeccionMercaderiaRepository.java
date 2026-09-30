@@ -9,6 +9,5 @@ import java.util.List;
 @Repository
 public interface InspeccionMercaderiaRepository
         extends JpaRepository<InspeccionMercaderia, Long> {
-
     List<InspeccionMercaderia> findByProveedor_IdProveedor(Long idProveedor);
 }
