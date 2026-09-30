@@ -87,4 +87,24 @@ public class ProveedorController {
 
         return ResponseEntity.ok(respuesta);
     }
+
+    @GetMapping("/{idProveedor}/productos/{idProducto}/tiempo-entrega")
+    public ResponseEntity<Map<String, Object>> consultarTiempoEntrega(
+            @PathVariable Long idProveedor,
+            @PathVariable Long idProducto) {
+
+        Integer tiempoEntrega =
+                proveedorService.consultarTiempoEntrega(
+                        idProveedor,
+                        idProducto
+                );
+
+        Map<String, Object> respuesta = Map.of(
+                "idProveedor", idProveedor,
+                "idProducto", idProducto,
+                "tiempoEntregaDias", tiempoEntrega
+        );
+
+        return ResponseEntity.ok(respuesta);
+    }
 }
