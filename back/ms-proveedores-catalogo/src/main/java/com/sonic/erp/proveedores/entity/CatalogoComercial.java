@@ -43,4 +43,11 @@ public class CatalogoComercial {
     @JoinColumn(name = "id_producto", nullable = false)
     private Producto producto;
 
+    @PrePersist
+    public void alCrear() {
+        if (this.fechaInicio == null) {
+            this.fechaInicio = LocalDate.now();
+        }
+    }
+
 }
