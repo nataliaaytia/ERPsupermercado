@@ -11,11 +11,14 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import com.sonic.erp.proveedores.dto.response.ProveedorValidacionResponse;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
+
 
 @Service
 @RequiredArgsConstructor
@@ -196,5 +199,33 @@ public class ProveedorService {
                 .productos(productosDTO)
                 .build();
     }
+
+    public BigDecimal consultarPrecioPactado(Long idProveedor, Long idProducto) {
+
+        List<CatalogoComercial> catalogos =
+                catalogoComercialRepository
+                        .findByProveedor_IdProveedorAndProducto_IdProducto(
+                                idProveedor,
+                                idProducto
+                        );
+
+        LocalDate hoy = LocalDate.now();
+
+        CatalogoComercial catalogoVigente = catalogos.stream()
+                .filter(catalogo ->
+                        !hoy.isBefore(catalogo.getFechaInicio())
+                                && !hoy.isAfter(catalogo.getFechaFin())
+                )
+                .findFirst()
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "No existe un precio pactado vigente para el proveedor y producto indicados"
+                        )
+                );
+
+        return catalogoVigente.getProducto().getPrecioReferencial();
+    }
+
+
 
 }

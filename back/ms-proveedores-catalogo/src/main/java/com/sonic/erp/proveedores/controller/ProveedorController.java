@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import com.sonic.erp.proveedores.dto.response.ProveedorValidacionResponse;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/proveedores")
@@ -65,5 +66,25 @@ public class ProveedorController {
     public ResponseEntity<ProveedorDetalleResponse> consultarPorId(@PathVariable Long id) {
         ProveedorDetalleResponse detalle = proveedorService.consultarDetalleProveedor(id);
         return ResponseEntity.ok(detalle);
+    }
+
+    @GetMapping("/{idProveedor}/productos/{idProducto}/precio")
+    public ResponseEntity<Map<String, Object>> consultarPrecioPactado(
+            @PathVariable Long idProveedor,
+            @PathVariable Long idProducto) {
+
+        var precioPactado =
+                proveedorService.consultarPrecioPactado(
+                        idProveedor,
+                        idProducto
+                );
+
+        Map<String, Object> respuesta = Map.of(
+                "idProveedor", idProveedor,
+                "idProducto", idProducto,
+                "precioPactado", precioPactado
+        );
+
+        return ResponseEntity.ok(respuesta);
     }
 }
