@@ -12,6 +12,7 @@ public interface IncidenciaProveedorRepository extends JpaRepository<IncidenciaP
 
     List<IncidenciaProveedor> findByProveedor_IdProveedor(Long idProveedor);
 
+    // Ranking de proveedores según cantidad de retrasos
     @Query("""
             SELECT
                 i.proveedor.idProveedor,
@@ -23,4 +24,21 @@ public interface IncidenciaProveedorRepository extends JpaRepository<IncidenciaP
             ORDER BY COUNT(i) DESC
             """)
     List<Object[]> contarRetrasosPorProveedor();
+
+    // Datos necesarios para calcular el porcentaje de cumplimiento
+    @Query("""
+            SELECT
+                i.proveedor.idProveedor,
+                i.proveedor.razonSocial,
+                COUNT(i),
+                SUM(
+                    CASE
+                        WHEN LOWER(i.tipo) = LOWER('Retraso') THEN 1
+                        ELSE 0
+                    END
+                )
+            FROM IncidenciaProveedor i
+            GROUP BY i.proveedor.idProveedor, i.proveedor.razonSocial
+            """)
+    List<Object[]> obtenerDatosCumplimiento();
 }

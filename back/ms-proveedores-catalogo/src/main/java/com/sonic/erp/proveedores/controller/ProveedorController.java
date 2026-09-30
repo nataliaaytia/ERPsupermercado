@@ -116,4 +116,13 @@ public class ProveedorController {
 
         return ResponseEntity.ok(ranking);
     }
+
+    @GetMapping("/ranking-cumplimiento")
+    public ResponseEntity<List<Map<String, Object>>> obtenerRankingCumplimiento() {
+
+        List<Map<String, Object>> ranking =
+                proveedorService.obtenerRankingCumplimiento();
+
+        return ResponseEntity.ok(ranking);
+    }
 }
