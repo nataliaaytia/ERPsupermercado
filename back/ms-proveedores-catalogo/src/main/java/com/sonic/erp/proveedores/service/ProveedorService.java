@@ -7,15 +7,24 @@ import com.sonic.erp.proveedores.entity.CatalogoComercial;
 import com.sonic.erp.proveedores.entity.Proveedor;
 import com.sonic.erp.proveedores.repository.CatalogoComercialRepository;
 import com.sonic.erp.proveedores.repository.ProveedorRepository;
+import com.sonic.erp.proveedores.repository.IncidenciaProveedorRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import com.sonic.erp.proveedores.dto.response.ProveedorValidacionResponse;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Pattern;
+import com.sonic.erp.proveedores.entity.CondicionComercial;
+import com.sonic.erp.proveedores.repository.CondicionComercialRepository;
+import java.util.Comparator;
+
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +33,8 @@ public class ProveedorService {
 
     private final ProveedorRepository proveedorRepository;
     private final CatalogoComercialRepository catalogoComercialRepository;
+    private final CondicionComercialRepository condicionComercialRepository;
+    private final IncidenciaProveedorRepository incidenciaProveedorRepository;
 
     @Transactional
     public Proveedor registrarProveedor(ProveedorCreateRequest request) {
@@ -157,12 +168,12 @@ public class ProveedorService {
 
     public Proveedor obtenerProveedorPorId(Long id) {
         return proveedorRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("No se encontro el proveedor con el ID: " + id));
+                .orElseThrow(() -> new IllegalArgumentException("No se encontró el proveedor con el ID: " + id));
     }
 
     public ProveedorDetalleResponse consultarDetalleProveedor(Long id) {
         Proveedor proveedor = proveedorRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("No se encontro el proveedor con ID: " + id));
+                .orElseThrow(() -> new IllegalArgumentException("No se encontró el proveedor con ID: " + id));
 
         List<CatalogoComercial> catalogo = catalogoComercialRepository.findByProveedor_IdProveedor(id);
 
@@ -196,5 +207,120 @@ public class ProveedorService {
                 .productos(productosDTO)
                 .build();
     }
+
+    public BigDecimal consultarPrecioPactado(Long idProveedor, Long idProducto) {
+
+        List<CatalogoComercial> catalogos =
+                catalogoComercialRepository
+                        .findByProveedor_IdProveedorAndProducto_IdProducto(
+                                idProveedor,
+                                idProducto
+                        );
+
+        LocalDate hoy = LocalDate.now();
+
+        CatalogoComercial catalogoVigente = catalogos.stream()
+                .filter(catalogo ->
+                        !hoy.isBefore(catalogo.getFechaInicio())
+                                && !hoy.isAfter(catalogo.getFechaFin())
+                )
+                .findFirst()
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "No existe un precio pactado vigente para el proveedor y producto indicados"
+                        )
+                );
+
+        return catalogoVigente.getProducto().getPrecioReferencial();
+    }
+
+    public Integer consultarTiempoEntrega(Long idProveedor, Long idProducto) {
+
+        List<CatalogoComercial> catalogos =
+                catalogoComercialRepository
+                        .findByProveedor_IdProveedorAndProducto_IdProducto(
+                                idProveedor,
+                                idProducto
+                        );
+
+        if (catalogos.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "El producto no está asociado al proveedor indicado"
+            );
+        }
+
+        CondicionComercial condicion =
+                condicionComercialRepository
+                        .findFirstByProveedor_IdProveedorOrderByFechaRegistroDesc(
+                                idProveedor
+                        )
+                        .orElseThrow(() ->
+                                new IllegalArgumentException(
+                                        "El proveedor no tiene registrado un tiempo de entrega"
+                                )
+                        );
+
+        return condicion.getPlazoEntregaDias();
+    }
+
+    public List<Map<String, Object>> obtenerRankingRetrasos() {
+
+        List<Object[]> resultados =
+                incidenciaProveedorRepository.contarRetrasosPorProveedor();
+
+        return resultados.stream()
+                .map(resultado -> {
+                    Map<String, Object> proveedor = new HashMap<>();
+
+                    proveedor.put("idProveedor", resultado[0]);
+                    proveedor.put("razonSocial", resultado[1]);
+                    proveedor.put("cantidadRetrasos", resultado[2]);
+
+                    return proveedor;
+                })
+                .toList();
+    }
+
+    public List<Map<String, Object>> obtenerRankingCumplimiento() {
+
+        List<Object[]> resultados =
+                incidenciaProveedorRepository.obtenerDatosCumplimiento();
+
+        List<Map<String, Object>> ranking = resultados.stream()
+                .map(resultado -> {
+
+                    Long idProveedor = ((Number) resultado[0]).longValue();
+                    String razonSocial = (String) resultado[1];
+                    long totalIncidencias = ((Number) resultado[2]).longValue();
+                    long totalRetrasos = ((Number) resultado[3]).longValue();
+
+                    double porcentajeCumplimiento =
+                            totalIncidencias > 0
+                                    ? ((double) (totalIncidencias - totalRetrasos)
+                                       / totalIncidencias) * 100
+                                    : 0.0;
+
+                    Map<String, Object> proveedor = new HashMap<>();
+
+                    proveedor.put("idProveedor", idProveedor);
+                    proveedor.put("razonSocial", razonSocial);
+                    proveedor.put("totalIncidencias", totalIncidencias);
+                    proveedor.put("totalRetrasos", totalRetrasos);
+                    proveedor.put("porcentajeCumplimiento", porcentajeCumplimiento);
+
+                    return proveedor;
+                })
+                .toList();
+
+        ranking.sort((proveedor1, proveedor2) ->
+                Double.compare(
+                        ((Number) proveedor2.get("porcentajeCumplimiento")).doubleValue(),
+                        ((Number) proveedor1.get("porcentajeCumplimiento")).doubleValue()
+                )
+        );
+
+        return ranking;
+    }
+
 
 }

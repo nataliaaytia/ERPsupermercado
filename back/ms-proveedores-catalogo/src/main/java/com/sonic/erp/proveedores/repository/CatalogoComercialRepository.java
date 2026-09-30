@@ -8,5 +8,11 @@ import java.util.List;
 
 @Repository
 public interface CatalogoComercialRepository extends JpaRepository<CatalogoComercial, Long> {
+
     List<CatalogoComercial> findByProveedor_IdProveedor(Long idProveedor);
+
+    List<CatalogoComercial> findByProveedor_IdProveedorAndProducto_IdProducto(
+            Long idProveedor,
+            Long idProducto
+    );
 }
