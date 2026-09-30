@@ -4,6 +4,7 @@ import com.sonic.erp.proveedores.dto.request.ProveedorCreateRequest;
 import com.sonic.erp.proveedores.dto.request.ProveedorUpdateRequest;
 import com.sonic.erp.proveedores.dto.response.ComparacionPrecioResponse;
 import com.sonic.erp.proveedores.dto.response.ProveedorDetalleResponse;
+import com.sonic.erp.proveedores.dto.response.ComparacionTiempoEntregaResponse;
 import com.sonic.erp.proveedores.entity.CatalogoComercial;
 import com.sonic.erp.proveedores.entity.Proveedor;
 import com.sonic.erp.proveedores.repository.CatalogoComercialRepository;
@@ -377,4 +378,61 @@ public class ProveedorService {
                 .build();
     }
 
+    public ComparacionTiempoEntregaResponse compararTiemposEntrega(Long idProducto) {
+
+        List<CatalogoComercial> catalogos =
+                catalogoComercialRepository.findByProducto_IdProducto(idProducto);
+
+        if (catalogos.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "No existen proveedores asociados al producto indicado"
+            );
+        }
+
+        var producto = catalogos.get(0).getProducto();
+
+        List<ComparacionTiempoEntregaResponse.ProveedorTiempoEntregaDTO> proveedores =
+                catalogos.stream()
+                        .map(catalogo -> {
+
+                            Long idProveedor =
+                                    catalogo.getProveedor().getIdProveedor();
+
+                            CondicionComercial condicion =
+                                    condicionComercialRepository
+                                            .findFirstByProveedor_IdProveedorOrderByFechaRegistroDesc(
+                                                    idProveedor
+                                            )
+                                            .orElseThrow(() ->
+                                                    new IllegalArgumentException(
+                                                            "El proveedor "
+                                                                    + idProveedor
+                                                                    + " no tiene registrado un tiempo de entrega"
+                                                    )
+                                            );
+
+                            return ComparacionTiempoEntregaResponse
+                                    .ProveedorTiempoEntregaDTO.builder()
+                                    .idProveedor(idProveedor)
+                                    .razonSocial(
+                                            catalogo.getProveedor().getRazonSocial()
+                                    )
+                                    .tiempoEntregaDias(
+                                            condicion.getPlazoEntregaDias()
+                                    )
+                                    .build();
+                        })
+                        .sorted((p1, p2) ->
+                                p1.getTiempoEntregaDias()
+                                        .compareTo(p2.getTiempoEntregaDias())
+                        )
+                        .toList();
+
+        return ComparacionTiempoEntregaResponse.builder()
+                .idProducto(producto.getIdProducto())
+                .codigoSku(producto.getCodigoSku())
+                .descripcion(producto.getDescripcion())
+                .proveedores(proveedores)
+                .build();
+    }
 }

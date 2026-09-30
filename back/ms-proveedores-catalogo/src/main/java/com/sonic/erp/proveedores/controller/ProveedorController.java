@@ -3,6 +3,7 @@ import com.sonic.erp.proveedores.dto.request.ProveedorCreateRequest;
 import com.sonic.erp.proveedores.dto.response.ComparacionPrecioResponse;
 import com.sonic.erp.proveedores.dto.request.ProveedorUpdateRequest;
 import com.sonic.erp.proveedores.dto.response.ProveedorDetalleResponse;
+import com.sonic.erp.proveedores.dto.response.ComparacionTiempoEntregaResponse;
 import com.sonic.erp.proveedores.entity.Proveedor;
 import com.sonic.erp.proveedores.service.ProveedorService;
 import jakarta.validation.Valid;
@@ -133,6 +134,16 @@ public class ProveedorController {
 
         ComparacionPrecioResponse comparacion =
                 proveedorService.compararPrecios(idProducto);
+
+        return ResponseEntity.ok(comparacion);
+    }
+
+    @GetMapping("/productos/{idProducto}/comparacion-tiempos-entrega")
+    public ResponseEntity<ComparacionTiempoEntregaResponse> compararTiemposEntrega(
+            @PathVariable Long idProducto) {
+
+        ComparacionTiempoEntregaResponse comparacion =
+                proveedorService.compararTiemposEntrega(idProducto);
 
         return ResponseEntity.ok(comparacion);
     }
