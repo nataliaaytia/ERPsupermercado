@@ -364,7 +364,6 @@ export const Catalogo = () => {
 
   const [criterioRanking, setCriterioRanking] = useState<'descuento' | 'puntuacion' | 'tiempo'>('descuento');
 
-  /* INICIO CAMBIO: Separación del indicador en Productos Aceptados y Órdenes Cumplidas */
   const [indicadoresActivos, setIndicadoresActivos] = useState<{
     precios: boolean;
     descuentos: boolean;
@@ -378,7 +377,6 @@ export const Catalogo = () => {
     productosAceptados: true,
     ordenesCumplidas: true
   });
-  /* FIN CAMBIO */
 
   const proveedoresOrdenadosRanking = [...proveedores].sort((a, b) => {
     if (criterioRanking === 'descuento') {
@@ -1381,7 +1379,6 @@ export const Catalogo = () => {
                   <span>Tiempos de Entrega</span>
                 </button>
 
-                {/* INICIO CAMBIO: Separación del botón del indicador en Productos Aceptados y Órdenes Cumplidas */}
                 <button
                   className={`checkbox-indicador-btn ${indicadoresActivos.productosAceptados ? 'active' : ''}`}
                   onClick={() => toggleIndicador('productosAceptados')}
@@ -1397,7 +1394,6 @@ export const Catalogo = () => {
                   {indicadoresActivos.ordenesCumplidas ? <CheckSquare size={14} /> : <Square size={14} />}
                   <span>Porcentaje de Órdenes Cumplidas</span>
                 </button>
-                {/* FIN CAMBIO */}
               </div>
             </div>
 
@@ -1499,7 +1495,6 @@ export const Catalogo = () => {
                 </div>
               )}
 
-              {/* INICIO CAMBIO: Gráficos independientes para Porcentaje de Productos Aceptados y Porcentaje de Órdenes Cumplidas */}
               {indicadoresActivos.productosAceptados && (
                 <div className="chart-card">
                   <div className="chart-header">
@@ -1563,7 +1558,6 @@ export const Catalogo = () => {
                   </div>
                 </div>
               )}
-              {/* FIN CAMBIO */}
             </div>
 
             <div className="tabla-catalogo-card">
