@@ -20,4 +20,15 @@ public class CumplimientoPlazosResponse {
     private Integer entregasRetrasadas;
 
     private Double porcentajeEntregasATiempo;
+
+
+    private Integer totalProductosInspeccionados;
+
+    private Integer totalProductosAceptados;
+
+    private Integer totalProductosDefectuosos;
+
+    private Double porcentajeDefectuosos;
+
+
 }
