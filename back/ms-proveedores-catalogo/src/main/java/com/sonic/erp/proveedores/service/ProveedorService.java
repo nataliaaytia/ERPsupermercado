@@ -7,6 +7,7 @@ import com.sonic.erp.proveedores.entity.CatalogoComercial;
 import com.sonic.erp.proveedores.entity.Proveedor;
 import com.sonic.erp.proveedores.repository.CatalogoComercialRepository;
 import com.sonic.erp.proveedores.repository.ProveedorRepository;
+import com.sonic.erp.proveedores.repository.IncidenciaProveedorRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,8 @@ import java.time.LocalDateTime;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Pattern;
 import com.sonic.erp.proveedores.entity.CondicionComercial;
 import com.sonic.erp.proveedores.repository.CondicionComercialRepository;
@@ -30,6 +33,7 @@ public class ProveedorService {
     private final ProveedorRepository proveedorRepository;
     private final CatalogoComercialRepository catalogoComercialRepository;
     private final CondicionComercialRepository condicionComercialRepository;
+    private final IncidenciaProveedorRepository incidenciaProveedorRepository;
 
     @Transactional
     public Proveedor registrarProveedor(ProveedorCreateRequest request) {
@@ -256,5 +260,23 @@ public class ProveedorService {
                         );
 
         return condicion.getPlazoEntregaDias();
+    }
+
+    public List<Map<String, Object>> obtenerRankingRetrasos() {
+
+        List<Object[]> resultados =
+                incidenciaProveedorRepository.contarRetrasosPorProveedor();
+
+        return resultados.stream()
+                .map(resultado -> {
+                    Map<String, Object> proveedor = new HashMap<>();
+
+                    proveedor.put("idProveedor", resultado[0]);
+                    proveedor.put("razonSocial", resultado[1]);
+                    proveedor.put("cantidadRetrasos", resultado[2]);
+
+                    return proveedor;
+                })
+                .toList();
     }
 }
