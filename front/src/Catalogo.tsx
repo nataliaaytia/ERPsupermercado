@@ -363,17 +363,22 @@ export const Catalogo = () => {
   const [productoCompararSKU, setProductoCompararSKU] = useState<string>('PROD-LOG-001');
 
   const [criterioRanking, setCriterioRanking] = useState<'descuento' | 'puntuacion' | 'tiempo'>('descuento');
+
+  /* INICIO CAMBIO: Separación del indicador en Productos Aceptados y Órdenes Cumplidas */
   const [indicadoresActivos, setIndicadoresActivos] = useState<{
     precios: boolean;
     descuentos: boolean;
     tiempos: boolean;
-    calidad: boolean;
+    productosAceptados: boolean;
+    ordenesCumplidas: boolean;
   }>({
     precios: true,
     descuentos: true,
     tiempos: true,
-    calidad: true
+    productosAceptados: true,
+    ordenesCumplidas: true
   });
+  /* FIN CAMBIO */
 
   const proveedoresOrdenadosRanking = [...proveedores].sort((a, b) => {
     if (criterioRanking === 'descuento') {
@@ -1376,13 +1381,23 @@ export const Catalogo = () => {
                   <span>Tiempos de Entrega</span>
                 </button>
 
+                {/* INICIO CAMBIO: Separación del botón del indicador en Productos Aceptados y Órdenes Cumplidas */}
                 <button
-                  className={`checkbox-indicador-btn ${indicadoresActivos.calidad ? 'active' : ''}`}
-                  onClick={() => toggleIndicador('calidad')}
+                  className={`checkbox-indicador-btn ${indicadoresActivos.productosAceptados ? 'active' : ''}`}
+                  onClick={() => toggleIndicador('productosAceptados')}
                 >
-                  {indicadoresActivos.calidad ? <CheckSquare size={14} /> : <Square size={14} />}
-                  <span>Calidad y Cumplimiento</span>
+                  {indicadoresActivos.productosAceptados ? <CheckSquare size={14} /> : <Square size={14} />}
+                  <span>Porcentaje de Productos Aceptados</span>
                 </button>
+
+                <button
+                  className={`checkbox-indicador-btn ${indicadoresActivos.ordenesCumplidas ? 'active' : ''}`}
+                  onClick={() => toggleIndicador('ordenesCumplidas')}
+                >
+                  {indicadoresActivos.ordenesCumplidas ? <CheckSquare size={14} /> : <Square size={14} />}
+                  <span>Porcentaje de Órdenes Cumplidas</span>
+                </button>
+                {/* FIN CAMBIO */}
               </div>
             </div>
 
@@ -1484,11 +1499,12 @@ export const Catalogo = () => {
                 </div>
               )}
 
-              {indicadoresActivos.calidad && (
+              {/* INICIO CAMBIO: Gráficos independientes para Porcentaje de Productos Aceptados y Porcentaje de Órdenes Cumplidas */}
+              {indicadoresActivos.productosAceptados && (
                 <div className="chart-card">
                   <div className="chart-header">
                     <div>
-                      <h3 className="chart-title">Porcentaje de Calidad y Aceptación</h3>
+                      <h3 className="chart-title">Porcentaje de Productos Aceptados</h3>
                       <p className="chart-subtitle">Índice de productos aceptados sin observaciones</p>
                     </div>
                     <Award size={18} className="chart-header-icon" />
@@ -1515,6 +1531,39 @@ export const Catalogo = () => {
                   </div>
                 </div>
               )}
+
+              {indicadoresActivos.ordenesCumplidas && (
+                <div className="chart-card">
+                  <div className="chart-header">
+                    <div>
+                      <h3 className="chart-title">Porcentaje de Órdenes Cumplidas</h3>
+                      <p className="chart-subtitle">Índice de órdenes de compra entregadas a tiempo y completas</p>
+                    </div>
+                    <CheckCircle2 size={18} className="chart-header-icon" />
+                  </div>
+
+                  <div className="ranking-bars-list">
+                    {proveedores.map((p) => {
+                      const met = obtenerMetricasCalidadEntrega(p.idProveedor);
+                      return (
+                        <div key={p.idProveedor} className="ranking-item">
+                          <div className="ranking-item-info">
+                            <span className="ranking-name">{p.razonSocial}</span>
+                            <span className="ranking-score">{met.porcentajeEntregasCompletas}%</span>
+                          </div>
+                          <div className="ranking-bar-track">
+                            <div
+                              className="ranking-bar-fill fill-high"
+                              style={{ width: `${met.porcentajeEntregasCompletas}%` }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+              {/* FIN CAMBIO */}
             </div>
 
             <div className="tabla-catalogo-card">
