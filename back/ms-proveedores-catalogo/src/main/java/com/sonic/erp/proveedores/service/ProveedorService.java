@@ -168,12 +168,12 @@ public class ProveedorService {
 
     public Proveedor obtenerProveedorPorId(Long id) {
         return proveedorRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("No se encontro el proveedor con el ID: " + id));
+                .orElseThrow(() -> new IllegalArgumentException("No se encontró el proveedor con el ID: " + id));
     }
 
     public ProveedorDetalleResponse consultarDetalleProveedor(Long id) {
         Proveedor proveedor = proveedorRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("No se encontro el proveedor con ID: " + id));
+                .orElseThrow(() -> new IllegalArgumentException("No se encontró el proveedor con ID: " + id));
 
         List<CatalogoComercial> catalogo = catalogoComercialRepository.findByProveedor_IdProveedor(id);
 
