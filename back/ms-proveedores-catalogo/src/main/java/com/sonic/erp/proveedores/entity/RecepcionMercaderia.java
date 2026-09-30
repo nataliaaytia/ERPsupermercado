@@ -39,6 +39,9 @@ public class RecepcionMercaderia {
     @Column(name = "fecha_recepcion", nullable = false)
     private LocalDateTime fechaRecepcion;
 
+    @Column(name = "fecha_comprometida", nullable = false)
+    private LocalDateTime fechaComprometida;
+
     @PrePersist
     public void alCrear() {
         if (this.fechaRecepcion == null) {
