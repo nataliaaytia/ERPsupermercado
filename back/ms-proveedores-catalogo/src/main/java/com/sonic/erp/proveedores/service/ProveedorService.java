@@ -2,6 +2,7 @@ package com.sonic.erp.proveedores.service;
 
 import com.sonic.erp.proveedores.dto.request.ProveedorCreateRequest;
 import com.sonic.erp.proveedores.dto.request.ProveedorUpdateRequest;
+import com.sonic.erp.proveedores.dto.response.ComparacionPrecioResponse;
 import com.sonic.erp.proveedores.dto.response.ProveedorDetalleResponse;
 import com.sonic.erp.proveedores.entity.CatalogoComercial;
 import com.sonic.erp.proveedores.entity.Proveedor;
@@ -322,5 +323,58 @@ public class ProveedorService {
         return ranking;
     }
 
+    public ComparacionPrecioResponse compararPrecios(Long idProducto) {
+
+        List<CatalogoComercial> catalogos =
+                catalogoComercialRepository.findByProducto_IdProducto(idProducto);
+
+        if (catalogos.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "No existen proveedores asociados al producto indicado"
+            );
+        }
+
+        LocalDate hoy = LocalDate.now();
+
+        List<CatalogoComercial> catalogosVigentes = catalogos.stream()
+                .filter(catalogo ->
+                        !hoy.isBefore(catalogo.getFechaInicio())
+                                && !hoy.isAfter(catalogo.getFechaFin())
+                )
+                .toList();
+
+        if (catalogosVigentes.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "No existen precios vigentes para el producto indicado"
+            );
+        }
+
+        var producto = catalogosVigentes.get(0).getProducto();
+
+        List<ComparacionPrecioResponse.ProveedorPrecioDTO> proveedores =
+                catalogosVigentes.stream()
+                        .map(catalogo ->
+                                ComparacionPrecioResponse.ProveedorPrecioDTO.builder()
+                                        .idProveedor(
+                                                catalogo.getProveedor().getIdProveedor()
+                                        )
+                                        .razonSocial(
+                                                catalogo.getProveedor().getRazonSocial()
+                                        )
+                                        .precio(catalogo.getPrecio())
+                                        .build()
+                        )
+                        .sorted((p1, p2) ->
+                                p1.getPrecio().compareTo(p2.getPrecio())
+                        )
+                        .toList();
+
+        return ComparacionPrecioResponse.builder()
+                .idProducto(producto.getIdProducto())
+                .codigoSku(producto.getCodigoSku())
+                .descripcion(producto.getDescripcion())
+                .proveedores(proveedores)
+                .build();
+    }
 
 }
