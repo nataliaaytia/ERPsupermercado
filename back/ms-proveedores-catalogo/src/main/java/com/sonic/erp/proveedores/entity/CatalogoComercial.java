@@ -3,6 +3,7 @@ package com.sonic.erp.proveedores.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDate;
+import java.math.BigDecimal;
 
 
 @Entity
@@ -29,6 +30,9 @@ public class CatalogoComercial {
 
     @Column (name = "archivo", nullable = false, length = 100)
     private String archivo;
+
+    @Column(name = "precio", nullable = false, precision = 12, scale = 2)
+    private BigDecimal precio;
 
     @ManyToOne (fetch = FetchType.LAZY)
     @JoinColumn(name = "id_proveedor", nullable = false)
