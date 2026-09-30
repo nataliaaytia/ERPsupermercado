@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.regex.Pattern;
 import com.sonic.erp.proveedores.entity.CondicionComercial;
 import com.sonic.erp.proveedores.repository.CondicionComercialRepository;
+import java.util.Comparator;
 
 
 @Service
@@ -279,4 +280,47 @@ public class ProveedorService {
                 })
                 .toList();
     }
+
+    public List<Map<String, Object>> obtenerRankingCumplimiento() {
+
+        List<Object[]> resultados =
+                incidenciaProveedorRepository.obtenerDatosCumplimiento();
+
+        List<Map<String, Object>> ranking = resultados.stream()
+                .map(resultado -> {
+
+                    Long idProveedor = ((Number) resultado[0]).longValue();
+                    String razonSocial = (String) resultado[1];
+                    long totalIncidencias = ((Number) resultado[2]).longValue();
+                    long totalRetrasos = ((Number) resultado[3]).longValue();
+
+                    double porcentajeCumplimiento =
+                            totalIncidencias > 0
+                                    ? ((double) (totalIncidencias - totalRetrasos)
+                                       / totalIncidencias) * 100
+                                    : 0.0;
+
+                    Map<String, Object> proveedor = new HashMap<>();
+
+                    proveedor.put("idProveedor", idProveedor);
+                    proveedor.put("razonSocial", razonSocial);
+                    proveedor.put("totalIncidencias", totalIncidencias);
+                    proveedor.put("totalRetrasos", totalRetrasos);
+                    proveedor.put("porcentajeCumplimiento", porcentajeCumplimiento);
+
+                    return proveedor;
+                })
+                .toList();
+
+        ranking.sort((proveedor1, proveedor2) ->
+                Double.compare(
+                        ((Number) proveedor2.get("porcentajeCumplimiento")).doubleValue(),
+                        ((Number) proveedor1.get("porcentajeCumplimiento")).doubleValue()
+                )
+        );
+
+        return ranking;
+    }
+
+
 }
