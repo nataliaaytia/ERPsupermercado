@@ -18,6 +18,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
+import com.sonic.erp.proveedores.entity.CondicionComercial;
+import com.sonic.erp.proveedores.repository.CondicionComercialRepository;
 
 
 @Service
@@ -27,6 +29,7 @@ public class ProveedorService {
 
     private final ProveedorRepository proveedorRepository;
     private final CatalogoComercialRepository catalogoComercialRepository;
+    private final CondicionComercialRepository condicionComercialRepository;
 
     @Transactional
     public Proveedor registrarProveedor(ProveedorCreateRequest request) {
@@ -226,6 +229,32 @@ public class ProveedorService {
         return catalogoVigente.getProducto().getPrecioReferencial();
     }
 
+    public Integer consultarTiempoEntrega(Long idProveedor, Long idProducto) {
 
+        List<CatalogoComercial> catalogos =
+                catalogoComercialRepository
+                        .findByProveedor_IdProveedorAndProducto_IdProducto(
+                                idProveedor,
+                                idProducto
+                        );
 
+        if (catalogos.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "El producto no está asociado al proveedor indicado"
+            );
+        }
+
+        CondicionComercial condicion =
+                condicionComercialRepository
+                        .findFirstByProveedor_IdProveedorOrderByFechaRegistroDesc(
+                                idProveedor
+                        )
+                        .orElseThrow(() ->
+                                new IllegalArgumentException(
+                                        "El proveedor no tiene registrado un tiempo de entrega"
+                                )
+                        );
+
+        return condicion.getPlazoEntregaDias();
+    }
 }
