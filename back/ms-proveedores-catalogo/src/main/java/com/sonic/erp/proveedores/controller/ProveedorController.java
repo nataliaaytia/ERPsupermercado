@@ -1,5 +1,6 @@
 package com.sonic.erp.proveedores.controller;
 import com.sonic.erp.proveedores.dto.request.ProveedorCreateRequest;
+import com.sonic.erp.proveedores.dto.response.ComparacionPrecioResponse;
 import com.sonic.erp.proveedores.dto.request.ProveedorUpdateRequest;
 import com.sonic.erp.proveedores.dto.response.ProveedorDetalleResponse;
 import com.sonic.erp.proveedores.entity.Proveedor;
@@ -124,5 +125,15 @@ public class ProveedorController {
                 proveedorService.obtenerRankingCumplimiento();
 
         return ResponseEntity.ok(ranking);
+    }
+
+    @GetMapping("/productos/{idProducto}/comparacion-precios")
+    public ResponseEntity<ComparacionPrecioResponse> compararPrecios(
+            @PathVariable Long idProducto) {
+
+        ComparacionPrecioResponse comparacion =
+                proveedorService.compararPrecios(idProducto);
+
+        return ResponseEntity.ok(comparacion);
     }
 }
