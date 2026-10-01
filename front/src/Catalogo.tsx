@@ -4,11 +4,12 @@ import ProductoDetalle from './ProductoDetalle';
 import {
   ShieldCheck, CheckCircle2, XCircle, AlertCircle, FileText,
   Search, RefreshCw, Power, Clock, BarChart3, TrendingUp,
-  Award, ShoppingBag, Calendar, ArrowUpRight, Package, Truck,
+  Award, ShoppingBag, ArrowUpRight, Package, Truck,
   Tag, Filter, Building2, Plus, Upload, X, Paperclip, Timer, Zap,
   Sliders, Percent, CheckSquare, Square, DollarSign
 } from 'lucide-react';
 import './Catalogo.css';
+import AsociarCatalogo from './AsociarCatalogo';
 
 export type EstadoProveedor = 'Activo' | 'Inactivo' | 'Pendiente' | 'Observado';
 
@@ -338,6 +339,41 @@ export const Catalogo = () => {
   const [activeIndex, setActiveIndex] = useState<number>(0);
   const [proveedores, setProveedores] = useState<Proveedor[]>(proveedoresIniciales);
   const [proveedorSeleccionado, setProveedorSeleccionado] = useState<Proveedor>(proveedoresIniciales[0]);
+
+  const asociarProductosAProveedor = (
+    idProveedor: number,
+    productos: ProductoCatalogo[]
+  ) => {
+    setProveedores(prev => prev.map(proveedor => {
+      if (proveedor.idProveedor !== idProveedor) return proveedor;
+
+      const idsExistentes = new Set(
+        proveedor.catalogoProductos.map(producto => producto.idProducto)
+      );
+      const productosNuevos = productos.filter(
+        producto => !idsExistentes.has(producto.idProducto)
+      );
+
+      return productosNuevos.length > 0
+        ? { ...proveedor, catalogoProductos: [...proveedor.catalogoProductos, ...productosNuevos] }
+        : proveedor;
+    }));
+
+    setProveedorSeleccionado(prev => {
+      if (prev.idProveedor !== idProveedor) return prev;
+
+      const idsExistentes = new Set(
+        prev.catalogoProductos.map(producto => producto.idProducto)
+      );
+      const productosNuevos = productos.filter(
+        producto => !idsExistentes.has(producto.idProducto)
+      );
+
+      return productosNuevos.length > 0
+        ? { ...prev, catalogoProductos: [...prev.catalogoProductos, ...productosNuevos] }
+        : prev;
+    });
+  };
 
   const [filtroBusquedaProv, setFiltroBusquedaProv] = useState<string>('');
   const [filtroEstadoProv, setFiltroEstadoProv] = useState<string>('Todos');
@@ -801,6 +837,13 @@ export const Catalogo = () => {
               )}
             </div>
           </div>
+        )}
+
+        {activeIndex === 1 && (
+          <AsociarCatalogo
+            proveedores={proveedores}
+            onAsociarProductos={asociarProductosAProveedor}
+          />
         )}
 
         {activeIndex === 2 && (
@@ -1287,8 +1330,8 @@ export const Catalogo = () => {
 
                 <div className="ranking-bars-list">
                   {proveedoresOrdenadosRanking.map((p) => {
-                    let textoValor = '';
-                    let porcentajeAncho = 0;
+                    let textoValor: string;
+                    let porcentajeAncho: number;
 
                     if (criterioRanking === 'descuento') {
                       textoValor = `${p.descuentoVolumen}%`;
