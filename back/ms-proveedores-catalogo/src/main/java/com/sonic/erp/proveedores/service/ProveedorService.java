@@ -25,7 +25,12 @@ import com.sonic.erp.proveedores.dto.response.ProveedorValidacionResponse;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-
+import com.sonic.erp.proveedores.entity.Producto;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import com.sonic.erp.proveedores.repository.DocumentoProveedorRepository;
+import com.sonic.erp.proveedores.dto.response.DocumentoAlertaResponse;
+import com.sonic.erp.proveedores.entity.DocumentoProveedor;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.HashMap;
@@ -46,8 +51,11 @@ public class ProveedorService {
     private final CatalogoComercialRepository catalogoComercialRepository;
     private final CondicionComercialRepository condicionComercialRepository;
     private final IncidenciaProveedorRepository incidenciaProveedorRepository;
+    @PersistenceContext
+    private EntityManager entityManager;
     private final DescuentoCantidadRepository descuentoCantidadRepository;
     private final InspeccionMercaderiaRepository inspeccionMercaderiaRepository;
+    private final DocumentoProveedorRepository documentoProveedorRepository;
 
     @Transactional
     public Proveedor registrarProveedor(ProveedorCreateRequest request) {
@@ -334,6 +342,59 @@ public class ProveedorService {
         return ranking;
     }
 
+    @Transactional
+    public CatalogoComercial asociarProducto(
+            Long idProveedor,
+            Long idProducto,
+            LocalDate fechaInicio,
+            LocalDate fechaFin,
+            String condiciones,
+            String archivo) {
+
+        // Verificar que el proveedor exista
+        Proveedor proveedor = proveedorRepository.findById(idProveedor)
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "Proveedor no encontrado"
+                        )
+                );
+
+        // Verificar que el producto exista
+        Producto producto = entityManager.find(Producto.class, idProducto);
+
+        if (producto == null) {
+            throw new IllegalArgumentException(
+                    "Producto no encontrado"
+            );
+        }
+
+        // Verificar que la asociación no exista
+        boolean yaExiste =
+                catalogoComercialRepository
+                        .existsByProveedor_IdProveedorAndProducto_IdProducto(
+                                idProveedor,
+                                idProducto
+                        );
+
+        if (yaExiste) {
+            throw new IllegalArgumentException(
+                    "El producto ya está asociado a este proveedor"
+            );
+        }
+
+        // Crear la asociación
+        CatalogoComercial catalogo = CatalogoComercial.builder()
+                .proveedor(proveedor)
+                .producto(producto)
+                .fechaInicio(fechaInicio)
+                .fechaFin(fechaFin)
+                .condiciones(condiciones)
+                .archivo(archivo)
+                .build();
+
+        return catalogoComercialRepository.save(catalogo);
+    }
+
     public ComparacionPrecioResponse compararPrecios(Long idProducto) {
 
         List<CatalogoComercial> catalogos =
@@ -487,7 +548,9 @@ public class ProveedorService {
         }
 
         if (termino == null || termino.trim().isEmpty()) {
-            throw new IllegalArgumentException("El término de búsqueda es obligatorio");
+            throw new IllegalArgumentException(
+                    "El término de búsqueda es obligatorio"
+            );
         }
 
         String busqueda = termino.trim();
@@ -506,7 +569,10 @@ public class ProveedorService {
                                 busqueda
                         );
 
-        return Stream.concat(porDescripcion.stream(), porSku.stream())
+        return Stream.concat(
+                        porDescripcion.stream(),
+                        porSku.stream()
+                )
                 .distinct()
                 .map(catalogo -> CatalogoCategoriaResponse.builder()
                         .idCatalogo(catalogo.getIdCatalogo())
@@ -755,6 +821,55 @@ public class ProveedorService {
                             .precioPromedio(precioPromedio)
                             .descuentoMaximo(descuentoMaximo)
                             .tiempoEntregaDias(tiempoEntregaDias)
+                            .build();
+                })
+                .toList();
+    }
+
+    public List<DocumentoAlertaResponse> obtenerDocumentosProximosAVencer() {
+
+        LocalDate hoy = LocalDate.now();
+        LocalDate fechaLimite = hoy.plusDays(30);
+
+        List<DocumentoProveedor> documentos =
+                documentoProveedorRepository.findByFechaVencimientoBetween(
+                        hoy,
+                        fechaLimite
+                );
+
+        return documentos.stream()
+                .map(documento -> {
+
+                    long diasRestantes =
+                            java.time.temporal.ChronoUnit.DAYS.between(
+                                    hoy,
+                                    documento.getFechaVencimiento()
+                            );
+
+                    String mensaje;
+
+                    if (diasRestantes == 0) {
+                        mensaje = "El documento vence hoy";
+                    } else if (diasRestantes == 1) {
+                        mensaje = "El documento vence mañana";
+                    } else {
+                        mensaje = "El documento vence en "
+                                + diasRestantes
+                                + " días";
+                    }
+
+                    return DocumentoAlertaResponse.builder()
+                            .idDocumento(documento.getIdDocumento())
+                            .tipoDocumento(documento.getTipoDocumento())
+                            .numeroDocumento(documento.getNumeroDocumento())
+                            .fechaVencimiento(documento.getFechaVencimiento())
+                            .idProveedor(
+                                    documento.getProveedor().getIdProveedor()
+                            )
+                            .razonSocial(
+                                    documento.getProveedor().getRazonSocial()
+                            )
+                            .mensaje(mensaje)
                             .build();
                 })
                 .toList();
