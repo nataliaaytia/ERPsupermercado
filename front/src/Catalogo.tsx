@@ -1,19 +1,44 @@
-import React, { useState } from 'react';
-import CatalogoSidebar from './CatalogoSidebar';
-import ProductoDetalle from './ProductoDetalle';
-import { ComparacionProductos } from './ComparacionProductos';
+import React, { useState } from "react";
+import CatalogoSidebar from "./CatalogoSidebar";
+import ProductoDetalle from "./ProductoDetalle";
+import { ComparacionProductos } from "./ComparacionProductos";
 import {
-  ShieldCheck, CheckCircle2, XCircle, AlertCircle, FileText,
-  Search, RefreshCw, Power, Clock, BarChart3, TrendingUp,
-  Award, ShoppingBag, ArrowUpRight, Package, Truck,
-  Tag, Filter, Building2, Plus, Upload, X, Paperclip, Timer, Zap,
-  Sliders, Percent, CheckSquare, Square, DollarSign
-} from 'lucide-react';
-import './Catalogo.css';
-import AsociarCatalogo from './AsociarCatalogo';
-import AlertasDocumentos from './AlertasDocumentos';
+  ShieldCheck,
+  CheckCircle2,
+  XCircle,
+  AlertCircle,
+  FileText,
+  Search,
+  RefreshCw,
+  Power,
+  Clock,
+  BarChart3,
+  TrendingUp,
+  Award,
+  ShoppingBag,
+  ArrowUpRight,
+  Package,
+  Truck,
+  Tag,
+  Filter,
+  Building2,
+  Plus,
+  Upload,
+  X,
+  Paperclip,
+  Timer,
+  Zap,
+  Sliders,
+  Percent,
+  CheckSquare,
+  Square,
+  DollarSign,
+} from "lucide-react";
+import "./Catalogo.css";
+import AsociarCatalogo from "./AsociarCatalogo";
+import AlertasDocumentos from "./AlertasDocumentos";
 
-export type EstadoProveedor = 'Activo' | 'Inactivo' | 'Pendiente' | 'Observado';
+export type EstadoProveedor = "Activo" | "Inactivo" | "Pendiente" | "Observado";
 
 export interface Documento {
   idDocumento: number;
@@ -21,7 +46,7 @@ export interface Documento {
   numeroDocumento: string;
   fechaVencimiento: string;
   archivo: string;
-  estadoValidacion: 'Válido' | 'Vencido' | 'Pendiente';
+  estadoValidacion: "Válido" | "Vencido" | "Pendiente";
 }
 
 export interface ProductoCatalogo {
@@ -61,12 +86,12 @@ export interface Proveedor {
 const proveedoresIniciales: Proveedor[] = [
   {
     idProveedor: 1,
-    nitRuc: '20601234567',
-    razonSocial: 'Pedrauser',
-    direccion: 'Av. Landaeta, Sepa dios donde vive',
-    telefono: '+591 77756186',
-    correo: 'pedrauser@sonic.com',
-    estado: 'Activo',
+    nitRuc: "20601234567",
+    razonSocial: "Pedrauser",
+    direccion: "Av. Landaeta, Sepa dios donde vive",
+    telefono: "+591 77756186",
+    correo: "pedrauser@sonic.com",
+    estado: "Activo",
     puntajeDesempeno: 95,
     ordenesCompra: 48,
     montoTotalComprado: 125000,
@@ -75,65 +100,67 @@ const proveedoresIniciales: Proveedor[] = [
     documentos: [
       {
         idDocumento: 101,
-        tipoDocumento: 'Ficha RUC',
-        numeroDocumento: '20601234567',
-        fechaVencimiento: '2027-12-31',
-        archivo: 'ficha_ruc_2026.pdf',
-        estadoValidacion: 'Válido'
+        tipoDocumento: "Ficha RUC",
+        numeroDocumento: "20601234567",
+        fechaVencimiento: "2027-12-31",
+        archivo: "ficha_ruc_2026.pdf",
+        estadoValidacion: "Válido",
       },
       {
         idDocumento: 102,
-        tipoDocumento: 'Certificado de Homologación',
-        numeroDocumento: 'CH-2025-089',
-        fechaVencimiento: '2026-11-15',
-        archivo: 'homologacion_cert.pdf',
-        estadoValidacion: 'Válido'
-      }
+        tipoDocumento: "Certificado de Homologación",
+        numeroDocumento: "CH-2025-089",
+        fechaVencimiento: "2026-11-15",
+        archivo: "homologacion_cert.pdf",
+        estadoValidacion: "Válido",
+      },
     ],
     catalogoProductos: [
       {
         idProducto: 1,
-        sku: 'PROD-LOG-001',
-        nombre: 'Caja de Cartón Corrugado Doble Canal (50x40x40)',
-        categoria: 'Empaque y Embalaje',
-        descripcion: 'Caja de alta resistencia para transporte pesado e importaciones.',
-        precioPactado: 4.50,
-        tiempoEntregaEstimado: '24 a 48 horas',
+        sku: "PROD-LOG-001",
+        nombre: "Caja de Cartón Corrugado Doble Canal (50x40x40)",
+        categoria: "Empaque y Embalaje",
+        descripcion:
+          "Caja de alta resistencia para transporte pesado e importaciones.",
+        precioPactado: 4.5,
+        tiempoEntregaEstimado: "24 a 48 horas",
         stockDisponible: 5000,
-        unidadMedida: 'Unidad'
+        unidadMedida: "Unidad",
       },
       {
         idProducto: 2,
-        sku: 'PROD-LOG-002',
-        nombre: 'Cinta Embalaje Transparente (Pack x 6)',
-        categoria: 'Empaque y Embalaje',
-        descripcion: 'Adhesivo de acrílico de alta fijación industrial.',
-        precioPactado: 18.20,
-        tiempoEntregaEstimado: '24 horas',
+        sku: "PROD-LOG-002",
+        nombre: "Cinta Embalaje Transparente (Pack x 6)",
+        categoria: "Empaque y Embalaje",
+        descripcion: "Adhesivo de acrílico de alta fijación industrial.",
+        precioPactado: 18.2,
+        tiempoEntregaEstimado: "24 horas",
         stockDisponible: 1200,
-        unidadMedida: 'Pack'
+        unidadMedida: "Pack",
       },
       {
         idProducto: 3,
-        sku: 'PROD-LOG-003',
-        nombre: 'Film Stretch Strechable Industrial 20 micras',
-        categoria: 'Paletizado',
-        descripcion: 'Rollo de plástico film transparente para asegurar parihuelas.',
-        precioPactado: 32.00,
-        tiempoEntregaEstimado: '2 a 3 días hábiles',
+        sku: "PROD-LOG-003",
+        nombre: "Film Stretch Strechable Industrial 20 micras",
+        categoria: "Paletizado",
+        descripcion:
+          "Rollo de plástico film transparente para asegurar parihuelas.",
+        precioPactado: 32.0,
+        tiempoEntregaEstimado: "2 a 3 días hábiles",
         stockDisponible: 850,
-        unidadMedida: 'Rollo'
-      }
-    ]
+        unidadMedida: "Rollo",
+      },
+    ],
   },
   {
     idProveedor: 2,
-    nitRuc: '20109876543',
-    razonSocial: 'Ya no se qeu poner wazaaa',
-    direccion: 'Calle Comercio, casco viejo creo',
-    telefono: '+591 23462742',
-    correo: 'cambien@losdatos.com',
-    estado: 'Observado',
+    nitRuc: "20109876543",
+    razonSocial: "Ya no se qeu poner wazaaa",
+    direccion: "Calle Comercio, casco viejo creo",
+    telefono: "+591 23462742",
+    correo: "cambien@losdatos.com",
+    estado: "Observado",
     puntajeDesempeno: 72,
     ordenesCompra: 24,
     montoTotalComprado: 58000,
@@ -142,73 +169,75 @@ const proveedoresIniciales: Proveedor[] = [
     documentos: [
       {
         idDocumento: 103,
-        tipoDocumento: 'Ficha RUC',
-        numeroDocumento: '20109876543',
-        fechaVencimiento: '2026-05-10',
-        archivo: 'ficha_ruc_dist.pdf',
-        estadoValidacion: 'Vencido'
-      }
+        tipoDocumento: "Ficha RUC",
+        numeroDocumento: "20109876543",
+        fechaVencimiento: "2026-05-10",
+        archivo: "ficha_ruc_dist.pdf",
+        estadoValidacion: "Vencido",
+      },
     ],
     catalogoProductos: [
       {
         idProducto: 8,
-        sku: 'PROD-LOG-001',
-        nombre: 'Caja de Cartón Corrugado Doble Canal (50x40x40)',
-        categoria: 'Empaque y Embalaje',
-        descripcion: 'Caja de alta resistencia para transporte pesado e importaciones.',
-        precioPactado: 4.10,
-        tiempoEntregaEstimado: '48 a 72 horas',
+        sku: "PROD-LOG-001",
+        nombre: "Caja de Cartón Corrugado Doble Canal (50x40x40)",
+        categoria: "Empaque y Embalaje",
+        descripcion:
+          "Caja de alta resistencia para transporte pesado e importaciones.",
+        precioPactado: 4.1,
+        tiempoEntregaEstimado: "48 a 72 horas",
         stockDisponible: 3000,
-        unidadMedida: 'Unidad'
+        unidadMedida: "Unidad",
       },
       {
         idProducto: 4,
-        sku: 'PROD-NOR-101',
-        nombre: 'Aceite Lubricante Multipropósito 1L',
-        categoria: 'Mantenimiento',
-        descripcion: 'Formulación para engranajes y maquinaria industrial pesada.',
-        precioPactado: 28.50,
-        tiempoEntregaEstimado: '3 a 5 días hábiles',
+        sku: "PROD-NOR-101",
+        nombre: "Aceite Lubricante Multipropósito 1L",
+        categoria: "Mantenimiento",
+        descripcion:
+          "Formulación para engranajes y maquinaria industrial pesada.",
+        precioPactado: 28.5,
+        tiempoEntregaEstimado: "3 a 5 días hábiles",
         stockDisponible: 340,
-        unidadMedida: 'Litro'
+        unidadMedida: "Litro",
       },
       {
         idProducto: 5,
-        sku: 'PROD-NOR-102',
-        nombre: 'Guantes de Nitrilo Industrial Reforzado (Caja x 100)',
-        categoria: 'EPP y Seguridad',
-        descripcion: 'Protección para manejo de químicos y grasas.',
-        precioPactado: 45.00,
-        tiempoEntregaEstimado: '2 a 4 días hábiles',
+        sku: "PROD-NOR-102",
+        nombre: "Guantes de Nitrilo Industrial Reforzado (Caja x 100)",
+        categoria: "EPP y Seguridad",
+        descripcion: "Protección para manejo de químicos y grasas.",
+        precioPactado: 45.0,
+        tiempoEntregaEstimado: "2 a 4 días hábiles",
         stockDisponible: 600,
-        unidadMedida: 'Caja'
-      }
-    ]
+        unidadMedida: "Caja",
+      },
+    ],
   },
   {
     idProveedor: 3,
-    nitRuc: '20554433221',
-    razonSocial: 'Nilmar ponte a trabajar',
-    direccion: 'Senkata, El alto',
-    telefono: '+591 70544491',
-    correo: 'natesito@waza.com',
-    estado: 'Inactivo',
+    nitRuc: "20554433221",
+    razonSocial: "Nilmar ponte a trabajar",
+    direccion: "Senkata, El alto",
+    telefono: "+591 70544491",
+    correo: "natesito@waza.com",
+    estado: "Inactivo",
     puntajeDesempeno: 45,
     ordenesCompra: 8,
     montoTotalComprado: 14200,
     descuentoVolumen: 5,
     tiempoPromedioDias: 5.0,
     documentos: [],
-    catalogoProductos: []
+    catalogoProductos: [],
   },
   {
     idProveedor: 4,
-    nitRuc: '20448899112',
-    razonSocial: 'Campielcampi',
-    direccion: 'nosexdd, la paz',
-    telefono: '+591 71994068',
-    correo: 'samiel@elcmampi.com',
-    estado: 'Activo',
+    nitRuc: "20448899112",
+    razonSocial: "Campielcampi",
+    direccion: "nosexdd, la paz",
+    telefono: "+591 71994068",
+    correo: "samiel@elcmampi.com",
+    estado: "Activo",
     puntajeDesempeno: 88,
     ordenesCompra: 36,
     montoTotalComprado: 94000,
@@ -217,66 +246,76 @@ const proveedoresIniciales: Proveedor[] = [
     documentos: [
       {
         idDocumento: 104,
-        tipoDocumento: 'Ficha RUC',
-        numeroDocumento: '20448899112',
-        fechaVencimiento: '2027-08-20',
-        archivo: 'ficha_ruc_tecno.pdf',
-        estadoValidacion: 'Válido'
-      }
+        tipoDocumento: "Ficha RUC",
+        numeroDocumento: "20448899112",
+        fechaVencimiento: "2027-08-20",
+        archivo: "ficha_ruc_tecno.pdf",
+        estadoValidacion: "Válido",
+      },
     ],
     catalogoProductos: [
       {
         idProducto: 6,
-        sku: 'PROD-TEC-501',
-        nombre: 'Lector de Código de Barras Láser USB / Bluetooth',
-        categoria: 'Hardware Almacén',
-        descripcion: 'Escáner industrial con soporte ergonómico y lectura 2D/QR.',
-        precioPactado: 185.00,
-        tiempoEntregaEstimado: '24 a 48 horas',
+        sku: "PROD-TEC-501",
+        nombre: "Lector de Código de Barras Láser USB / Bluetooth",
+        categoria: "Hardware Almacén",
+        descripcion:
+          "Escáner industrial con soporte ergonómico y lectura 2D/QR.",
+        precioPactado: 185.0,
+        tiempoEntregaEstimado: "24 a 48 horas",
         stockDisponible: 120,
-        unidadMedida: 'Unidad'
+        unidadMedida: "Unidad",
       },
       {
         idProducto: 7,
-        sku: 'PROD-TEC-502',
-        nombre: 'Impresora Térmica de Etiquetas Adhesivas',
-        categoria: 'Hardware Almacén',
-        descripcion: 'Resolución 203 DPI, velocidad de impresión 152 mm/s.',
-        precioPactado: 640.00,
-        tiempoEntregaEstimado: '2 días hábiles',
+        sku: "PROD-TEC-502",
+        nombre: "Impresora Térmica de Etiquetas Adhesivas",
+        categoria: "Hardware Almacén",
+        descripcion: "Resolución 203 DPI, velocidad de impresión 152 mm/s.",
+        precioPactado: 640.0,
+        tiempoEntregaEstimado: "2 días hábiles",
         stockDisponible: 45,
-        unidadMedida: 'Unidad'
-      }
-    ]
-  }
+        unidadMedida: "Unidad",
+      },
+    ],
+  },
 ];
 
 const datosFrecuenciaMensual = [
-  { mes: 'Abr', ordenes: 12, monto: 22000 },
-  { mes: 'May', ordenes: 18, monto: 34000 },
-  { mes: 'Jun', ordenes: 15, monto: 28000 },
-  { mes: 'Jul', ordenes: 22, monto: 45000 },
-  { mes: 'Ago', ordenes: 28, monto: 56000 },
-  { mes: 'Sep', ordenes: 21, monto: 41000 }
+  { mes: "Abr", ordenes: 12, monto: 22000 },
+  { mes: "May", ordenes: 18, monto: 34000 },
+  { mes: "Jun", ordenes: 15, monto: 28000 },
+  { mes: "Jul", ordenes: 22, monto: 45000 },
+  { mes: "Ago", ordenes: 28, monto: 56000 },
+  { mes: "Sep", ordenes: 21, monto: 41000 },
 ];
 
 const menuItems = [
-  'Gestionar Proveedores',
-  'Asociar Catálogo',
-  'Comparacion de Productos',
-  'Ver Catalogo',
-  'Ranking de proveedores',
-  'Dashboard de Reportes'
+  "Gestionar Proveedores",
+  "Asociar Catálogo",
+  "Comparacion de Productos",
+  "Ver Catalogo",
+  "Ranking de proveedores",
+  "Dashboard de Reportes",
 ];
 
-const COLORES_PROVEEDORES = ['#38bdf8', '#34d399', '#f59e0b', '#a78bfa', '#f43f5e'];
+const COLORES_PROVEEDORES = [
+  "#38bdf8",
+  "#34d399",
+  "#f59e0b",
+  "#a78bfa",
+  "#f43f5e",
+];
 
 const extraerHorasMinimas = (tiempoStr: string): number => {
   if (!tiempoStr) return 999;
   const numMatches = tiempoStr.match(/\d+/g);
   if (!numMatches) return 999;
   const minNum = Math.min(...numMatches.map(Number));
-  if (tiempoStr.toLowerCase().includes('día') || tiempoStr.toLowerCase().includes('dias')) {
+  if (
+    tiempoStr.toLowerCase().includes("día") ||
+    tiempoStr.toLowerCase().includes("dias")
+  ) {
     return minNum * 24;
   }
   return minNum;
@@ -296,94 +335,116 @@ export interface HistoricoProveedorEntrega {
 const historicoEntregasData: HistoricoProveedorEntrega[] = [
   {
     idProveedor: 1,
-    sku: 'PROD-LOG-001',
+    sku: "PROD-LOG-001",
     historico: [
-      { mes: 'Ene', diasEntrega: 2.5 },
-      { mes: 'Feb', diasEntrega: 2.0 },
-      { mes: 'Mar', diasEntrega: 1.8 },
-      { mes: 'Abr', diasEntrega: 2.2 },
-      { mes: 'May', diasEntrega: 1.5 },
-      { mes: 'Jun', diasEntrega: 1.5 }
-    ]
+      { mes: "Ene", diasEntrega: 2.5 },
+      { mes: "Feb", diasEntrega: 2.0 },
+      { mes: "Mar", diasEntrega: 1.8 },
+      { mes: "Abr", diasEntrega: 2.2 },
+      { mes: "May", diasEntrega: 1.5 },
+      { mes: "Jun", diasEntrega: 1.5 },
+    ],
   },
   {
     idProveedor: 2,
-    sku: 'PROD-LOG-001',
+    sku: "PROD-LOG-001",
     historico: [
-      { mes: 'Ene', diasEntrega: 4.0 },
-      { mes: 'Feb', diasEntrega: 3.5 },
-      { mes: 'Mar', diasEntrega: 3.8 },
-      { mes: 'Abr', diasEntrega: 3.0 },
-      { mes: 'May', diasEntrega: 2.8 },
-      { mes: 'Jun', diasEntrega: 2.5 }
-    ]
+      { mes: "Ene", diasEntrega: 4.0 },
+      { mes: "Feb", diasEntrega: 3.5 },
+      { mes: "Mar", diasEntrega: 3.8 },
+      { mes: "Abr", diasEntrega: 3.0 },
+      { mes: "May", diasEntrega: 2.8 },
+      { mes: "Jun", diasEntrega: 2.5 },
+    ],
   },
   {
     idProveedor: 4,
-    sku: 'PROD-TEC-501',
+    sku: "PROD-TEC-501",
     historico: [
-      { mes: 'Ene', diasEntrega: 2.0 },
-      { mes: 'Feb', diasEntrega: 1.8 },
-      { mes: 'Mar', diasEntrega: 1.5 },
-      { mes: 'Abr', diasEntrega: 1.5 },
-      { mes: 'May', diasEntrega: 1.2 },
-      { mes: 'Jun', diasEntrega: 1.0 }
-    ]
-  }
+      { mes: "Ene", diasEntrega: 2.0 },
+      { mes: "Feb", diasEntrega: 1.8 },
+      { mes: "Mar", diasEntrega: 1.5 },
+      { mes: "Abr", diasEntrega: 1.5 },
+      { mes: "May", diasEntrega: 1.2 },
+      { mes: "Jun", diasEntrega: 1.0 },
+    ],
+  },
 ];
 
 const obtenerMetricasCalidadEntrega = (idProveedor: number) => {
-  const metricas: Record<number, { porcentajeAceptados: number; porcentajeEntregasCompletas: number }> = {
+  const metricas: Record<
+    number,
+    { porcentajeAceptados: number; porcentajeEntregasCompletas: number }
+  > = {
     1: { porcentajeAceptados: 98, porcentajeEntregasCompletas: 95 },
     2: { porcentajeAceptados: 82, porcentajeEntregasCompletas: 75 },
     3: { porcentajeAceptados: 60, porcentajeEntregasCompletas: 50 },
-    4: { porcentajeAceptados: 94, porcentajeEntregasCompletas: 90 }
+    4: { porcentajeAceptados: 94, porcentajeEntregasCompletas: 90 },
   };
-  return metricas[idProveedor] || { porcentajeAceptados: 90, porcentajeEntregasCompletas: 88 };
+  return (
+    metricas[idProveedor] || {
+      porcentajeAceptados: 90,
+      porcentajeEntregasCompletas: 88,
+    }
+  );
 };
 
 export const Catalogo = () => {
   const [activeIndex, setActiveIndex] = useState<number>(0);
-  const [proveedores, setProveedores] = useState<Proveedor[]>(proveedoresIniciales);
-  const [proveedorSeleccionado, setProveedorSeleccionado] = useState<Proveedor>(proveedoresIniciales[0]);
+  const [proveedores, setProveedores] =
+    useState<Proveedor[]>(proveedoresIniciales);
+  const [proveedorSeleccionado, setProveedorSeleccionado] = useState<Proveedor>(
+    proveedoresIniciales[0],
+  );
 
   const asociarProductosAProveedor = (
     idProveedor: number,
-    productos: ProductoCatalogo[]
+    productos: ProductoCatalogo[],
   ) => {
-    setProveedores(prev => prev.map(proveedor => {
-      if (proveedor.idProveedor !== idProveedor) return proveedor;
+    setProveedores((prev) =>
+      prev.map((proveedor) => {
+        if (proveedor.idProveedor !== idProveedor) return proveedor;
 
-      const idsExistentes = new Set(
-        proveedor.catalogoProductos.map(producto => producto.idProducto)
-      );
-      const productosNuevos = productos.filter(
-        producto => !idsExistentes.has(producto.idProducto)
-      );
+        const idsExistentes = new Set(
+          proveedor.catalogoProductos.map((producto) => producto.idProducto),
+        );
+        const productosNuevos = productos.filter(
+          (producto) => !idsExistentes.has(producto.idProducto),
+        );
 
-      return productosNuevos.length > 0
-        ? { ...proveedor, catalogoProductos: [...proveedor.catalogoProductos, ...productosNuevos] }
-        : proveedor;
-    }));
+        return productosNuevos.length > 0
+          ? {
+              ...proveedor,
+              catalogoProductos: [
+                ...proveedor.catalogoProductos,
+                ...productosNuevos,
+              ],
+            }
+          : proveedor;
+      }),
+    );
 
-    setProveedorSeleccionado(prev => {
+    setProveedorSeleccionado((prev) => {
       if (prev.idProveedor !== idProveedor) return prev;
 
       const idsExistentes = new Set(
-        prev.catalogoProductos.map(producto => producto.idProducto)
+        prev.catalogoProductos.map((producto) => producto.idProducto),
       );
       const productosNuevos = productos.filter(
-        producto => !idsExistentes.has(producto.idProducto)
+        (producto) => !idsExistentes.has(producto.idProducto),
       );
 
       return productosNuevos.length > 0
-        ? { ...prev, catalogoProductos: [...prev.catalogoProductos, ...productosNuevos] }
+        ? {
+            ...prev,
+            catalogoProductos: [...prev.catalogoProductos, ...productosNuevos],
+          }
         : prev;
     });
   };
 
-  const [filtroBusquedaProv, setFiltroBusquedaProv] = useState<string>('');
-  const [filtroEstadoProv, setFiltroEstadoProv] = useState<string>('Todos');
+  const [filtroBusquedaProv, setFiltroBusquedaProv] = useState<string>("");
+  const [filtroEstadoProv, setFiltroEstadoProv] = useState<string>("Todos");
   const [sidebarAbierto, setSidebarAbierto] = useState<boolean>(true);
   const [resultadoValidacion, setResultadoValidacion] = useState<{
     ejecutado: boolean;
@@ -393,34 +454,38 @@ export const Catalogo = () => {
 
   const [modalDocAbierto, setModalDocAbierto] = useState<boolean>(false);
   const [nuevoDoc, setNuevoDoc] = useState({
-    tipoDocumento: 'Ficha RUC',
-    numeroDocumento: '',
-    fechaVencimiento: '',
-    archivoNombre: ''
+    tipoDocumento: "Ficha RUC",
+    numeroDocumento: "",
+    fechaVencimiento: "",
+    archivoNombre: "",
   });
-  const [errorFormDoc, setErrorFormDoc] = useState<string>('');
+  const [errorFormDoc, setErrorFormDoc] = useState<string>("");
 
-  const [busquedaProducto, setBusquedaProducto] = useState<string>('');
-  const [categoriaFiltro, setCategoriaFiltro] = useState<string>('Todas');
-  const [productoSeleccionado, setProductoSeleccionado] = useState<ProductoCatalogo | null>(null);
+  const [busquedaProducto, setBusquedaProducto] = useState<string>("");
+  const [categoriaFiltro, setCategoriaFiltro] = useState<string>("Todas");
+  const [productoSeleccionado, setProductoSeleccionado] =
+    useState<ProductoCatalogo | null>(null);
 
-  const [productoCompararSKU, setProductoCompararSKU] = useState<string>('PROD-LOG-001');
+  const [productoCompararSKU, setProductoCompararSKU] =
+    useState<string>("PROD-LOG-001");
   const [cantidadComparacion, setCantidadComparacion] = useState<number>(1);
   const [criterios, setCriterios] = useState({
-  precio: true,
-  descuento: true,
-  entrega: true,
-  stock: true
+    precio: true,
+    descuento: true,
+    entrega: true,
+    stock: true,
   });
 
   const cambiarCriterio = (criterio: keyof typeof criterios) => {
-  setCriterios((actuales) => ({
-    ...actuales,
-    [criterio]: !actuales[criterio]
-  }));
+    setCriterios((actuales) => ({
+      ...actuales,
+      [criterio]: !actuales[criterio],
+    }));
   };
 
-  const [criterioRanking, setCriterioRanking] = useState<'descuento' | 'puntuacion' | 'tiempo'>('descuento');
+  const [criterioRanking, setCriterioRanking] = useState<
+    "descuento" | "puntuacion" | "tiempo"
+  >("descuento");
 
   const [indicadoresActivos, setIndicadoresActivos] = useState<{
     precios: boolean;
@@ -433,14 +498,14 @@ export const Catalogo = () => {
     descuentos: true,
     tiempos: true,
     productosAceptados: true,
-    ordenesCumplidas: true
+    ordenesCumplidas: true,
   });
 
   const proveedoresOrdenadosRanking = [...proveedores].sort((a, b) => {
-    if (criterioRanking === 'descuento') {
+    if (criterioRanking === "descuento") {
       return b.descuentoVolumen - a.descuentoVolumen;
     }
-    if (criterioRanking === 'puntuacion') {
+    if (criterioRanking === "puntuacion") {
       return b.puntajeDesempeno - a.puntajeDesempeno;
     }
     return a.tiempoPromedioDias - b.tiempoPromedioDias;
@@ -449,21 +514,26 @@ export const Catalogo = () => {
   const top3Proveedores = proveedoresOrdenadosRanking.slice(0, 3);
 
   const toggleIndicador = (clave: keyof typeof indicadoresActivos) => {
-    setIndicadoresActivos(prev => ({
+    setIndicadoresActivos((prev) => ({
       ...prev,
-      [clave]: !prev[clave]
+      [clave]: !prev[clave],
     }));
   };
 
   const obtenerPrecioPromedioProveedor = (p: Proveedor) => {
     if (p.catalogoProductos.length === 0) return 0;
-    const suma = p.catalogoProductos.reduce((acc, prod) => acc + prod.precioPactado, 0);
+    const suma = p.catalogoProductos.reduce(
+      (acc, prod) => acc + prod.precioPactado,
+      0,
+    );
     return suma / p.catalogoProductos.length;
   };
 
   const cambiarEstadoProveedor = (nuevoEstado: EstadoProveedor) => {
-    const listaActualizada = proveedores.map(p =>
-      p.idProveedor === proveedorSeleccionado.idProveedor ? { ...p, estado: nuevoEstado } : p
+    const listaActualizada = proveedores.map((p) =>
+      p.idProveedor === proveedorSeleccionado.idProveedor
+        ? { ...p, estado: nuevoEstado }
+        : p,
     );
     setProveedores(listaActualizada);
     setProveedorSeleccionado({ ...proveedorSeleccionado, estado: nuevoEstado });
@@ -472,44 +542,53 @@ export const Catalogo = () => {
   const handleRegistrarDocumento = (e: React.FormEvent) => {
     e.preventDefault();
     if (!nuevoDoc.numeroDocumento.trim()) {
-      setErrorFormDoc('Debe ingresar el número del documento.');
+      setErrorFormDoc("Debe ingresar el número del documento.");
       return;
     }
     if (!nuevoDoc.fechaVencimiento) {
-      setErrorFormDoc('Debe seleccionar la fecha de vencimiento.');
+      setErrorFormDoc("Debe seleccionar la fecha de vencimiento.");
       return;
     }
 
     const fechaVenc = new Date(nuevoDoc.fechaVencimiento);
     const hoy = new Date();
-    const estadoValid: 'Válido' | 'Vencido' = fechaVenc >= hoy ? 'Válido' : 'Vencido';
+    const estadoValid: "Válido" | "Vencido" =
+      fechaVenc >= hoy ? "Válido" : "Vencido";
 
     const nuevoDocumentoObjeto: Documento = {
       idDocumento: Date.now(),
       tipoDocumento: nuevoDoc.tipoDocumento,
       numeroDocumento: nuevoDoc.numeroDocumento.trim(),
       fechaVencimiento: nuevoDoc.fechaVencimiento,
-      archivo: nuevoDoc.archivoNombre || `${nuevoDoc.tipoDocumento.toLowerCase().replace(/\s+/g, '_')}_${nuevoDoc.numeroDocumento}.pdf`,
-      estadoValidacion: estadoValid
+      archivo:
+        nuevoDoc.archivoNombre ||
+        `${nuevoDoc.tipoDocumento.toLowerCase().replace(/\s+/g, "_")}_${nuevoDoc.numeroDocumento}.pdf`,
+      estadoValidacion: estadoValid,
     };
 
-    const docsActualizados = [...proveedorSeleccionado.documentos, nuevoDocumentoObjeto];
-    const provActualizado = { ...proveedorSeleccionado, documentos: docsActualizados };
+    const docsActualizados = [
+      ...proveedorSeleccionado.documentos,
+      nuevoDocumentoObjeto,
+    ];
+    const provActualizado = {
+      ...proveedorSeleccionado,
+      documentos: docsActualizados,
+    };
 
-    const listaProveedoresActualizada = proveedores.map(p =>
-      p.idProveedor === proveedorSeleccionado.idProveedor ? provActualizado : p
+    const listaProveedoresActualizada = proveedores.map((p) =>
+      p.idProveedor === proveedorSeleccionado.idProveedor ? provActualizado : p,
     );
 
     setProveedores(listaProveedoresActualizada);
     setProveedorSeleccionado(provActualizado);
 
     setNuevoDoc({
-      tipoDocumento: 'Ficha RUC',
-      numeroDocumento: '',
-      fechaVencimiento: '',
-      archivoNombre: ''
+      tipoDocumento: "Ficha RUC",
+      numeroDocumento: "",
+      fechaVencimiento: "",
+      archivoNombre: "",
     });
-    setErrorFormDoc('');
+    setErrorFormDoc("");
     setModalDocAbierto(false);
     setResultadoValidacion(null);
   };
@@ -518,96 +597,127 @@ export const Catalogo = () => {
     const p = proveedorSeleccionado;
     const detalles = [
       {
-        campo: 'RUC / NIT',
+        campo: "RUC / NIT",
         valido: Boolean(p.nitRuc && p.nitRuc.length >= 10),
-        mensaje: p.nitRuc && p.nitRuc.length >= 10 ? 'Formato y longitud correctos' : 'RUC/NIT no válido'
+        mensaje:
+          p.nitRuc && p.nitRuc.length >= 10
+            ? "Formato y longitud correctos"
+            : "RUC/NIT no válido",
       },
       {
-        campo: 'Razón Social',
+        campo: "Razón Social",
         valido: Boolean(p.razonSocial && p.razonSocial.trim().length > 3),
-        mensaje: p.razonSocial ? 'Registrado correctamente' : 'Razón social incompleta'
+        mensaje: p.razonSocial
+          ? "Registrado correctamente"
+          : "Razón social incompleta",
       },
       {
-        campo: 'Dirección Fiscal',
+        campo: "Dirección Fiscal",
         valido: Boolean(p.direccion && p.direccion.trim().length > 5),
-        mensaje: p.direccion ? 'Dirección verificada' : 'Dirección requerida'
+        mensaje: p.direccion ? "Dirección verificada" : "Dirección requerida",
       },
       {
-        campo: 'Teléfono de Contacto',
+        campo: "Teléfono de Contacto",
         valido: Boolean(p.telefono && p.telefono.trim().length >= 7),
-        mensaje: p.telefono ? 'Teléfono válido' : 'Teléfono no registrado'
+        mensaje: p.telefono ? "Teléfono válido" : "Teléfono no registrado",
       },
       {
-        campo: 'Correo Electrónico',
-        valido: Boolean(p.correo && p.correo.includes('@')),
-        mensaje: p.correo && p.correo.includes('@') ? 'Correo con formato válido' : 'Correo inválido'
+        campo: "Correo Electrónico",
+        valido: Boolean(p.correo && p.correo.includes("@")),
+        mensaje:
+          p.correo && p.correo.includes("@")
+            ? "Correo con formato válido"
+            : "Correo inválido",
       },
       {
-        campo: 'Documentación Adjunta',
-        valido: p.documentos.length > 0 && p.documentos.every(d => d.estadoValidacion === 'Válido'),
-        mensaje: p.documentos.length === 0
-          ? 'Sin documentos adjuntos'
-          : p.documentos.every(d => d.estadoValidacion === 'Válido')
-            ? 'Todos los documentos vigentes'
-            : 'Existen documentos vencidos'
-      }
+        campo: "Documentación Adjunta",
+        valido:
+          p.documentos.length > 0 &&
+          p.documentos.every((d) => d.estadoValidacion === "Válido"),
+        mensaje:
+          p.documentos.length === 0
+            ? "Sin documentos adjuntos"
+            : p.documentos.every((d) => d.estadoValidacion === "Válido")
+              ? "Todos los documentos vigentes"
+              : "Existen documentos vencidos",
+      },
     ];
 
-    const esValido = detalles.every(item => item.valido);
+    const esValido = detalles.every((item) => item.valido);
     setResultadoValidacion({ ejecutado: true, esValido, detalles });
   };
 
-  const proveedoresFiltrados = proveedores.filter(p => {
-    const coincideTexto = p.razonSocial.toLowerCase().includes(filtroBusquedaProv.toLowerCase()) || p.nitRuc.includes(filtroBusquedaProv);
-    const coincideEstado = filtroEstadoProv === 'Todos' || p.estado === filtroEstadoProv;
+  const proveedoresFiltrados = proveedores.filter((p) => {
+    const coincideTexto =
+      p.razonSocial.toLowerCase().includes(filtroBusquedaProv.toLowerCase()) ||
+      p.nitRuc.includes(filtroBusquedaProv);
+    const coincideEstado =
+      filtroEstadoProv === "Todos" || p.estado === filtroEstadoProv;
     return coincideTexto && coincideEstado;
   });
 
-  const productosFiltrados = proveedorSeleccionado.catalogoProductos.filter(prod => {
-    const coincideTexto =
-      prod.nombre.toLowerCase().includes(busquedaProducto.toLowerCase()) ||
-      prod.sku.toLowerCase().includes(busquedaProducto.toLowerCase()) ||
-      prod.descripcion.toLowerCase().includes(busquedaProducto.toLowerCase());
+  const productosFiltrados = proveedorSeleccionado.catalogoProductos.filter(
+    (prod) => {
+      const coincideTexto =
+        prod.nombre.toLowerCase().includes(busquedaProducto.toLowerCase()) ||
+        prod.sku.toLowerCase().includes(busquedaProducto.toLowerCase()) ||
+        prod.descripcion.toLowerCase().includes(busquedaProducto.toLowerCase());
 
-    const coincideCategoria = categoriaFiltro === 'Todas' || prod.categoria === categoriaFiltro;
-    return coincideTexto && coincideCategoria;
-  });
+      const coincideCategoria =
+        categoriaFiltro === "Todas" || prod.categoria === categoriaFiltro;
+      return coincideTexto && coincideCategoria;
+    },
+  );
 
-  const categoriasDisponibles = ['Todas', ...Array.from(
-    new Set(proveedorSeleccionado.catalogoProductos.map(p => p.categoria))
-  )];
+  const categoriasDisponibles = [
+    "Todas",
+    ...Array.from(
+      new Set(proveedorSeleccionado.catalogoProductos.map((p) => p.categoria)),
+    ),
+  ];
 
   const totalOrdenes = proveedores.reduce((sum, p) => sum + p.ordenesCompra, 0);
-  const promedioDesempeno = Math.round(proveedores.reduce((sum, p) => sum + p.puntajeDesempeno, 0) / proveedores.length);
-  const maxOrdenes = Math.max(...datosFrecuenciaMensual.map(d => d.ordenes));
+  const promedioDesempeno = Math.round(
+    proveedores.reduce((sum, p) => sum + p.puntajeDesempeno, 0) /
+      proveedores.length,
+  );
+  const maxOrdenes = Math.max(...datosFrecuenciaMensual.map((d) => d.ordenes));
 
-  const todosLosProductosComparacion = proveedores.flatMap(p =>
-    p.catalogoProductos.map(prod => ({
+  const todosLosProductosComparacion = proveedores.flatMap((p) =>
+    p.catalogoProductos.map((prod) => ({
       ...prod,
-      proveedor: p
-    }))
+      proveedor: p,
+    })),
   );
 
   const listaProductosUnicos = Array.from(
-    new Map(todosLosProductosComparacion.map(p => [p.sku, p])).values()
+    new Map(todosLosProductosComparacion.map((p) => [p.sku, p])).values(),
   );
 
   const proveedoresParaProducto = todosLosProductosComparacion.filter(
-    item => item.sku === productoCompararSKU
+    (item) => item.sku === productoCompararSKU,
   );
 
-  const productoActualComparativo = listaProductosUnicos.find(p => p.sku === productoCompararSKU) || listaProductosUnicos[0];
+  const productoActualComparativo =
+    listaProductosUnicos.find((p) => p.sku === productoCompararSKU) ||
+    listaProductosUnicos[0];
 
-  const precioMinimo = proveedoresParaProducto.length > 0
-    ? Math.min(...proveedoresParaProducto.map(p => p.precioPactado))
-    : 0;
+  const precioMinimo =
+    proveedoresParaProducto.length > 0
+      ? Math.min(...proveedoresParaProducto.map((p) => p.precioPactado))
+      : 0;
 
-  const menorTiempoHoras = proveedoresParaProducto.length > 0
-    ? Math.min(...proveedoresParaProducto.map(p => extraerHorasMinimas(p.tiempoEntregaEstimado)))
-    : 999;
+  const menorTiempoHoras =
+    proveedoresParaProducto.length > 0
+      ? Math.min(
+          ...proveedoresParaProducto.map((p) =>
+            extraerHorasMinimas(p.tiempoEntregaEstimado),
+          ),
+        )
+      : 999;
 
   const mejorProveedorEntrega = proveedoresParaProducto.find(
-    p => extraerHorasMinimas(p.tiempoEntregaEstimado) === menorTiempoHoras
+    (p) => extraerHorasMinimas(p.tiempoEntregaEstimado) === menorTiempoHoras,
   );
 
   return (
@@ -618,9 +728,9 @@ export const Catalogo = () => {
         abierto={sidebarAbierto}
         onToggle={() => setSidebarAbierto((estado) => !estado)}
         onItemClick={(index) => {
-            setActiveIndex(index);
-            setResultadoValidacion(null);
-      }}
+          setActiveIndex(index);
+          setResultadoValidacion(null);
+        }}
       />
 
       <section className="catalogo-content">
@@ -644,22 +754,24 @@ export const Catalogo = () => {
               </div>
 
               <div className="filtro-estado-bar">
-                {['Todos', 'Activo', 'Inactivo', 'Observado', 'Pendiente'].map((est) => (
-                  <button
-                    key={est}
-                    className={`btn-filtro-estado ${filtroEstadoProv === est ? 'active' : ''}`}
-                    onClick={() => setFiltroEstadoProv(est)}
-                  >
-                    {est}
-                  </button>
-                ))}
+                {["Todos", "Activo", "Inactivo", "Observado", "Pendiente"].map(
+                  (est) => (
+                    <button
+                      key={est}
+                      className={`btn-filtro-estado ${filtroEstadoProv === est ? "active" : ""}`}
+                      onClick={() => setFiltroEstadoProv(est)}
+                    >
+                      {est}
+                    </button>
+                  ),
+                )}
               </div>
 
               <div className="proveedores-lista">
                 {proveedoresFiltrados.map((p) => (
                   <div
                     key={p.idProveedor}
-                    className={`proveedor-item ${proveedorSeleccionado.idProveedor === p.idProveedor ? 'active' : ''}`}
+                    className={`proveedor-item ${proveedorSeleccionado.idProveedor === p.idProveedor ? "active" : ""}`}
                     onClick={() => {
                       setProveedorSeleccionado(p);
                       setResultadoValidacion(null);
@@ -669,7 +781,9 @@ export const Catalogo = () => {
                       <span className="item-title">{p.razonSocial}</span>
                       <span className="item-sub">RUC: {p.nitRuc}</span>
                     </div>
-                    <span className={`badge-estado badge-${p.estado.toLowerCase()}`}>
+                    <span
+                      className={`badge-estado badge-${p.estado.toLowerCase()}`}
+                    >
                       {p.estado}
                     </span>
                   </div>
@@ -680,8 +794,12 @@ export const Catalogo = () => {
             <div className="detalle-validacion-card">
               <div className="detalle-header">
                 <div>
-                  <h2 className="detalle-title">{proveedorSeleccionado.razonSocial}</h2>
-                  <span className="detalle-sub">RUC / NIT: {proveedorSeleccionado.nitRuc}</span>
+                  <h2 className="detalle-title">
+                    {proveedorSeleccionado.razonSocial}
+                  </h2>
+                  <span className="detalle-sub">
+                    RUC / NIT: {proveedorSeleccionado.nitRuc}
+                  </span>
                 </div>
                 <div className="acciones-header">
                   <button className="btn-validar" onClick={ejecutarValidacion}>
@@ -694,38 +812,42 @@ export const Catalogo = () => {
               <div className="seccion-datos">
                 <div className="seccion-header-inline">
                   <h3 className="seccion-titulo">Estado del Proveedor</h3>
-                  <span className={`badge-estado badge-${proveedorSeleccionado.estado.toLowerCase()}`}>
+                  <span
+                    className={`badge-estado badge-${proveedorSeleccionado.estado.toLowerCase()}`}
+                  >
                     {proveedorSeleccionado.estado}
                   </span>
                 </div>
 
                 <div className="control-estado-panel">
-                  <span className="control-estado-label">Cambiar Estado Operativo:</span>
+                  <span className="control-estado-label">
+                    Cambiar Estado Operativo:
+                  </span>
                   <div className="botones-estado-group">
                     <button
-                      className={`btn-cambio-estado btn-activo ${proveedorSeleccionado.estado === 'Activo' ? 'selected' : ''}`}
-                      onClick={() => cambiarEstadoProveedor('Activo')}
+                      className={`btn-cambio-estado btn-activo ${proveedorSeleccionado.estado === "Activo" ? "selected" : ""}`}
+                      onClick={() => cambiarEstadoProveedor("Activo")}
                     >
                       <Power size={13} />
                       <span>Activo</span>
                     </button>
                     <button
-                      className={`btn-cambio-estado btn-inactivo ${proveedorSeleccionado.estado === 'Inactivo' ? 'selected' : ''}`}
-                      onClick={() => cambiarEstadoProveedor('Inactivo')}
+                      className={`btn-cambio-estado btn-inactivo ${proveedorSeleccionado.estado === "Inactivo" ? "selected" : ""}`}
+                      onClick={() => cambiarEstadoProveedor("Inactivo")}
                     >
                       <Power size={13} />
                       <span>Inactivo</span>
                     </button>
                     <button
-                      className={`btn-cambio-estado btn-observado ${proveedorSeleccionado.estado === 'Observado' ? 'selected' : ''}`}
-                      onClick={() => cambiarEstadoProveedor('Observado')}
+                      className={`btn-cambio-estado btn-observado ${proveedorSeleccionado.estado === "Observado" ? "selected" : ""}`}
+                      onClick={() => cambiarEstadoProveedor("Observado")}
                     >
                       <AlertCircle size={13} />
                       <span>Observado</span>
                     </button>
                     <button
-                      className={`btn-cambio-estado btn-pendiente ${proveedorSeleccionado.estado === 'Pendiente' ? 'selected' : ''}`}
-                      onClick={() => cambiarEstadoProveedor('Pendiente')}
+                      className={`btn-cambio-estado btn-pendiente ${proveedorSeleccionado.estado === "Pendiente" ? "selected" : ""}`}
+                      onClick={() => cambiarEstadoProveedor("Pendiente")}
                     >
                       <Clock size={13} />
                       <span>Pendiente</span>
@@ -739,27 +861,70 @@ export const Catalogo = () => {
                 <div className="datos-grid">
                   <div className="dato-field">
                     <span className="field-label">Dirección Fiscal</span>
-                    <span className="field-value">{proveedorSeleccionado.direccion}</span>
+                    <span className="field-value">
+                      {proveedorSeleccionado.direccion}
+                    </span>
                   </div>
                   <div className="dato-field">
                     <span className="field-label">Teléfono</span>
-                    <span className="field-value">{proveedorSeleccionado.telefono}</span>
+                    <span className="field-value">
+                      {proveedorSeleccionado.telefono}
+                    </span>
                   </div>
                   <div className="dato-field">
                     <span className="field-label">Correo Electrónico</span>
-                    <span className="field-value">{proveedorSeleccionado.correo}</span>
+                    <span className="field-value">
+                      {proveedorSeleccionado.correo}
+                    </span>
                   </div>
-                  <div className="dato-field">
-                    <span className="field-label">Desempeño / Puntuacion </span>
-                    <span className="field-value">{proveedorSeleccionado.puntajeDesempeno}% de cumplimiento</span>
+                  <div className="dato-field desempeno-field">
+                    <div className="desempeno-header">
+                      <span className="field-label">
+                        Desempeño del proveedor
+                      </span>
+                      <span className="desempeno-porcentaje">
+                        {proveedorSeleccionado.puntajeDesempeno}%
+                      </span>
+                    </div>
+
+                    <div className="desempeno-barra">
+                      <div
+                        className="desempeno-progreso"
+                        style={{
+                          width: `${proveedorSeleccionado.puntajeDesempeno}%`,
+                        }}
+                      />
+                    </div>
+
+                    <span className="desempeno-nivel">
+                      {proveedorSeleccionado.puntajeDesempeno >= 90
+                        ? "Excelente nivel de cumplimiento"
+                        : proveedorSeleccionado.puntajeDesempeno >= 75
+                          ? "Buen nivel de cumplimiento"
+                          : "Nivel de cumplimiento por mejorar"}
+                    </span>
                   </div>
                   <div className="dato-field">
                     <span className="field-label">Productos Aceptados</span>
-                    <span className="field-value">{obtenerMetricasCalidadEntrega(proveedorSeleccionado.idProveedor).porcentajeAceptados}%</span>
+                    <span className="field-value">
+                      {
+                        obtenerMetricasCalidadEntrega(
+                          proveedorSeleccionado.idProveedor,
+                        ).porcentajeAceptados
+                      }
+                      %
+                    </span>
                   </div>
                   <div className="dato-field">
                     <span className="field-label">Entregas Completas</span>
-                    <span className="field-value">{obtenerMetricasCalidadEntrega(proveedorSeleccionado.idProveedor).porcentajeEntregasCompletas}%</span>
+                    <span className="field-value">
+                      {
+                        obtenerMetricasCalidadEntrega(
+                          proveedorSeleccionado.idProveedor,
+                        ).porcentajeEntregasCompletas
+                      }
+                      %
+                    </span>
                   </div>
                 </div>
               </div>
@@ -770,7 +935,7 @@ export const Catalogo = () => {
                   <button
                     className="btn-registrar-doc"
                     onClick={() => {
-                      setErrorFormDoc('');
+                      setErrorFormDoc("");
                       setModalDocAbierto(true);
                     }}
                   >
@@ -809,7 +974,9 @@ export const Catalogo = () => {
                               </div>
                             </td>
                             <td>
-                              <span className={`doc-status status-${doc.estadoValidacion.toLowerCase()}`}>
+                              <span
+                                className={`doc-status status-${doc.estadoValidacion.toLowerCase()}`}
+                              >
                                 {doc.estadoValidacion}
                               </span>
                             </td>
@@ -828,7 +995,9 @@ export const Catalogo = () => {
               </div>
 
               {resultadoValidacion && (
-                <div className={`resultado-panel ${resultadoValidacion.esValido ? 'panel-exito' : 'panel-alerta'}`}>
+                <div
+                  className={`resultado-panel ${resultadoValidacion.esValido ? "panel-exito" : "panel-alerta"}`}
+                >
                   <div className="resultado-header">
                     {resultadoValidacion.esValido ? (
                       <CheckCircle2 size={18} className="icon-exito" />
@@ -837,8 +1006,8 @@ export const Catalogo = () => {
                     )}
                     <span className="resultado-titulo">
                       {resultadoValidacion.esValido
-                        ? 'Validación Exitosa: La información cumple los requisitos obligatorios'
-                        : 'Validación Incompleta: Se detectaron inconsistencias u omisiones'}
+                        ? "Validación Exitosa: La información cumple los requisitos obligatorios"
+                        : "Validación Incompleta: Se detectaron inconsistencias u omisiones"}
                     </span>
                   </div>
 
@@ -884,11 +1053,13 @@ export const Catalogo = () => {
                       className="proveedor-dropdown"
                       value={proveedorSeleccionado.idProveedor}
                       onChange={(e) => {
-                        const prov = proveedores.find(p => p.idProveedor === Number(e.target.value));
+                        const prov = proveedores.find(
+                          (p) => p.idProveedor === Number(e.target.value),
+                        );
                         if (prov) {
                           setProveedorSeleccionado(prov);
-                          setBusquedaProducto('');
-                          setCategoriaFiltro('Todas');
+                          setBusquedaProducto("");
+                          setCategoriaFiltro("Todas");
                           setProductoSeleccionado(null);
                         }
                       }}
@@ -903,14 +1074,20 @@ export const Catalogo = () => {
                 </div>
 
                 <div className="proveedor-meta-pills">
-                  <span className={`badge-estado badge-${proveedorSeleccionado.estado.toLowerCase()}`}>
+                  <span
+                    className={`badge-estado badge-${proveedorSeleccionado.estado.toLowerCase()}`}
+                  >
                     Estado: {proveedorSeleccionado.estado}
                   </span>
                   <span className="pill-metric">
-                    Puntaje: <strong>{proveedorSeleccionado.puntajeDesempeno}%</strong>
+                    Puntaje:{" "}
+                    <strong>{proveedorSeleccionado.puntajeDesempeno}%</strong>
                   </span>
                   <span className="pill-metric">
-                    Productos: <strong>{proveedorSeleccionado.catalogoProductos.length}</strong>
+                    Productos:{" "}
+                    <strong>
+                      {proveedorSeleccionado.catalogoProductos.length}
+                    </strong>
                   </span>
                 </div>
               </div>
@@ -936,7 +1113,9 @@ export const Catalogo = () => {
                   onChange={(e) => setCategoriaFiltro(e.target.value)}
                 >
                   {categoriasDisponibles.map((cat) => (
-                    <option key={cat} value={cat}>Categoría: {cat}</option>
+                    <option key={cat} value={cat}>
+                      Categoría: {cat}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -949,7 +1128,8 @@ export const Catalogo = () => {
                   <h3 className="titulo-tabla">Catalogo de productos</h3>
                 </div>
                 <span className="conteo-resultados">
-                  Mostrando {productosFiltrados.length} de {proveedorSeleccionado.catalogoProductos.length} productos
+                  Mostrando {productosFiltrados.length} de{" "}
+                  {proveedorSeleccionado.catalogoProductos.length} productos
                 </span>
               </div>
 
@@ -981,18 +1161,27 @@ export const Catalogo = () => {
                           </td>
                           <td>
                             <div className="producto-info-cell">
-                              <span className="producto-nombre">{prod.nombre}</span>
-                              <span className="producto-desc">{prod.descripcion}</span>
+                              <span className="producto-nombre">
+                                {prod.nombre}
+                              </span>
+                              <span className="producto-desc">
+                                {prod.descripcion}
+                              </span>
                             </div>
                           </td>
                           <td>
-                            <span className="categoria-tag">{prod.categoria}</span>
+                            <span className="categoria-tag">
+                              {prod.categoria}
+                            </span>
                           </td>
                           <td>
                             <span className="precio-pactado-tag">
                               {prod.precioPactado.toFixed(2)} Bs.
                             </span>
-                            <span className="unidad-sub"> / {prod.unidadMedida}</span>
+                            <span className="unidad-sub">
+                              {" "}
+                              / {prod.unidadMedida}
+                            </span>
                           </td>
                           <td>
                             <div className="entrega-cell">
@@ -1011,8 +1200,8 @@ export const Catalogo = () => {
                       <tr>
                         <td colSpan={6} className="tabla-vacia">
                           {proveedorSeleccionado.catalogoProductos.length === 0
-                            ? 'Este proveedor no cuenta con productos asociados en su catálogo.'
-                            : 'No se encontraron productos que coincidan con la búsqueda.'}
+                            ? "Este proveedor no cuenta con productos asociados en su catálogo."
+                            : "No se encontraron productos que coincidan con la búsqueda."}
                         </td>
                       </tr>
                     )}
@@ -1041,7 +1230,9 @@ export const Catalogo = () => {
                 <div className="kpi-content">
                   <span className="kpi-title">Promedio Desempeño</span>
                   <span className="kpi-value">{promedioDesempeno}%</span>
-                  <span className="kpi-sub positive"><ArrowUpRight size={12} /> +4.2% este mes</span>
+                  <span className="kpi-sub positive">
+                    <ArrowUpRight size={12} /> +4.2% este mes
+                  </span>
                 </div>
               </div>
 
@@ -1073,7 +1264,10 @@ export const Catalogo = () => {
                 </div>
                 <div className="kpi-content">
                   <span className="kpi-title">Proveedores Activos</span>
-                  <span className="kpi-value">{proveedores.filter(p => p.estado === 'Activo').length} / {proveedores.length}</span>
+                  <span className="kpi-value">
+                    {proveedores.filter((p) => p.estado === "Activo").length} /{" "}
+                    {proveedores.length}
+                  </span>
                   <span className="kpi-sub">Condición operativa</span>
                 </div>
               </div>
@@ -1081,8 +1275,13 @@ export const Catalogo = () => {
 
             <div className="ranking-header-control">
               <div>
-                <h3 className="chart-title">Ranking de Proveedores por Descuentos y Desempeño</h3>
-                <p className="chart-subtitle">Selecciona el criterio para filtrar los proveedores y actualizar la gráfica dinámicamente</p>
+                <h3 className="chart-title">
+                  Ranking de Proveedores por Descuentos y Desempeño
+                </h3>
+                <p className="chart-subtitle">
+                  Selecciona el criterio para filtrar los proveedores y
+                  actualizar la gráfica dinámicamente
+                </p>
               </div>
 
               <div className="ranking-select-container">
@@ -1090,37 +1289,58 @@ export const Catalogo = () => {
                 <select
                   className="ranking-combobox"
                   value={criterioRanking}
-                  onChange={(e) => setCriterioRanking(e.target.value as 'descuento' | 'puntuacion' | 'tiempo')}
+                  onChange={(e) =>
+                    setCriterioRanking(
+                      e.target.value as "descuento" | "puntuacion" | "tiempo",
+                    )
+                  }
                 >
-                  <option value="descuento">Los que más descuentos ofrecen</option>
-                  <option value="puntuacion">Los que más puntuación tienen</option>
-                  <option value="tiempo">Los que menos tardan en entregar</option>
+                  <option value="descuento">
+                    Los que más descuentos ofrecen
+                  </option>
+                  <option value="puntuacion">
+                    Los que más puntuación tienen
+                  </option>
+                  <option value="tiempo">
+                    Los que menos tardan en entregar
+                  </option>
                 </select>
               </div>
             </div>
 
             <div className="ranking-top3-grid">
               {top3Proveedores.map((p, idx) => (
-                <div key={p.idProveedor} className={`ranking-top-card pos-${idx + 1}`}>
+                <div
+                  key={p.idProveedor}
+                  className={`ranking-top-card pos-${idx + 1}`}
+                >
                   <span className="top-badge-pos">{idx + 1}er Lugar</span>
                   <h4 className="top-card-nombre">{p.razonSocial}</h4>
                   <span className="top-card-sub">RUC: {p.nitRuc}</span>
 
                   <div className="top-card-metric">
                     <span className="metric-valor-destacado">
-                      {criterioRanking === 'descuento' && `${p.descuentoVolumen}%`}
-                      {criterioRanking === 'puntuacion' && `${p.puntajeDesempeno}%`}
-                      {criterioRanking === 'tiempo' && `${p.tiempoPromedioDias} días`}
+                      {criterioRanking === "descuento" &&
+                        `${p.descuentoVolumen}%`}
+                      {criterioRanking === "puntuacion" &&
+                        `${p.puntajeDesempeno}%`}
+                      {criterioRanking === "tiempo" &&
+                        `${p.tiempoPromedioDias} días`}
                     </span>
                     <span className="metric-etiqueta">
-                      {criterioRanking === 'descuento' && 'Descuento por Cantidad'}
-                      {criterioRanking === 'puntuacion' && 'Puntaje de Desempeño'}
-                      {criterioRanking === 'tiempo' && 'Tiempo Promedio de Entrega'}
+                      {criterioRanking === "descuento" &&
+                        "Descuento por Cantidad"}
+                      {criterioRanking === "puntuacion" &&
+                        "Puntaje de Desempeño"}
+                      {criterioRanking === "tiempo" &&
+                        "Tiempo Promedio de Entrega"}
                     </span>
                   </div>
 
                   <div>
-                    <span className={`badge-estado badge-${p.estado.toLowerCase()}`}>
+                    <span
+                      className={`badge-estado badge-${p.estado.toLowerCase()}`}
+                    >
                       {p.estado}
                     </span>
                   </div>
@@ -1132,11 +1352,16 @@ export const Catalogo = () => {
               <div className="chart-card">
                 <div className="chart-header">
                   <div>
-                    <h3 className="chart-title">Gráfica Comparativa de Ranking</h3>
+                    <h3 className="chart-title">
+                      Gráfica Comparativa de Ranking
+                    </h3>
                     <p className="chart-subtitle">
-                      {criterioRanking === 'descuento' && 'Porcentaje de descuento ofrecido para compras por volumen'}
-                      {criterioRanking === 'puntuacion' && 'Evaluación global de desempeño y cumplimiento'}
-                      {criterioRanking === 'tiempo' && 'Días promedios de tiempo de respuesta y abastecimiento'}
+                      {criterioRanking === "descuento" &&
+                        "Porcentaje de descuento ofrecido para compras por volumen"}
+                      {criterioRanking === "puntuacion" &&
+                        "Evaluación global de desempeño y cumplimiento"}
+                      {criterioRanking === "tiempo" &&
+                        "Días promedios de tiempo de respuesta y abastecimiento"}
                     </p>
                   </div>
                   <BarChart3 size={18} className="chart-header-icon" />
@@ -1147,15 +1372,19 @@ export const Catalogo = () => {
                     let textoValor: string;
                     let porcentajeAncho: number;
 
-                    if (criterioRanking === 'descuento') {
+                    if (criterioRanking === "descuento") {
                       textoValor = `${p.descuentoVolumen}%`;
-                      porcentajeAncho = Math.round((p.descuentoVolumen / 20) * 100);
-                    } else if (criterioRanking === 'puntuacion') {
+                      porcentajeAncho = Math.round(
+                        (p.descuentoVolumen / 20) * 100,
+                      );
+                    } else if (criterioRanking === "puntuacion") {
                       textoValor = `${p.puntajeDesempeno}%`;
                       porcentajeAncho = p.puntajeDesempeno;
                     } else {
                       textoValor = `${p.tiempoPromedioDias} días`;
-                      porcentajeAncho = Math.round(((6 - p.tiempoPromedioDias) / 5) * 100);
+                      porcentajeAncho = Math.round(
+                        ((6 - p.tiempoPromedioDias) / 5) * 100,
+                      );
                     }
 
                     return (
@@ -1166,8 +1395,10 @@ export const Catalogo = () => {
                         </div>
                         <div className="ranking-bar-track">
                           <div
-                            className={`ranking-bar-fill ${porcentajeAncho >= 75 ? 'fill-high' : porcentajeAncho >= 45 ? 'fill-mid' : 'fill-low'}`}
-                            style={{ width: `${Math.min(100, Math.max(5, porcentajeAncho))}%` }}
+                            className={`ranking-bar-fill ${porcentajeAncho >= 75 ? "fill-high" : porcentajeAncho >= 45 ? "fill-mid" : "fill-low"}`}
+                            style={{
+                              width: `${Math.min(100, Math.max(5, porcentajeAncho))}%`,
+                            }}
                           />
                         </div>
                       </div>
@@ -1179,20 +1410,29 @@ export const Catalogo = () => {
               <div className="chart-card">
                 <div className="chart-header">
                   <div>
-                    <h3 className="chart-title">Frecuencia Mensual de Órdenes</h3>
-                    <p className="chart-subtitle">Volumen de solicitudes procesadas en los últimos meses</p>
+                    <h3 className="chart-title">
+                      Frecuencia Mensual de Órdenes
+                    </h3>
+                    <p className="chart-subtitle">
+                      Volumen de solicitudes procesadas en los últimos meses
+                    </p>
                   </div>
                   <ShoppingBag size={18} className="chart-header-icon" />
                 </div>
 
                 <div className="freq-bar-chart">
                   {datosFrecuenciaMensual.map((item) => {
-                    const alturaPct = Math.round((item.ordenes / maxOrdenes) * 100);
+                    const alturaPct = Math.round(
+                      (item.ordenes / maxOrdenes) * 100,
+                    );
                     return (
                       <div key={item.mes} className="freq-bar-col">
                         <span className="freq-bar-val">{item.ordenes}</span>
                         <div className="freq-bar-container">
-                          <div className="freq-bar" style={{ height: `${alturaPct}%` }} />
+                          <div
+                            className="freq-bar"
+                            style={{ height: `${alturaPct}%` }}
+                          />
                         </div>
                         <span className="freq-bar-label">{item.mes}</span>
                       </div>
@@ -1215,42 +1455,62 @@ export const Catalogo = () => {
               </span>
               <div className="filtros-checkboxes-group">
                 <button
-                  className={`checkbox-indicador-btn ${indicadoresActivos.precios ? 'active' : ''}`}
-                  onClick={() => toggleIndicador('precios')}
+                  className={`checkbox-indicador-btn ${indicadoresActivos.precios ? "active" : ""}`}
+                  onClick={() => toggleIndicador("precios")}
                 >
-                  {indicadoresActivos.precios ? <CheckSquare size={14} /> : <Square size={14} />}
+                  {indicadoresActivos.precios ? (
+                    <CheckSquare size={14} />
+                  ) : (
+                    <Square size={14} />
+                  )}
                   <span>Precios Promedio</span>
                 </button>
 
                 <button
-                  className={`checkbox-indicador-btn ${indicadoresActivos.descuentos ? 'active' : ''}`}
-                  onClick={() => toggleIndicador('descuentos')}
+                  className={`checkbox-indicador-btn ${indicadoresActivos.descuentos ? "active" : ""}`}
+                  onClick={() => toggleIndicador("descuentos")}
                 >
-                  {indicadoresActivos.descuentos ? <CheckSquare size={14} /> : <Square size={14} />}
+                  {indicadoresActivos.descuentos ? (
+                    <CheckSquare size={14} />
+                  ) : (
+                    <Square size={14} />
+                  )}
                   <span>Descuentos por Cantidad</span>
                 </button>
 
                 <button
-                  className={`checkbox-indicador-btn ${indicadoresActivos.tiempos ? 'active' : ''}`}
-                  onClick={() => toggleIndicador('tiempos')}
+                  className={`checkbox-indicador-btn ${indicadoresActivos.tiempos ? "active" : ""}`}
+                  onClick={() => toggleIndicador("tiempos")}
                 >
-                  {indicadoresActivos.tiempos ? <CheckSquare size={14} /> : <Square size={14} />}
+                  {indicadoresActivos.tiempos ? (
+                    <CheckSquare size={14} />
+                  ) : (
+                    <Square size={14} />
+                  )}
                   <span>Tiempos de Entrega</span>
                 </button>
 
                 <button
-                  className={`checkbox-indicador-btn ${indicadoresActivos.productosAceptados ? 'active' : ''}`}
-                  onClick={() => toggleIndicador('productosAceptados')}
+                  className={`checkbox-indicador-btn ${indicadoresActivos.productosAceptados ? "active" : ""}`}
+                  onClick={() => toggleIndicador("productosAceptados")}
                 >
-                  {indicadoresActivos.productosAceptados ? <CheckSquare size={14} /> : <Square size={14} />}
+                  {indicadoresActivos.productosAceptados ? (
+                    <CheckSquare size={14} />
+                  ) : (
+                    <Square size={14} />
+                  )}
                   <span>Porcentaje de Productos Aceptados</span>
                 </button>
 
                 <button
-                  className={`checkbox-indicador-btn ${indicadoresActivos.ordenesCumplidas ? 'active' : ''}`}
-                  onClick={() => toggleIndicador('ordenesCumplidas')}
+                  className={`checkbox-indicador-btn ${indicadoresActivos.ordenesCumplidas ? "active" : ""}`}
+                  onClick={() => toggleIndicador("ordenesCumplidas")}
                 >
-                  {indicadoresActivos.ordenesCumplidas ? <CheckSquare size={14} /> : <Square size={14} />}
+                  {indicadoresActivos.ordenesCumplidas ? (
+                    <CheckSquare size={14} />
+                  ) : (
+                    <Square size={14} />
+                  )}
                   <span>Porcentaje de Órdenes Cumplidas</span>
                 </button>
               </div>
@@ -1261,8 +1521,12 @@ export const Catalogo = () => {
                 <div className="chart-card">
                   <div className="chart-header">
                     <div>
-                      <h3 className="chart-title">Comparativo de Precios Promedio</h3>
-                      <p className="chart-subtitle">Promedio de precios pactados en catálogo por proveedor</p>
+                      <h3 className="chart-title">
+                        Comparativo de Precios Promedio
+                      </h3>
+                      <p className="chart-subtitle">
+                        Promedio de precios pactados en catálogo por proveedor
+                      </p>
                     </div>
                     <DollarSign size={18} className="chart-header-icon" />
                   </div>
@@ -1274,13 +1538,21 @@ export const Catalogo = () => {
                       return (
                         <div key={p.idProveedor} className="ranking-item">
                           <div className="ranking-item-info">
-                            <span className="ranking-name">{p.razonSocial}</span>
-                            <span className="ranking-score">{precioProm > 0 ? `${precioProm.toFixed(2)} Bs.` : '0.00 Bs.'}</span>
+                            <span className="ranking-name">
+                              {p.razonSocial}
+                            </span>
+                            <span className="ranking-score">
+                              {precioProm > 0
+                                ? `${precioProm.toFixed(2)} Bs.`
+                                : "0.00 Bs."}
+                            </span>
                           </div>
                           <div className="ranking-bar-track">
                             <div
                               className="ranking-bar-fill fill-mid"
-                              style={{ width: `${Math.min(100, Math.max(5, pct))}%` }}
+                              style={{
+                                width: `${Math.min(100, Math.max(5, pct))}%`,
+                              }}
                             />
                           </div>
                         </div>
@@ -1295,7 +1567,9 @@ export const Catalogo = () => {
                   <div className="chart-header">
                     <div>
                       <h3 className="chart-title">Descuentos por Cantidad</h3>
-                      <p className="chart-subtitle">Porcentaje máximo de descuento por volumen ofertado</p>
+                      <p className="chart-subtitle">
+                        Porcentaje máximo de descuento por volumen ofertado
+                      </p>
                     </div>
                     <Percent size={18} className="chart-header-icon" />
                   </div>
@@ -1306,13 +1580,19 @@ export const Catalogo = () => {
                       return (
                         <div key={p.idProveedor} className="ranking-item">
                           <div className="ranking-item-info">
-                            <span className="ranking-name">{p.razonSocial}</span>
-                            <span className="ranking-score">{p.descuentoVolumen}%</span>
+                            <span className="ranking-name">
+                              {p.razonSocial}
+                            </span>
+                            <span className="ranking-score">
+                              {p.descuentoVolumen}%
+                            </span>
                           </div>
                           <div className="ranking-bar-track">
                             <div
                               className="ranking-bar-fill fill-high"
-                              style={{ width: `${Math.min(100, Math.max(5, pct))}%` }}
+                              style={{
+                                width: `${Math.min(100, Math.max(5, pct))}%`,
+                              }}
                             />
                           </div>
                         </div>
@@ -1326,25 +1606,37 @@ export const Catalogo = () => {
                 <div className="chart-card">
                   <div className="chart-header">
                     <div>
-                      <h3 className="chart-title">Tiempos Promedio de Entrega</h3>
-                      <p className="chart-subtitle">Días estimados para la recepción de pedidos</p>
+                      <h3 className="chart-title">
+                        Tiempos Promedio de Entrega
+                      </h3>
+                      <p className="chart-subtitle">
+                        Días estimados para la recepción de pedidos
+                      </p>
                     </div>
                     <Clock size={18} className="chart-header-icon" />
                   </div>
 
                   <div className="ranking-bars-list">
                     {proveedores.map((p) => {
-                      const pct = Math.round(((6 - p.tiempoPromedioDias) / 5) * 100);
+                      const pct = Math.round(
+                        ((6 - p.tiempoPromedioDias) / 5) * 100,
+                      );
                       return (
                         <div key={p.idProveedor} className="ranking-item">
                           <div className="ranking-item-info">
-                            <span className="ranking-name">{p.razonSocial}</span>
-                            <span className="ranking-score">{p.tiempoPromedioDias} días</span>
+                            <span className="ranking-name">
+                              {p.razonSocial}
+                            </span>
+                            <span className="ranking-score">
+                              {p.tiempoPromedioDias} días
+                            </span>
                           </div>
                           <div className="ranking-bar-track">
                             <div
                               className="ranking-bar-fill fill-mid"
-                              style={{ width: `${Math.min(100, Math.max(5, pct))}%` }}
+                              style={{
+                                width: `${Math.min(100, Math.max(5, pct))}%`,
+                              }}
                             />
                           </div>
                         </div>
@@ -1358,8 +1650,12 @@ export const Catalogo = () => {
                 <div className="chart-card">
                   <div className="chart-header">
                     <div>
-                      <h3 className="chart-title">Porcentaje de Productos Aceptados</h3>
-                      <p className="chart-subtitle">Índice de productos aceptados sin observaciones</p>
+                      <h3 className="chart-title">
+                        Porcentaje de Productos Aceptados
+                      </h3>
+                      <p className="chart-subtitle">
+                        Índice de productos aceptados sin observaciones
+                      </p>
                     </div>
                     <Award size={18} className="chart-header-icon" />
                   </div>
@@ -1370,8 +1666,12 @@ export const Catalogo = () => {
                       return (
                         <div key={p.idProveedor} className="ranking-item">
                           <div className="ranking-item-info">
-                            <span className="ranking-name">{p.razonSocial}</span>
-                            <span className="ranking-score">{met.porcentajeAceptados}%</span>
+                            <span className="ranking-name">
+                              {p.razonSocial}
+                            </span>
+                            <span className="ranking-score">
+                              {met.porcentajeAceptados}%
+                            </span>
                           </div>
                           <div className="ranking-bar-track">
                             <div
@@ -1390,8 +1690,13 @@ export const Catalogo = () => {
                 <div className="chart-card">
                   <div className="chart-header">
                     <div>
-                      <h3 className="chart-title">Porcentaje de Órdenes Cumplidas</h3>
-                      <p className="chart-subtitle">Índice de órdenes de compra entregadas a tiempo y completas</p>
+                      <h3 className="chart-title">
+                        Porcentaje de Órdenes Cumplidas
+                      </h3>
+                      <p className="chart-subtitle">
+                        Índice de órdenes de compra entregadas a tiempo y
+                        completas
+                      </p>
                     </div>
                     <CheckCircle2 size={18} className="chart-header-icon" />
                   </div>
@@ -1402,13 +1707,19 @@ export const Catalogo = () => {
                       return (
                         <div key={p.idProveedor} className="ranking-item">
                           <div className="ranking-item-info">
-                            <span className="ranking-name">{p.razonSocial}</span>
-                            <span className="ranking-score">{met.porcentajeEntregasCompletas}%</span>
+                            <span className="ranking-name">
+                              {p.razonSocial}
+                            </span>
+                            <span className="ranking-score">
+                              {met.porcentajeEntregasCompletas}%
+                            </span>
                           </div>
                           <div className="ranking-bar-track">
                             <div
                               className="ranking-bar-fill fill-high"
-                              style={{ width: `${met.porcentajeEntregasCompletas}%` }}
+                              style={{
+                                width: `${met.porcentajeEntregasCompletas}%`,
+                              }}
                             />
                           </div>
                         </div>
@@ -1423,7 +1734,9 @@ export const Catalogo = () => {
               <div className="tabla-header-info">
                 <div className="titulo-tabla-group">
                   <BarChart3 size={18} className="icono-seccion" />
-                  <h3 className="titulo-tabla">Resumen Comparativo de Desempeño</h3>
+                  <h3 className="titulo-tabla">
+                    Resumen Comparativo de Desempeño
+                  </h3>
                 </div>
                 <span className="conteo-resultados">
                   Análisis conjunto de precios, descuentos, tiempos y calidad
@@ -1446,22 +1759,32 @@ export const Catalogo = () => {
                   <tbody>
                     {proveedores.map((p) => {
                       const precioProm = obtenerPrecioPromedioProveedor(p);
-                      const calidadPct = obtenerMetricasCalidadEntrega(p.idProveedor).porcentajeAceptados;
+                      const calidadPct = obtenerMetricasCalidadEntrega(
+                        p.idProveedor,
+                      ).porcentajeAceptados;
                       return (
                         <tr key={p.idProveedor}>
                           <td>
                             <div className="producto-info-cell">
-                              <span className="producto-nombre">{p.razonSocial}</span>
-                              <span className="producto-desc">RUC: {p.nitRuc}</span>
+                              <span className="producto-nombre">
+                                {p.razonSocial}
+                              </span>
+                              <span className="producto-desc">
+                                RUC: {p.nitRuc}
+                              </span>
                             </div>
                           </td>
                           <td>
                             <span className="precio-pactado-tag">
-                              {precioProm > 0 ? `${precioProm.toFixed(2)} Bs.` : 'N/A'}
+                              {precioProm > 0
+                                ? `${precioProm.toFixed(2)} Bs.`
+                                : "N/A"}
                             </span>
                           </td>
                           <td>
-                            <span className="font-semibold">{p.descuentoVolumen}%</span>
+                            <span className="font-semibold">
+                              {p.descuentoVolumen}%
+                            </span>
                           </td>
                           <td>
                             <div className="entrega-cell">
@@ -1473,10 +1796,14 @@ export const Catalogo = () => {
                             <span className="score-calidad">{calidadPct}%</span>
                           </td>
                           <td>
-                            <span className="font-semibold">{p.puntajeDesempeno}%</span>
+                            <span className="font-semibold">
+                              {p.puntajeDesempeno}%
+                            </span>
                           </td>
                           <td>
-                            <span className={`badge-estado badge-${p.estado.toLowerCase()}`}>
+                            <span
+                              className={`badge-estado badge-${p.estado.toLowerCase()}`}
+                            >
                               {p.estado}
                             </span>
                           </td>
@@ -1496,9 +1823,14 @@ export const Catalogo = () => {
               <div className="modal-header">
                 <div>
                   <h3 className="modal-title">Registrar Documento</h3>
-                  <p className="modal-subtitle">Adjunta nuevos documentos de soporte del proveedor</p>
+                  <p className="modal-subtitle">
+                    Adjunta nuevos documentos de soporte del proveedor
+                  </p>
                 </div>
-                <button className="btn-close-modal" onClick={() => setModalDocAbierto(false)}>
+                <button
+                  className="btn-close-modal"
+                  onClick={() => setModalDocAbierto(false)}
+                >
                   <X size={18} />
                 </button>
               </div>
@@ -1516,11 +1848,20 @@ export const Catalogo = () => {
                   <select
                     className="form-input"
                     value={nuevoDoc.tipoDocumento}
-                    onChange={(e) => setNuevoDoc({ ...nuevoDoc, tipoDocumento: e.target.value })}
+                    onChange={(e) =>
+                      setNuevoDoc({
+                        ...nuevoDoc,
+                        tipoDocumento: e.target.value,
+                      })
+                    }
                   >
                     <option value="Ficha RUC">Ficha RUC</option>
-                    <option value="Certificado de Homologación">Certificado de Homologación</option>
-                    <option value="Licencia de Funcionamiento">Licencia de Funcionamiento</option>
+                    <option value="Certificado de Homologación">
+                      Certificado de Homologación
+                    </option>
+                    <option value="Licencia de Funcionamiento">
+                      Licencia de Funcionamiento
+                    </option>
                     <option value="Certificación ISO">Certificación ISO</option>
                   </select>
                 </div>
@@ -1532,7 +1873,12 @@ export const Catalogo = () => {
                     className="form-input"
                     placeholder="Ej. 20601234567 / CH-2026-101"
                     value={nuevoDoc.numeroDocumento}
-                    onChange={(e) => setNuevoDoc({ ...nuevoDoc, numeroDocumento: e.target.value })}
+                    onChange={(e) =>
+                      setNuevoDoc({
+                        ...nuevoDoc,
+                        numeroDocumento: e.target.value,
+                      })
+                    }
                   />
                 </div>
 
@@ -1542,23 +1888,34 @@ export const Catalogo = () => {
                     type="date"
                     className="form-input"
                     value={nuevoDoc.fechaVencimiento}
-                    onChange={(e) => setNuevoDoc({ ...nuevoDoc, fechaVencimiento: e.target.value })}
+                    onChange={(e) =>
+                      setNuevoDoc({
+                        ...nuevoDoc,
+                        fechaVencimiento: e.target.value,
+                      })
+                    }
                   />
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">Archivo Adjunto (Simulado)</label>
+                  <label className="form-label">
+                    Archivo Adjunto (Simulado)
+                  </label>
                   <div className="upload-dropzone">
                     <Upload size={20} className="upload-icon" />
                     <span className="upload-text">
-                      {nuevoDoc.archivoNombre || 'Haz clic o arrastra un archivo PDF para adjuntar'}
+                      {nuevoDoc.archivoNombre ||
+                        "Haz clic o arrastra un archivo PDF para adjuntar"}
                     </span>
                     <input
                       type="file"
                       className="file-input-hidden"
                       onChange={(e) => {
                         if (e.target.files && e.target.files[0]) {
-                          setNuevoDoc({ ...nuevoDoc, archivoNombre: e.target.files[0].name });
+                          setNuevoDoc({
+                            ...nuevoDoc,
+                            archivoNombre: e.target.files[0].name,
+                          });
                         }
                       }}
                     />
@@ -1566,7 +1923,11 @@ export const Catalogo = () => {
                 </div>
 
                 <div className="modal-footer">
-                  <button type="button" className="btn-cancelar" onClick={() => setModalDocAbierto(false)}>
+                  <button
+                    type="button"
+                    className="btn-cancelar"
+                    onClick={() => setModalDocAbierto(false)}
+                  >
                     Cancelar
                   </button>
                   <button type="submit" className="btn-guardar">

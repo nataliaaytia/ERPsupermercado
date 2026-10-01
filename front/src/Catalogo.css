@@ -1969,3 +1969,49 @@
     width: 100%;
     min-width: 0;
 }
+.desempeno-field {
+    min-width: 0;
+}
+
+.desempeno-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.6rem;
+}
+
+.desempeno-porcentaje {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--accent);
+}
+
+.desempeno-barra {
+    width: 100%;
+    height: 8px;
+    background-color: var(--border-color);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.desempeno-progreso {
+    height: 100%;
+    background-color: var(--accent);
+    border-radius: 999px;
+    transition: width 0.7s ease;
+    animation: desempeno-carga 0.7s ease-out;
+}
+
+.desempeno-nivel {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+}
+
+@keyframes desempeno-carga {
+    from {
+        width: 0;
+    }
+}
