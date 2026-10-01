@@ -23,6 +23,9 @@ public class Producto {
     @Column (name = "descripcion", nullable = false, length = 200)
     private String descripcion;
 
+    @Column(name = "categoria", nullable = false, length = 100)
+    private String categoria;
+
     @Column (name = "unidad", nullable = false, length = 20)
     private String unidad;
 

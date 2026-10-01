@@ -4,6 +4,9 @@ import com.sonic.erp.proveedores.dto.response.ComparacionPrecioResponse;
 import com.sonic.erp.proveedores.dto.request.ProveedorUpdateRequest;
 import com.sonic.erp.proveedores.dto.response.ProveedorDetalleResponse;
 import com.sonic.erp.proveedores.dto.response.ComparacionTiempoEntregaResponse;
+import com.sonic.erp.proveedores.dto.response.CatalogoCategoriaResponse;
+import com.sonic.erp.proveedores.dto.response.RankingDescuentoResponse;
+import com.sonic.erp.proveedores.dto.response.ResumenComparativoProveedorResponse;
 import com.sonic.erp.proveedores.entity.Proveedor;
 import com.sonic.erp.proveedores.service.ProveedorService;
 import jakarta.validation.Valid;
@@ -146,5 +149,41 @@ public class ProveedorController {
                 proveedorService.compararTiemposEntrega(idProducto);
 
         return ResponseEntity.ok(comparacion);
+    }
+
+    @GetMapping("/{idProveedor}/catalogo/categoria")
+    public ResponseEntity<List<CatalogoCategoriaResponse>> filtrarCatalogoPorCategoria(
+            @PathVariable Long idProveedor,
+            @RequestParam String categoria) {
+
+        return ResponseEntity.ok(
+                proveedorService.filtrarCatalogoPorCategoria(idProveedor, categoria)
+        );
+    }
+
+    @GetMapping("/{idProveedor}/catalogo/buscar")
+    public ResponseEntity<List<CatalogoCategoriaResponse>> buscarProductosEnCatalogo(
+            @PathVariable Long idProveedor,
+            @RequestParam String termino) {
+
+        return ResponseEntity.ok(
+                proveedorService.buscarProductosEnCatalogo(idProveedor, termino)
+        );
+    }
+
+    @GetMapping("/ranking-descuentos")
+    public ResponseEntity<List<RankingDescuentoResponse>> obtenerRankingDescuentos() {
+
+        return ResponseEntity.ok(
+                proveedorService.obtenerRankingDescuentos()
+        );
+    }
+
+    @GetMapping("/resumen-comparativo")
+    public ResponseEntity<List<ResumenComparativoProveedorResponse>> obtenerResumenComparativo() {
+
+        return ResponseEntity.ok(
+                proveedorService.obtenerResumenComparativo()
+        );
     }
 }
