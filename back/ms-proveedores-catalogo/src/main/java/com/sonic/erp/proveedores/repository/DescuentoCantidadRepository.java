@@ -10,4 +10,6 @@ import java.util.List;
 public interface DescuentoCantidadRepository extends JpaRepository<DescuentoCantidad, Long> {
 
     List<DescuentoCantidad> findByCatalogoComercial_IdCatalogo(Long idCatalogo);
+
+    List<DescuentoCantidad> findAllByOrderByPorcentajeDescuentoDesc();
 }
