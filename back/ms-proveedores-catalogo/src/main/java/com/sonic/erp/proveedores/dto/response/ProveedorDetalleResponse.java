@@ -33,6 +33,7 @@ public class ProveedorDetalleResponse {
         private Long idProducto;
         private String codigoSku;
         private String descripcion;
+        private String categoria;
         private String unidad;
         private BigDecimal precioReferencial;
         private String estadoProducto;

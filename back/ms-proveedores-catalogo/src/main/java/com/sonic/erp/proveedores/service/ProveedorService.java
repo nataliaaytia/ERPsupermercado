@@ -168,7 +168,9 @@ public class ProveedorService {
         List<String> estadosPermitidos = List.of(
                 "Registrado",
                 "Activo",
-                "Inactivo"
+                "Inactivo",
+                "Observado",
+                "Pendiente"
         );
 
         if (nuevoEstado == null || !estadosPermitidos.contains(nuevoEstado)) {
@@ -204,6 +206,7 @@ public class ProveedorService {
                             .idProducto(prod.getIdProducto())
                             .codigoSku(prod.getCodigoSku())
                             .descripcion(prod.getDescripcion())
+                            .categoria(prod.getCategoria())
                             .unidad(prod.getUnidad())
                             .precioReferencial(prod.getPrecioReferencial())
                             .estadoProducto(prod.getEstado())
