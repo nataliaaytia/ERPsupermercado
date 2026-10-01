@@ -54,7 +54,7 @@ export interface Proveedor {
   montoTotalComprado: number;
   documentos: Documento[];
   catalogoProductos: ProductoCatalogo[];
-  descuentoVolumen: number;
+  descuentoVolumen: DescuentoVolumen[];
   tiempoPromedioDias: number;
 }
 
@@ -70,7 +70,11 @@ const proveedoresIniciales: Proveedor[] = [
     puntajeDesempeno: 95,
     ordenesCompra: 48,
     montoTotalComprado: 125000,
-    descuentoVolumen: 18,
+    descuentoVolumen: [
+      { cantidadMinima: 50, descuento: 5 },
+      { cantidadMinima: 100, descuento: 8 },
+      { cantidadMinima: 500, descuento: 12 }
+    ],
     tiempoPromedioDias: 1.5,
     documentos: [
       {
@@ -137,7 +141,11 @@ const proveedoresIniciales: Proveedor[] = [
     puntajeDesempeno: 72,
     ordenesCompra: 24,
     montoTotalComprado: 58000,
-    descuentoVolumen: 10,
+    descuentoVolumen: [
+      { cantidadMinima: 50, descuento: 4 },
+      { cantidadMinima: 100, descuento: 7 },
+      { cantidadMinima: 500, descuento: 10 }
+    ],
     tiempoPromedioDias: 3.2,
     documentos: [
       {
@@ -196,7 +204,11 @@ const proveedoresIniciales: Proveedor[] = [
     puntajeDesempeno: 45,
     ordenesCompra: 8,
     montoTotalComprado: 14200,
-    descuentoVolumen: 5,
+    descuentoVolumen: [
+      { cantidadMinima: 50, descuento: 3 },
+      { cantidadMinima: 100, descuento: 6 },
+      { cantidadMinima: 500, descuento: 9 }
+    ],
     tiempoPromedioDias: 5.0,
     documentos: [],
     catalogoProductos: []
@@ -212,7 +224,11 @@ const proveedoresIniciales: Proveedor[] = [
     puntajeDesempeno: 88,
     ordenesCompra: 36,
     montoTotalComprado: 94000,
-    descuentoVolumen: 15,
+    descuentoVolumen: [
+      { cantidadMinima: 50, descuento: 5 },
+      { cantidadMinima: 100, descuento: 9 },
+      { cantidadMinima: 500, descuento: 13 }
+    ],
     tiempoPromedioDias: 1.8,
     documentos: [
       {
@@ -436,9 +452,15 @@ export const Catalogo = () => {
     ordenesCumplidas: true
   });
 
+  const obtenerDescuentoMaximo = (proveedor: Proveedor) =>
+    Math.max(
+      0,
+      ...proveedor.descuentoVolumen.map((tramo) => tramo.descuento)
+    );
+
   const proveedoresOrdenadosRanking = [...proveedores].sort((a, b) => {
     if (criterioRanking === 'descuento') {
-      return b.descuentoVolumen - a.descuentoVolumen;
+      return obtenerDescuentoMaximo(b) - obtenerDescuentoMaximo(a);
     }
     if (criterioRanking === 'puntuacion') {
       return b.puntajeDesempeno - a.puntajeDesempeno;
@@ -1108,7 +1130,7 @@ export const Catalogo = () => {
 
                   <div className="top-card-metric">
                     <span className="metric-valor-destacado">
-                      {criterioRanking === 'descuento' && `${p.descuentoVolumen}%`}
+                      {criterioRanking === 'descuento' && `${obtenerDescuentoMaximo(p)}%`}
                       {criterioRanking === 'puntuacion' && `${p.puntajeDesempeno}%`}
                       {criterioRanking === 'tiempo' && `${p.tiempoPromedioDias} días`}
                     </span>
@@ -1148,8 +1170,9 @@ export const Catalogo = () => {
                     let porcentajeAncho: number;
 
                     if (criterioRanking === 'descuento') {
-                      textoValor = `${p.descuentoVolumen}%`;
-                      porcentajeAncho = Math.round((p.descuentoVolumen / 20) * 100);
+                      const descuentoMaximo = obtenerDescuentoMaximo(p);
+                      textoValor = `${descuentoMaximo}%`;
+                      porcentajeAncho = Math.round((descuentoMaximo / 20) * 100);
                     } else if (criterioRanking === 'puntuacion') {
                       textoValor = `${p.puntajeDesempeno}%`;
                       porcentajeAncho = p.puntajeDesempeno;
@@ -1302,12 +1325,13 @@ export const Catalogo = () => {
 
                   <div className="ranking-bars-list">
                     {proveedores.map((p) => {
-                      const pct = Math.round((p.descuentoVolumen / 20) * 100);
+                      const descuentoMaximo = obtenerDescuentoMaximo(p);
+                      const pct = Math.round((descuentoMaximo / 20) * 100);
                       return (
                         <div key={p.idProveedor} className="ranking-item">
                           <div className="ranking-item-info">
                             <span className="ranking-name">{p.razonSocial}</span>
-                            <span className="ranking-score">{p.descuentoVolumen}%</span>
+                            <span className="ranking-score">{descuentoMaximo}%</span>
                           </div>
                           <div className="ranking-bar-track">
                             <div
@@ -1461,7 +1485,7 @@ export const Catalogo = () => {
                             </span>
                           </td>
                           <td>
-                            <span className="font-semibold">{p.descuentoVolumen}%</span>
+                            <span className="font-semibold">{obtenerDescuentoMaximo(p)}%</span>
                           </td>
                           <td>
                             <div className="entrega-cell">

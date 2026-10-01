@@ -8,9 +8,26 @@ import {
   Zap
 } from 'lucide-react';
 
-import type { Proveedor } from './Catalogo';
+import type { DescuentoVolumen, Proveedor } from './Catalogo';
 
 import './ComparacionProductos.css';
+
+const obtenerDescuentoPorCantidad = (
+  descuentos: DescuentoVolumen[],
+  cantidad: number
+): number => {
+  const tramoAplicable = descuentos
+    .filter((tramo) => tramo.cantidadMinima <= cantidad)
+    .reduce<DescuentoVolumen | undefined>(
+      (mayor, tramo) =>
+        !mayor || tramo.cantidadMinima > mayor.cantidadMinima
+          ? tramo
+          : mayor,
+      undefined
+    );
+
+  return tramoAplicable?.descuento ?? 0;
+};
 
 interface ComparacionProductosProps {
   proveedores: Proveedor[];
@@ -532,16 +549,17 @@ export const ComparacionProductos = ({
                     // El descuento solo aplica con stock suficiente
                     const descuentoAplicable =
                       stockSuficiente
-                        ? item.proveedor
-                            .descuentoVolumen
+                        ? obtenerDescuentoPorCantidad(
+                            item.proveedor.descuentoVolumen,
+                            cantidadNumerica
+                          )
                         : 0;
 
                     const precioConDescuento =
-                      item.precioPactado *
-                      (
-                        1 -
-                        descuentoAplicable / 100
-                      );
+                      stockSuficiente
+                        ? item.precioPactado *
+                          (1 - descuentoAplicable / 100)
+                        : null;
 
                     return (
                       <tr
@@ -608,8 +626,7 @@ export const ComparacionProductos = ({
                                 }
                               </span>
 
-                              {cantidadNumerica > 0 &&
-                                stockSuficiente &&
+                              {precioConDescuento !== null &&
                                 descuentoAplicable > 0 && (
 
                                   <div
