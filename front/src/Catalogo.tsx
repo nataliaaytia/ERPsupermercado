@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import './Catalogo.css';
 import AsociarCatalogo from './AsociarCatalogo';
+import AlertasDocumentos from './AlertasDocumentos';
 
 export type EstadoProveedor = 'Activo' | 'Inactivo' | 'Pendiente' | 'Observado';
 
@@ -1392,6 +1393,8 @@ export const Catalogo = () => {
 
         {activeIndex === 5 && (
           <div className="dashboard-container">
+            <AlertasDocumentos proveedores={proveedores} />
+
             <div className="dashboard-filtros-bar">
               <span className="filtros-bar-label">
                 <Sliders size={15} />
