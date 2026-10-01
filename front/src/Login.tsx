@@ -5,7 +5,8 @@ import './Login.css';
 interface LoginProps {
     onSuccess?: () => void;
 }
-//predeterminados noma 
+
+// predeterminados noma
 const PREDEFINED_USER = 'admin';
 const PREDEFINED_PASSWORD = 'sonic123';
 
@@ -31,13 +32,15 @@ export const Login: React.FC<LoginProps> = ({ onSuccess }) => {
         <div className="login-container">
             <div className="login-card">
                 <div className="login-header">
-                    <h2 className="login-title">inicio de sesion</h2>
-                    <p className="login-subtitle">Ingresa tus datos para iniciar sesion</p>
+                    <h2 className="login-title">Inicio de sesión</h2>
+                    <p className="login-subtitle">
+                        Ingresa tus datos para iniciar sesión
+                    </p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="login-form">
                     {error && (
-                        <div style={{ color: '#ef4444', fontSize: '0.85rem', textAlign: 'center' }}>
+                        <div className="login-error" role="alert">
                             {error}
                         </div>
                     )}
@@ -89,6 +92,7 @@ export const Login: React.FC<LoginProps> = ({ onSuccess }) => {
                             />
                             <span>Recordarme</span>
                         </label>
+
                         <a href="#forgot" className="forgot-link">
                             ¿Olvidaste tu contraseña?
                         </a>

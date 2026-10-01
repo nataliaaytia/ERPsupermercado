@@ -159,3 +159,8 @@
     opacity: 0.9;
     transform: translateY(-1px);
 }
+.login-error {
+    color: #ef4444;
+    font-size: 0.85rem;
+    text-align: center;
+}
