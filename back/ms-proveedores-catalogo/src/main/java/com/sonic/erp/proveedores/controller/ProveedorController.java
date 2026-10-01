@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import com.sonic.erp.proveedores.dto.response.ProveedorValidacionResponse;
 import com.sonic.erp.proveedores.dto.request.AsociarProductoRequest;
 import com.sonic.erp.proveedores.entity.CatalogoComercial;
+import com.sonic.erp.proveedores.dto.response.DocumentoAlertaResponse;
 import jakarta.validation.Valid;
 
 import java.util.List;
@@ -228,6 +229,14 @@ public class ProveedorController {
 
         return ResponseEntity.ok(
                 proveedorService.obtenerIndicadoresProveedores()
+        );
+    }
+
+    @GetMapping("/documentos/alertas")
+    public ResponseEntity<List<DocumentoAlertaResponse>> obtenerAlertasDocumentos() {
+
+        return ResponseEntity.ok(
+                proveedorService.obtenerDocumentosProximosAVencer()
         );
     }
 }
