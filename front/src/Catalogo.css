@@ -22,14 +22,6 @@
     font-family: inherit;
 }
 
-.catalogo-sidebar {
-    width: 260px;
-    flex-shrink: 0;
-    padding-right: 2rem;
-    box-sizing: border-box;
-    border-right: 1px solid var(--border-color, rgba(0, 0, 0, 0.08));
-}
-
 .catalogo-content {
     flex: 1;
     display: flex;
@@ -1968,4 +1960,12 @@
     .dashboard-grid-personalizado {
         grid-template-columns: 1fr;
     }
+}
+.catalogo-container--sidebar-cerrado {
+    gap: 0;
+}
+
+.catalogo-container--sidebar-cerrado .catalogo-content {
+    width: 100%;
+    min-width: 0;
 }

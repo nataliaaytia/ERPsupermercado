@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { LineSidebar } from './LineSidebar';
+import CatalogoSidebar from './CatalogoSidebar';
 import ProductoDetalle from './ProductoDetalle';
+import { ComparacionProductos } from './ComparacionProductos';
 import {
   ShieldCheck, CheckCircle2, XCircle, AlertCircle, FileText,
   Search, RefreshCw, Power, Clock, BarChart3, TrendingUp,
@@ -33,6 +34,11 @@ export interface ProductoCatalogo {
   tiempoEntregaEstimado: string;
   stockDisponible: number;
   unidadMedida: string;
+}
+
+export interface DescuentoVolumen {
+  cantidadMinima: number;
+  descuento: number;
 }
 
 export interface Proveedor {
@@ -378,6 +384,7 @@ export const Catalogo = () => {
 
   const [filtroBusquedaProv, setFiltroBusquedaProv] = useState<string>('');
   const [filtroEstadoProv, setFiltroEstadoProv] = useState<string>('Todos');
+  const [sidebarAbierto, setSidebarAbierto] = useState<boolean>(true);
   const [resultadoValidacion, setResultadoValidacion] = useState<{
     ejecutado: boolean;
     esValido: boolean;
@@ -398,6 +405,20 @@ export const Catalogo = () => {
   const [productoSeleccionado, setProductoSeleccionado] = useState<ProductoCatalogo | null>(null);
 
   const [productoCompararSKU, setProductoCompararSKU] = useState<string>('PROD-LOG-001');
+  const [cantidadComparacion, setCantidadComparacion] = useState<number>(1);
+  const [criterios, setCriterios] = useState({
+  precio: true,
+  descuento: true,
+  entrega: true,
+  stock: true
+  });
+
+  const cambiarCriterio = (criterio: keyof typeof criterios) => {
+  setCriterios((actuales) => ({
+    ...actuales,
+    [criterio]: !actuales[criterio]
+  }));
+  };
 
   const [criterioRanking, setCriterioRanking] = useState<'descuento' | 'puntuacion' | 'tiempo'>('descuento');
 
@@ -591,16 +612,16 @@ export const Catalogo = () => {
 
   return (
     <div className="catalogo-container">
-      <aside className="catalogo-sidebar">
-        <LineSidebar
-          items={menuItems}
-          defaultActive={activeIndex}
-          onItemClick={(index) => {
+      <CatalogoSidebar
+        items={menuItems}
+        activeIndex={activeIndex}
+        abierto={sidebarAbierto}
+        onToggle={() => setSidebarAbierto((estado) => !estado)}
+        onItemClick={(index) => {
             setActiveIndex(index);
             setResultadoValidacion(null);
-          }}
-        />
-      </aside>
+      }}
+      />
 
       <section className="catalogo-content">
         <header className="catalogo-header">
@@ -848,215 +869,7 @@ export const Catalogo = () => {
         )}
 
         {activeIndex === 2 && (
-          <div className="catalogo-productos-layout">
-            <div className="selector-proveedor-card">
-              <div className="selector-header">
-                <div className="selector-info">
-                  <span className="selector-label">Seleccionar Producto a Comparar:</span>
-                  <div className="select-wrapper">
-                    <Package size={16} className="select-icon" />
-                    <select
-                      className="proveedor-dropdown"
-                      value={productoCompararSKU}
-                      onChange={(e) => setProductoCompararSKU(e.target.value)}
-                    >
-                      {listaProductosUnicos.map((prod) => (
-                        <option key={prod.sku} value={prod.sku}>
-                          {prod.nombre} ({prod.sku})
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                {productoActualComparativo && (
-                  <div className="proveedor-meta-pills">
-                    <span className="pill-metric">
-                      Categoría: <strong>{productoActualComparativo.categoria}</strong>
-                    </span>
-                    <span className="pill-metric">
-                      Proveedores: <strong>{proveedoresParaProducto.length}</strong>
-                    </span>
-                    <span className="pill-metric">
-                      Mejor Precio: <strong>{precioMinimo.toFixed(2)} Bs.</strong>
-                    </span>
-                    <span className="pill-metric">
-                      <Timer size={13} style={{ marginRight: '4px', verticalAlign: 'middle' }} />
-                      Menor Abastecimiento: <strong>{mejorProveedorEntrega?.tiempoEntregaEstimado || 'N/A'}</strong>
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="tabla-catalogo-card">
-              <div className="tabla-header-info">
-                <div className="titulo-tabla-group">
-                  <BarChart3 size={18} className="icono-seccion" />
-                  <h3 className="titulo-tabla">Comparativa de Tiempos de Entrega y Precios por Proveedor</h3>
-                </div>
-                <span className="conteo-resultados">
-                  Mostrando {proveedoresParaProducto.length} ofertas para consideración de tiempo de abastecimiento
-                </span>
-              </div>
-
-              <div className="documentos-tabla-wrapper">
-                <table className="documentos-tabla">
-                  <thead>
-                    <tr>
-                      <th>Proveedor / RUC</th>
-                      <th>Estado Proveedor</th>
-                      <th>Precio Pactado</th>
-                      <th>Diferencia vs Mínimo</th>
-                      <th>Tiempo Estimado de Entrega (Abastecimiento)</th>
-                      <th>Stock Dispon.</th>
-                      <th>Desempeño</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {proveedoresParaProducto.length > 0 ? (
-                      proveedoresParaProducto.map((item) => {
-                        const esMejorPrecio = item.precioPactado === precioMinimo;
-                        const diferencia = item.precioPactado - precioMinimo;
-                        const horasItem = extraerHorasMinimas(item.tiempoEntregaEstimado);
-                        const esMasRapido = horasItem === menorTiempoHoras && menorTiempoHoras < 999;
-
-                        return (
-                          <tr key={item.proveedor.idProveedor}>
-                            <td>
-                              <div className="producto-info-cell">
-                                <span className="producto-nombre">{item.proveedor.razonSocial}</span>
-                                <span className="producto-desc">RUC / NIT: {item.proveedor.nitRuc}</span>
-                              </div>
-                            </td>
-                            <td>
-                              <span className={`badge-estado badge-${item.proveedor.estado.toLowerCase()}`}>
-                                {item.proveedor.estado}
-                              </span>
-                            </td>
-                            <td>
-                              <span className="precio-pactado-tag">
-                                {item.precioPactado.toFixed(2)} Bs.
-                              </span>
-                              <span className="unidad-sub"> / {item.unidadMedida}</span>
-                            </td>
-                            <td>
-                              {esMejorPrecio ? (
-                                <span className="badge-estado badge-activo">
-                                  Mejor Precio
-                                </span>
-                              ) : (
-                                <span style={{ color: '#dc2626', fontWeight: 600, fontSize: '0.8125rem' }}>
-                                  +{diferencia.toFixed(2)} Bs.
-                                </span>
-                              )}
-                            </td>
-                            <td>
-                              <div className="entrega-cell" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                <Truck size={14} className="icon-truck" />
-                                <span style={{ fontWeight: 600 }}>{item.tiempoEntregaEstimado}</span>
-                                {esMasRapido && (
-                                  <span className="badge-estado badge-activo" style={{ fontSize: '0.75rem', padding: '2px 6px', display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
-                                    <Zap size={10} /> Entrega Más Rápida
-                                  </span>
-                                )}
-                              </div>
-                            </td>
-                            <td>
-                              <span className="stock-val">
-                                {item.stockDisponible} {item.unidadMedida}s
-                              </span>
-                            </td>
-                            <td>
-                              <span className="font-semibold">{item.proveedor.puntajeDesempeno}%</span>
-                            </td>
-                          </tr>
-                        );
-                      })
-                    ) : (
-                      <tr>
-                        <td colSpan={7} className="tabla-vacia">
-                          No se encontraron proveedores registrados para el producto seleccionado.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <div className="tabla-catalogo-card" style={{ marginTop: '1.5rem' }}>
-              <div className="tabla-header-info">
-                <div className="titulo-tabla-group">
-                  <Clock size={18} className="icono-seccion" />
-                  <h3 className="titulo-tabla">Histórico de Tiempos de Entrega</h3>
-                </div>
-                <span className="conteo-resultados">
-                  Evolución del tiempo de abastecimiento en días por proveedor
-                </span>
-              </div>
-
-              <div className="freq-bar-chart historico-bar-chart">
-                {['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'].map((mes) => (
-                  <div key={mes} className="freq-bar-col">
-                    <div className="historico-bars-group">
-                      {proveedoresParaProducto.map((p, idx) => {
-                        const colorProveedor = COLORES_PROVEEDORES[idx % COLORES_PROVEEDORES.length];
-                        const hData = historicoEntregasData.find(
-                          h => h.idProveedor === p.proveedor.idProveedor && h.sku === p.sku
-                        );
-                        const itemMes = hData?.historico.find(h => h.mes === mes);
-                        const dias = itemMes ? itemMes.diasEntrega : (extraerHorasMinimas(p.tiempoEntregaEstimado) / 24);
-                        const maxDias = 5;
-                        const heightPercent = Math.min(100, Math.round((dias / maxDias) * 100));
-
-                        return (
-                          <div key={p.proveedor.idProveedor} className="historico-bar-col-item">
-                            <span className="historico-bar-val">
-                              {dias.toFixed(1)}d
-                            </span>
-                            <div className="freq-bar-container historico-bar-container">
-                              <div
-                                className="freq-bar"
-                                style={{
-                                  height: `${heightPercent}%`,
-                                  backgroundColor: colorProveedor
-                                }}
-                              />
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                    <span className="freq-bar-label">{mes}</span>
-                  </div>
-                ))}
-              </div>
-
-              <div className="leyenda-historico-container">
-                {proveedoresParaProducto.map((p, idx) => {
-                  const colorProveedor = COLORES_PROVEEDORES[idx % COLORES_PROVEEDORES.length];
-                  const hData = historicoEntregasData.find(h => h.idProveedor === p.proveedor.idProveedor && h.sku === p.sku);
-                  const prom = hData
-                    ? (hData.historico.reduce((a, b) => a + b.diasEntrega, 0) / hData.historico.length)
-                    : (extraerHorasMinimas(p.tiempoEntregaEstimado) / 24);
-
-                  return (
-                    <div key={p.proveedor.idProveedor} className="leyenda-historico-item">
-                      <span
-                        className="leyenda-color-indicator"
-                        style={{ backgroundColor: colorProveedor }}
-                      />
-                      <span className="leyenda-nombre-proveedor">{p.proveedor.razonSocial}:</span>
-                      <span className="leyenda-promedio-texto">
-                        Promedio Histórico {prom.toFixed(1)} días
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
+          <ComparacionProductos proveedores={proveedores} />
         )}
 
         {activeIndex === 3 && (
