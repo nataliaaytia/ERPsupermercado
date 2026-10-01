@@ -19,4 +19,23 @@ public interface CatalogoComercialRepository extends JpaRepository<CatalogoComer
             Long idProveedor,
             Long idProducto
     );
+
+    List<CatalogoComercial> findByProducto_IdProducto(Long idProducto);
+
+    List<CatalogoComercial> findByProveedor_IdProveedorAndProducto_CategoriaIgnoreCase(
+            Long idProveedor,
+            String categoria
+    );
+
+    List<CatalogoComercial>
+    findByProveedor_IdProveedorAndProducto_DescripcionContainingIgnoreCase(
+            Long idProveedor,
+            String descripcion
+    );
+
+    List<CatalogoComercial>
+    findByProveedor_IdProveedorAndProducto_CodigoSkuContainingIgnoreCase(
+            Long idProveedor,
+            String codigoSku
+    );
 }
