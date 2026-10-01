@@ -10,6 +10,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.sonic.erp.proveedores.dto.response.ProveedorValidacionResponse;
+import com.sonic.erp.proveedores.dto.request.AsociarProductoRequest;
+import com.sonic.erp.proveedores.entity.CatalogoComercial;
+import jakarta.validation.Valid;
 
 import java.util.List;
 import java.util.Map;
@@ -124,5 +127,37 @@ public class ProveedorController {
                 proveedorService.obtenerRankingCumplimiento();
 
         return ResponseEntity.ok(ranking);
+    }
+
+    @PostMapping("/{idProveedor}/productos/{idProducto}")
+    public ResponseEntity<?> asociarProducto(
+            @PathVariable Long idProveedor,
+            @PathVariable Long idProducto,
+            @Valid @RequestBody AsociarProductoRequest request) {
+
+        try {
+            CatalogoComercial catalogo = proveedorService.asociarProducto(
+                    idProveedor,
+                    idProducto,
+                    request.getFechaInicio(),
+                    request.getFechaFin(),
+                    request.getCondiciones(),
+                    request.getArchivo()
+            );
+
+            return ResponseEntity.ok(
+                    Map.of(
+                            "mensaje", "Producto asociado correctamente al proveedor",
+                            "idCatalogo", catalogo.getIdCatalogo(),
+                            "idProveedor", idProveedor,
+                            "idProducto", idProducto
+                    )
+            );
+
+        } catch (IllegalArgumentException e) {
+
+            return ResponseEntity.badRequest()
+                    .body(Map.of("mensaje", e.getMessage()));
+        }
     }
 }

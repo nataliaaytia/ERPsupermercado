@@ -15,4 +15,8 @@ public interface CatalogoComercialRepository extends JpaRepository<CatalogoComer
             Long idProveedor,
             Long idProducto
     );
+    boolean existsByProveedor_IdProveedorAndProducto_IdProducto(
+            Long idProveedor,
+            Long idProducto
+    );
 }
