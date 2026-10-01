@@ -31,7 +31,9 @@ export const App = () => {
           isLoggedIn={isLoggedIn}
         />
         <main className="app-main-content">
-          {currentPage === 'home' && <Home />}
+          {currentPage === 'home' && (
+            <Home onNavigateToCatalogo={() => setCurrentPage('catalogo')} />
+          )}
           {currentPage === 'catalogo' && <Catalogo />}
           {currentPage === 'login' && (
             <Login
