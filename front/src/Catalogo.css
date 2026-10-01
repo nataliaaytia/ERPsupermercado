@@ -22,14 +22,6 @@
     font-family: inherit;
 }
 
-.catalogo-sidebar {
-    width: 260px;
-    flex-shrink: 0;
-    padding-right: 2rem;
-    box-sizing: border-box;
-    border-right: 1px solid var(--border-color, rgba(0, 0, 0, 0.08));
-}
-
 .catalogo-content {
     flex: 1;
     display: flex;
@@ -652,6 +644,131 @@
     gap: 0.9rem 2rem;
 }
 
+.alertas-documentos {
+    gap: 1.25rem;
+}
+
+.alertas-documentos .chart-header {
+    margin-bottom: 0;
+}
+
+.alertas-documentos .chart-title {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.alertas-documentos-contador {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2rem;
+    height: 2rem;
+    padding: 0 0.5rem;
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.alertas-documentos-lista {
+    display: grid;
+    gap: 0.75rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.alerta-documento-item {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--border-color);
+    border-left-width: 3px;
+    background: var(--bg-primary);
+}
+
+.alerta-documento-vencido {
+    border-left-color: #dc2626;
+}
+
+.alerta-documento-vencido>svg,
+.alerta-documento-vencido .alerta-documento-estado {
+    color: #b91c1c;
+}
+
+.alerta-documento-proximo {
+    border-left-color: #d97706;
+}
+
+.alerta-documento-proximo>svg,
+.alerta-documento-proximo .alerta-documento-estado {
+    color: #b45309;
+}
+
+[data-theme='dark'] .alerta-documento-vencido>svg,
+[data-theme='dark'] .alerta-documento-vencido .alerta-documento-estado {
+    color: #f87171;
+}
+
+[data-theme='dark'] .alerta-documento-proximo>svg,
+[data-theme='dark'] .alerta-documento-proximo .alerta-documento-estado {
+    color: #fbbf24;
+}
+
+.alerta-documento-detalle {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.alerta-documento-detalle strong {
+    overflow-wrap: anywhere;
+    color: var(--text-primary);
+    font-family: var(--cat-display);
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.alerta-documento-detalle span,
+.alerta-documento-detalle small {
+    overflow-wrap: anywhere;
+    color: var(--text-secondary);
+    font-size: 0.6875rem;
+}
+
+.alerta-documento-estado {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.625rem;
+    font-weight: 700;
+    text-align: right;
+    text-transform: uppercase;
+}
+
+.alertas-documentos-vacias {
+    margin: 0;
+    padding: 1rem;
+    border-left: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+}
+
+@media (max-width: 640px) {
+    .alerta-documento-item {
+        grid-template-columns: auto minmax(0, 1fr);
+    }
+
+    .alerta-documento-estado {
+        grid-column: 2;
+        text-align: left;
+    }
+}
+
 .check-item {
     display: flex;
     align-items: center;
@@ -709,6 +826,7 @@
     display: flex;
     flex-direction: column;
     gap: 1.75rem;
+    box-sizing: border-box;
 }
 
 .modal-header {
@@ -783,6 +901,8 @@
 }
 
 .form-input {
+    width: 100%;
+    box-sizing: border-box;
     background: rgba(0, 0, 0, 0.02);
     border: none;
     border-bottom: 1px solid var(--border-color, rgba(0, 0, 0, 0.12));
@@ -1842,5 +1962,61 @@
 
     .dashboard-grid-personalizado {
         grid-template-columns: 1fr;
+    }
+}
+
+.catalogo-container--sidebar-cerrado {
+    gap: 0;
+}
+
+.catalogo-container--sidebar-cerrado .catalogo-content {
+    width: 100%;
+    min-width: 0;
+}
+
+.desempeno-field {
+    min-width: 0;
+}
+
+.desempeno-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.6rem;
+}
+
+.desempeno-porcentaje {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--accent);
+}
+
+.desempeno-barra {
+    width: 100%;
+    height: 8px;
+    background-color: var(--border-color);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.desempeno-progreso {
+    height: 100%;
+    background-color: var(--accent);
+    border-radius: 999px;
+    transition: width 0.7s ease;
+    animation: desempeno-carga 0.7s ease-out;
+}
+
+.desempeno-nivel {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+}
+
+@keyframes desempeno-carga {
+    from {
+        width: 0;
     }
 }

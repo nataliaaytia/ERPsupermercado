@@ -6,9 +6,14 @@ import './Cabecera.css';
 interface CabeceraProps {
     currentPage?: string;
     onNavigate: (page: string) => void;
+    isLoggedIn?: boolean;
 }
 
-export const Cabecera: React.FC<CabeceraProps> = ({ currentPage, onNavigate }) => {
+export const Cabecera: React.FC<CabeceraProps> = ({
+    currentPage,
+    onNavigate,
+    isLoggedIn = false
+}) => {
     const { theme, toggleTheme } = useTheme();
 
     return (
@@ -34,11 +39,12 @@ export const Cabecera: React.FC<CabeceraProps> = ({ currentPage, onNavigate }) =
                 </nav>
 
                 <div className="cabecera-actions">
+                    {/* Al hacer clic solo navega a la pantalla de login */}
                     <button
-                        className="cabecera-btn-login"
+                        className={`cabecera-btn-login ${currentPage === 'login' ? 'active' : ''}`}
                         onClick={() => onNavigate('login')}
                     >
-                        Iniciar sesión
+                        {isLoggedIn ? 'Cerrar sesión' : 'Iniciar sesión'}
                     </button>
 
                     <button

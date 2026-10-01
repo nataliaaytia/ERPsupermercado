@@ -51,7 +51,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                     pseudoElement: '::view-transition-new(root)'
                 }
             );
-        });
+        }).catch(() => undefined);
     };
 
     return (

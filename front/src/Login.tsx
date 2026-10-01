@@ -1,31 +1,75 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User, Lock, Eye, EyeOff } from 'lucide-react';
 import './Login.css';
 
 interface LoginProps {
     onSuccess?: () => void;
+    onLogout?: () => void;
+    isLoggedIn?: boolean;
 }
-//predeterminados noma 
+
 const PREDEFINED_USER = 'admin';
 const PREDEFINED_PASSWORD = 'sonic123';
 
-export const Login: React.FC<LoginProps> = ({ onSuccess }) => {
+export const Login: React.FC<LoginProps> = ({
+    onSuccess,
+    onLogout,
+    isLoggedIn: externalIsLoggedIn
+}) => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [rememberMe, setRememberMe] = useState(false);
     const [error, setError] = useState('');
+    const [internalIsLoggedIn, setInternalIsLoggedIn] = useState<boolean>(() => {
+        return localStorage.getItem('isLoggedIn') === 'true';
+    });
+
+    const isLoggedIn = externalIsLoggedIn !== undefined ? externalIsLoggedIn : internalIsLoggedIn;
+
+    useEffect(() => {
+        if (externalIsLoggedIn !== undefined) {
+            setInternalIsLoggedIn(externalIsLoggedIn);
+        }
+    }, [externalIsLoggedIn]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
         if (username === PREDEFINED_USER && password === PREDEFINED_PASSWORD) {
             setError('');
+            setInternalIsLoggedIn(true);
+            localStorage.setItem('isLoggedIn', 'true');
             if (onSuccess) onSuccess();
         } else {
             setError('Usuario o contraseña incorrectos');
         }
     };
+
+    const handleLogout = () => {
+        setInternalIsLoggedIn(false);
+        localStorage.removeItem('isLoggedIn');
+        setPassword('');
+        if (onLogout) onLogout();
+    };
+
+    if (isLoggedIn) {
+        return (
+            <div className="login-container">
+                <div className="login-card">
+                    <div className="login-header">
+                        <h2 className="login-title">Sesión iniciada</h2>
+                        <p className="login-subtitle">Has iniciado sesión correctamente</p>
+                    </div>
+                    <div className="login-form">
+                        <button type="button" onClick={handleLogout} className="login-submit-btn">
+                            Cerrar sesión
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="login-container">
