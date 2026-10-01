@@ -1,5 +1,6 @@
-import { ChevronLeft, ChevronRight, Package, Truck, X } from 'lucide-react';
-import type { ProductoCatalogo } from './Catalogo';
+import { ChevronLeft, ChevronRight, Package, Truck, X } from "lucide-react";
+import type { ProductoCatalogo } from "./Catalogo";
+import './ProductoDetalle.css';
 
 interface ProductoDetalleProps {
   producto: ProductoCatalogo;
@@ -15,7 +16,7 @@ const ProductoDetalle = ({
   onCambiarProducto,
 }: ProductoDetalleProps) => {
   const indiceActual = productos.findIndex(
-    (item) => item.idProducto === producto.idProducto
+    (item) => item.idProducto === producto.idProducto,
   );
 
   const tieneAnterior = indiceActual > 0;
@@ -66,10 +67,18 @@ const ProductoDetalle = ({
             <span className="field-value">{producto.categoria}</span>
           </div>
 
-          <div className="dato-field">
-            <span className="field-label">Precio pactado</span>
-            <span className="field-value producto-detalle-precio">
-              {producto.precioPactado.toFixed(2)} Bs. / {producto.unidadMedida}
+          <div className="dato-field precio-pactado-detalle">
+            <div className="precio-pactado-header">
+              <span className="field-label">Precio pactado</span>
+              <span className="precio-pactado-vigente">Vigente</span>
+            </div>
+
+            <span className="precio-pactado-valor">
+              {producto.precioPactado.toFixed(2)} Bs.
+            </span>
+
+            <span className="precio-pactado-unidad">
+              por {producto.unidadMedida}
             </span>
           </div>
 
