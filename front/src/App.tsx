@@ -8,14 +8,38 @@ import Login from './Login';
 export const App = () => {
   const [currentPage, setCurrentPage] = useState<string>('home');
 
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => {
+    return localStorage.getItem('isLoggedIn') === 'true';
+  });
+
+  const handleLoginSuccess = () => {
+    setIsLoggedIn(true);
+    setCurrentPage('home');
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('isLoggedIn');
+    setIsLoggedIn(false);
+  };
+
   return (
     <ThemeProvider>
       <div className="app-container">
-        <Cabecera currentPage={currentPage} onNavigate={setCurrentPage} />
+        <Cabecera
+          currentPage={currentPage}
+          onNavigate={setCurrentPage}
+          isLoggedIn={isLoggedIn}
+        />
         <main className="app-main-content">
           {currentPage === 'home' && <Home />}
           {currentPage === 'catalogo' && <Catalogo />}
-          {currentPage === 'login' && <Login onSuccess={() => setCurrentPage('home')} />}
+          {currentPage === 'login' && (
+            <Login
+              isLoggedIn={isLoggedIn}
+              onSuccess={handleLoginSuccess}
+              onLogout={handleLogout}
+            />
+          )}
         </main>
       </div>
     </ThemeProvider>

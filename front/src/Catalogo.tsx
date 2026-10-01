@@ -430,12 +430,12 @@ export const Catalogo = () => {
 
         return productosNuevos.length > 0
           ? {
-              ...proveedor,
-              catalogoProductos: [
-                ...proveedor.catalogoProductos,
-                ...productosNuevos,
-              ],
-            }
+            ...proveedor,
+            catalogoProductos: [
+              ...proveedor.catalogoProductos,
+              ...productosNuevos,
+            ],
+          }
           : proveedor;
       }),
     );
@@ -452,9 +452,9 @@ export const Catalogo = () => {
 
       return productosNuevos.length > 0
         ? {
-            ...prev,
-            catalogoProductos: [...prev.catalogoProductos, ...productosNuevos],
-          }
+          ...prev,
+          catalogoProductos: [...prev.catalogoProductos, ...productosNuevos],
+        }
         : prev;
     });
   };
@@ -701,7 +701,7 @@ export const Catalogo = () => {
   const totalOrdenes = proveedores.reduce((sum, p) => sum + p.ordenesCompra, 0);
   const promedioDesempeno = Math.round(
     proveedores.reduce((sum, p) => sum + p.puntajeDesempeno, 0) /
-      proveedores.length,
+    proveedores.length,
   );
   const maxOrdenes = Math.max(...datosFrecuenciaMensual.map((d) => d.ordenes));
 
@@ -732,10 +732,10 @@ export const Catalogo = () => {
   const menorTiempoHoras =
     proveedoresParaProducto.length > 0
       ? Math.min(
-          ...proveedoresParaProducto.map((p) =>
-            extraerHorasMinimas(p.tiempoEntregaEstimado),
-          ),
-        )
+        ...proveedoresParaProducto.map((p) =>
+          extraerHorasMinimas(p.tiempoEntregaEstimado),
+        ),
+      )
       : 999;
 
   const mejorProveedorEntrega = proveedoresParaProducto.find(
@@ -1921,7 +1921,7 @@ export const Catalogo = () => {
 
                 <div className="form-group">
                   <label className="form-label">
-                    Archivo Adjunto (Simulado)
+                    Archivo Adjunto
                   </label>
                   <div className="upload-dropzone">
                     <Upload size={20} className="upload-icon" />
