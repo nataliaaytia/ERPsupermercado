@@ -8,6 +8,7 @@ import com.sonic.erp.proveedores.dto.response.CatalogoCategoriaResponse;
 import com.sonic.erp.proveedores.dto.response.ComparacionTiempoEntregaResponse;
 import com.sonic.erp.proveedores.dto.response.RankingDescuentoResponse;
 import com.sonic.erp.proveedores.dto.response.ResumenComparativoProveedorResponse;
+import com.sonic.erp.proveedores.dto.response.IndicadoresProveedorResponse;
 import com.sonic.erp.proveedores.entity.CatalogoComercial;
 import com.sonic.erp.proveedores.entity.Proveedor;
 import com.sonic.erp.proveedores.entity.DescuentoCantidad;
@@ -642,6 +643,118 @@ public class ProveedorService {
                             .descuentoMaximo(descuentoMaximo)
                             .tiempoEntregaDias(tiempoEntregaDias)
                             .porcentajeCalidad(porcentajeCalidad)
+                            .build();
+                })
+                .toList();
+    }
+
+    public List<IndicadoresProveedorResponse> obtenerIndicadoresProveedores() {
+
+        List<Proveedor> proveedores = proveedorRepository.findAll();
+
+        return proveedores.stream()
+                .map(proveedor -> {
+
+                    Long idProveedor = proveedor.getIdProveedor();
+
+                    List<Object[]> datosCumplimiento =
+                            incidenciaProveedorRepository.obtenerDatosCumplimiento();
+
+                    Object[] datoProveedor = datosCumplimiento.stream()
+                            .filter(dato ->
+                                    ((Number) dato[0]).longValue() == idProveedor
+                            )
+                            .findFirst()
+                            .orElse(null);
+
+                    long totalIncidencias = 0;
+                    long cantidadRetrasos = 0;
+                    double porcentajeCumplimiento = 0.0;
+
+                    if (datoProveedor != null) {
+                        totalIncidencias =
+                                ((Number) datoProveedor[2]).longValue();
+
+                        cantidadRetrasos =
+                                ((Number) datoProveedor[3]).longValue();
+
+                        if (totalIncidencias > 0) {
+                            porcentajeCumplimiento =
+                                    ((double) (totalIncidencias - cantidadRetrasos)
+                                            / totalIncidencias) * 100;
+                        }
+                    }
+
+                    List<CatalogoComercial> catalogos =
+                            catalogoComercialRepository
+                                    .findByProveedor_IdProveedor(idProveedor);
+
+                    List<BigDecimal> precios = catalogos.stream()
+                            .map(CatalogoComercial::getPrecio)
+                            .filter(precio -> precio != null)
+                            .toList();
+
+                    BigDecimal precioPromedio = null;
+
+                    if (!precios.isEmpty()) {
+                        BigDecimal suma = precios.stream()
+                                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+                        precioPromedio = suma.divide(
+                                BigDecimal.valueOf(precios.size()),
+                                2,
+                                RoundingMode.HALF_UP
+                        );
+                    }
+
+                    BigDecimal descuentoMaximo = catalogos.stream()
+                            .flatMap(catalogo ->
+                                    descuentoCantidadRepository
+                                            .findByCatalogoComercial_IdCatalogo(
+                                                    catalogo.getIdCatalogo()
+                                            )
+                                            .stream()
+                            )
+                            .map(DescuentoCantidad::getPorcentajeDescuento)
+                            .filter(descuento -> descuento != null)
+                            .max(BigDecimal::compareTo)
+                            .orElse(null);
+
+                    Integer tiempoEntregaDias =
+                            condicionComercialRepository
+                                    .findFirstByProveedor_IdProveedorOrderByFechaRegistroDesc(
+                                            idProveedor
+                                    )
+                                    .map(CondicionComercial::getPlazoEntregaDias)
+                                    .orElse(null);
+
+                    List<InspeccionMercaderia> inspecciones =
+                            inspeccionMercaderiaRepository
+                                    .findByProveedor_IdProveedor(idProveedor);
+
+                    int totalInspeccionados = inspecciones.stream()
+                            .mapToInt(InspeccionMercaderia::getCantidadInspeccionada)
+                            .sum();
+
+                    int totalAceptados = inspecciones.stream()
+                            .mapToInt(InspeccionMercaderia::getCantidadAceptada)
+                            .sum();
+
+                    Double porcentajeCalidad =
+                            totalInspeccionados > 0
+                                    ? ((double) totalAceptados
+                                    / totalInspeccionados) * 100
+                                    : null;
+
+                    return IndicadoresProveedorResponse.builder()
+                            .idProveedor(idProveedor)
+                            .razonSocial(proveedor.getRazonSocial())
+                            .porcentajeCumplimiento(porcentajeCumplimiento)
+                            .porcentajeCalidad(porcentajeCalidad)
+                            .cantidadRetrasos(cantidadRetrasos)
+                            .precioPromedio(precioPromedio)
+                            .descuentoMaximo(descuentoMaximo)
+                            .tiempoEntregaDias(tiempoEntregaDias)
                             .build();
                 })
                 .toList();
