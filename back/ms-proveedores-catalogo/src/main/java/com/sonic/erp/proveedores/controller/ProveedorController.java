@@ -6,6 +6,7 @@ import com.sonic.erp.proveedores.dto.response.ProveedorDetalleResponse;
 import com.sonic.erp.proveedores.dto.response.ComparacionTiempoEntregaResponse;
 import com.sonic.erp.proveedores.dto.response.CatalogoCategoriaResponse;
 import com.sonic.erp.proveedores.dto.response.RankingDescuentoResponse;
+import com.sonic.erp.proveedores.dto.response.IndicadoresProveedorResponse;
 import com.sonic.erp.proveedores.dto.response.ResumenComparativoProveedorResponse;
 import com.sonic.erp.proveedores.entity.Proveedor;
 import com.sonic.erp.proveedores.service.ProveedorService;
@@ -184,6 +185,14 @@ public class ProveedorController {
 
         return ResponseEntity.ok(
                 proveedorService.obtenerResumenComparativo()
+        );
+    }
+
+    @GetMapping("/indicadores")
+    public ResponseEntity<List<IndicadoresProveedorResponse>> obtenerIndicadoresProveedores() {
+
+        return ResponseEntity.ok(
+                proveedorService.obtenerIndicadoresProveedores()
         );
     }
 }
