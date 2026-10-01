@@ -1,9 +1,11 @@
 package com.sonic.erp.proveedores.controller;
 
 import com.sonic.erp.proveedores.dto.request.LoginRequest;
+import com.sonic.erp.proveedores.dto.response.LoginResponse;
 import com.sonic.erp.proveedores.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,21 +19,18 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/login")
-    public ResponseEntity<Map<String, String>> login(
-            @Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
 
-        boolean credencialesValidas = authService.validarCredenciales(
+        LoginResponse response = authService.autenticar(
                 request.getUsername(),
                 request.getPassword()
         );
 
-        if (!credencialesValidas) {
-            return ResponseEntity.status(401)
-                    .body(Map.of("mensaje", "Usuario o contraseña incorrectos"));
+        if (response == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("mensaje", "Usuario, contraseña incorrectos o cuenta inactiva"));
         }
 
-        return ResponseEntity.ok(
-                Map.of("mensaje", "Inicio de sesión exitoso")
-        );
+        return ResponseEntity.ok(response);
     }
 }
