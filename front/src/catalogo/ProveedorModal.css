@@ -1,0 +1,49 @@
+.catalogo-container .proveedor-modal__formulario {
+  display: grid;
+  gap: 18px;
+}
+.catalogo-container .proveedor-modal__icono {
+  color: var(--cat-info);
+  display: inline-flex;
+  margin-bottom: 10px;
+}
+.catalogo-container .proveedor-modal__error {
+  color: var(--cat-danger);
+  font-size: 13px;
+}
+.catalogo-container .proveedor-modal__nota {
+  color: var(--text-secondary);
+  font-size: 13px;
+  margin: 0;
+  padding: 12px;
+  background: var(--cat-info-soft);
+  border-radius: 8px;
+}
+.catalogo-container .proveedor-modal [aria-invalid="true"] {
+  border-color: var(--cat-danger);
+}
+.catalogo-container .proveedores-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.catalogo-container .proveedores-toolbar p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+.catalogo-container .proveedor-registrado {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  margin-bottom: 18px;
+  color: var(--cat-success);
+  background: var(--cat-success-soft);
+  border: 1px solid var(--cat-success);
+  border-radius: 8px;
+  animation: cat-entrada 220ms ease both;
+}

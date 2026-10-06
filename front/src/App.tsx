@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { ThemeProvider } from './ThemeContext';
 import Cabecera from './Cabecera';
 import Home from './Home';
-import Catalogo from './Catalogo';
+import Catalogo from './catalogo/Catalogo';
 import Login from './Login';
 
 export const App = () => {

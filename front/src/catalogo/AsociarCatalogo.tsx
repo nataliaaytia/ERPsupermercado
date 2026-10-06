@@ -9,8 +9,7 @@ import {
   Check,
 } from "lucide-react";
 import "./AsociarCatalogo.css";
-import type { ProductoCatalogo, Proveedor } from "./Catalogo";
-
+import type { ProductoCatalogo, Proveedor } from "./tipos";
 interface AsociarCatalogoProps {
   proveedores: Proveedor[];
   onAsociarProductos: (
@@ -18,7 +17,6 @@ interface AsociarCatalogoProps {
     productos: ProductoCatalogo[],
   ) => void;
 }
-
 const AsociarCatalogo = ({
   proveedores,
   onAsociarProductos,
@@ -26,31 +24,26 @@ const AsociarCatalogo = ({
   const [idProveedorSeleccionado, setIdProveedorSeleccionado] = useState<
     number | null
   >(proveedores[0]?.idProveedor ?? null);
-
   const proveedorSeleccionado =
     proveedores.find(
       (proveedor) => proveedor.idProveedor === idProveedorSeleccionado,
     ) ??
     proveedores[0] ??
     null;
-
   const [busquedaProducto, setBusquedaProducto] = useState("");
   const [categoriaFiltro, setCategoriaFiltro] = useState("Todas");
-
   const [productosSeleccionados, setProductosSeleccionados] = useState<
     ProductoCatalogo[]
   >([]);
-
   const categoriasDisponibles = useMemo(() => {
-    const productosUnicos = new Map<number, ProductoCatalogo>();
+    const productosUnicos = new Map<string, ProductoCatalogo>();
     proveedores
       .flatMap((proveedor) => proveedor.catalogoProductos)
       .forEach((producto) => {
-        if (!productosUnicos.has(producto.idProducto)) {
-          productosUnicos.set(producto.idProducto, producto);
+        if (!productosUnicos.has(producto.sku)) {
+          productosUnicos.set(producto.sku, producto);
         }
       });
-
     return [
       "Todas",
       ...new Set(
@@ -60,85 +53,67 @@ const AsociarCatalogo = ({
       ),
     ];
   }, [proveedores]);
-
   const productosDisponibles = useMemo(() => {
     if (!proveedorSeleccionado) {
       return [];
     }
-
-    const productosUnicos = new Map<number, ProductoCatalogo>();
+    const productosUnicos = new Map<string, ProductoCatalogo>();
     proveedores
       .flatMap((proveedor) => proveedor.catalogoProductos)
       .forEach((producto) => {
-        if (!productosUnicos.has(producto.idProducto)) {
-          productosUnicos.set(producto.idProducto, producto);
+        if (!productosUnicos.has(producto.sku)) {
+          productosUnicos.set(producto.sku, producto);
         }
       });
-
     const idsAsociados = new Set(
-      proveedorSeleccionado.catalogoProductos.map(
-        (producto) => producto.idProducto,
-      ),
+      proveedorSeleccionado.catalogoProductos.map((producto) => producto.sku),
     );
-
     return Array.from(productosUnicos.values()).filter(
-      (producto) => !idsAsociados.has(producto.idProducto),
+      (producto) => !idsAsociados.has(producto.sku),
     );
   }, [proveedores, proveedorSeleccionado]);
-
   const productosFiltrados = useMemo(() => {
     const busqueda = busquedaProducto.toLowerCase().trim();
-
     return productosDisponibles.filter((producto) => {
       const coincideBusqueda =
         producto.nombre.toLowerCase().includes(busqueda) ||
         producto.sku.toLowerCase().includes(busqueda) ||
         producto.descripcion.toLowerCase().includes(busqueda);
-
       const coincideCategoria =
         categoriaFiltro === "Todas" || producto.categoria === categoriaFiltro;
-
       return coincideBusqueda && coincideCategoria;
     });
   }, [productosDisponibles, busquedaProducto, categoriaFiltro]);
-
   const productoYaSeleccionado = (idProducto: number) => {
     return productosSeleccionados.some(
       (producto) => producto.idProducto === idProducto,
     );
   };
-
   const asociarProducto = (producto: ProductoCatalogo) => {
     if (productoYaSeleccionado(producto.idProducto)) {
       return;
     }
-
     setProductosSeleccionados((actuales) => [...actuales, producto]);
   };
-
   const quitarProducto = (idProducto: number) => {
     setProductosSeleccionados((actuales) =>
       actuales.filter((producto) => producto.idProducto !== idProducto),
     );
   };
-
   const cambiarProveedor = (idProveedor: number) => {
     setIdProveedorSeleccionado(idProveedor);
     setProductosSeleccionados([]);
   };
-
   const guardarAsociaciones = () => {
     if (!proveedorSeleccionado || productosSeleccionados.length === 0) {
       return;
     }
-
     onAsociarProductos(
       proveedorSeleccionado.idProveedor,
       productosSeleccionados,
     );
     setProductosSeleccionados([]);
   };
-
   return (
     <div className="asociar-catalogo-container">
       <div className="asociar-catalogo-header">
@@ -250,83 +225,85 @@ const AsociarCatalogo = ({
                   : "No hay productos disponibles para asociar a este proveedor."}
               </p>
             </div>
-          ) : <div className="productos-tabla-wrapper">
-            <table className="productos-tabla">
-              <thead>
-                <tr>
-                  <th>SKU</th>
-                  <th>Producto</th>
-                  <th>Categoría</th>
-                  <th>Precio</th>
-                  <th>Acción</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {productosFiltrados.length > 0 ? (
-                  productosFiltrados.map((producto) => {
-                    const seleccionado = productoYaSeleccionado(
-                      producto.idProducto,
-                    );
-
-                    return (
-                      <tr key={producto.idProducto}>
-                        <td>
-                          <span className="sku-badge">{producto.sku}</span>
-                        </td>
-
-                        <td>
-                          <div className="producto-info">
-                            <strong>{producto.nombre}</strong>
-                            <span>{producto.descripcion}</span>
-                          </div>
-                        </td>
-
-                        <td>
-                          <span className="categoria-badge">
-                            {producto.categoria}
-                          </span>
-                        </td>
-
-                        <td>{producto.precioPactado.toFixed(2)} Bs.</td>
-
-                        <td>
-                          <button
-                            type="button"
-                            className={
-                              seleccionado
-                                ? "producto-action seleccionado"
-                                : "producto-action"
-                            }
-                            disabled={seleccionado}
-                            onClick={() => asociarProducto(producto)}
-                          >
-                            {seleccionado ? (
-                              <>
-                                <Check size={14} />
-                                Asociado
-                              </>
-                            ) : (
-                              <>
-                                <Plus size={14} />
-                                Asociar
-                              </>
-                            )}
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })
-                ) : (
+          ) : (
+            <div className="productos-tabla-wrapper">
+              <table className="productos-tabla">
+                <thead>
                   <tr>
-                    <td colSpan={5} className="tabla-vacia">
-                      No se encontraron productos que coincidan con la búsqueda o categoría.
-                    </td>
+                    <th>SKU</th>
+                    <th>Producto</th>
+                    <th>Categoría</th>
+                    <th>Precio</th>
+                    <th>Acción</th>
                   </tr>
-                )}
-              </tbody>
-            </table>
-          </div>}
+                </thead>
+
+                <tbody>
+                  {productosFiltrados.length > 0 ? (
+                    productosFiltrados.map((producto) => {
+                      const seleccionado = productoYaSeleccionado(
+                        producto.idProducto,
+                      );
+                      return (
+                        <tr key={producto.idProducto}>
+                          <td>
+                            <span className="sku-badge">{producto.sku}</span>
+                          </td>
+
+                          <td>
+                            <div className="producto-info">
+                              <strong>{producto.nombre}</strong>
+                              <span>{producto.descripcion}</span>
+                            </div>
+                          </td>
+
+                          <td>
+                            <span className="categoria-badge">
+                              {producto.categoria}
+                            </span>
+                          </td>
+
+                          <td>{producto.precioPactado.toFixed(2)} Bs.</td>
+
+                          <td>
+                            <button
+                              type="button"
+                              className={
+                                seleccionado
+                                  ? "producto-action seleccionado"
+                                  : "producto-action"
+                              }
+                              disabled={seleccionado}
+                              onClick={() => asociarProducto(producto)}
+                            >
+                              {seleccionado ? (
+                                <>
+                                  <Check size={14} />
+                                  Asociado
+                                </>
+                              ) : (
+                                <>
+                                  <Plus size={14} />
+                                  Asociar
+                                </>
+                              )}
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  ) : (
+                    <tr>
+                      <td colSpan={5} className="tabla-vacia">
+                        No se encontraron productos que coincidan con la
+                        búsqueda o categoría.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
         </section>
       </div>
 
@@ -379,7 +356,9 @@ const AsociarCatalogo = ({
           <button
             type="button"
             className="btn-asociar"
-            disabled={!proveedorSeleccionado || productosSeleccionados.length === 0}
+            disabled={
+              !proveedorSeleccionado || productosSeleccionados.length === 0
+            }
             onClick={guardarAsociaciones}
           >
             <Check size={16} />
@@ -390,5 +369,4 @@ const AsociarCatalogo = ({
     </div>
   );
 };
-
 export default AsociarCatalogo;
