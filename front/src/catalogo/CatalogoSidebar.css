@@ -1,0 +1,96 @@
+.catalogo-container .catalogo-sidebar {
+  position: relative;
+  flex: 0 0 220px;
+  width: 220px;
+  padding-right: 24px;
+  border-right: 1px solid var(--border-color);
+  transition:
+    flex-basis 220ms ease,
+    width 220ms ease;
+}
+.catalogo-container .catalogo-sidebar__contenido {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  position: sticky;
+  top: 24px;
+}
+.catalogo-container .catalogo-sidebar__contenido[hidden] {
+  display: none;
+}
+.catalogo-container .catalogo-sidebar__label {
+  padding: 8px 12px 18px;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+.catalogo-container .catalogo-sidebar__item {
+  text-align: left;
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary);
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.5;
+  cursor: pointer;
+}
+.catalogo-container .catalogo-sidebar__item:hover {
+  color: var(--text-primary);
+  background: var(--cat-soft);
+}
+.catalogo-container .catalogo-sidebar__item[aria-current="page"] {
+  color: var(--accent);
+  background: var(--cat-soft);
+  font-weight: 600;
+}
+.catalogo-container .catalogo-sidebar__toggle {
+  position: absolute;
+  right: -14px;
+  top: 0;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 32px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  border-radius: 8px;
+  cursor: pointer;
+  z-index: 2;
+}
+.catalogo-container .catalogo-sidebar--cerrado {
+  flex-basis: 0;
+  width: 0;
+  padding: 0;
+}
+@media (max-width: 800px) {
+  .catalogo-container .catalogo-sidebar {
+    width: 100%;
+    flex: none;
+    border-right: 0;
+    border-bottom: 1px solid var(--border-color);
+    padding: 0 38px 16px 0;
+  }
+  .catalogo-container .catalogo-sidebar__contenido {
+    position: static;
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
+  }
+  .catalogo-container .catalogo-sidebar__contenido[hidden] {
+    display: none;
+  }
+  .catalogo-container .catalogo-sidebar__label {
+    display: none;
+  }
+  .catalogo-container .catalogo-sidebar__item {
+    flex-shrink: 0;
+  }
+  .catalogo-container .catalogo-sidebar__toggle {
+    right: 0;
+  }
+  .catalogo-container .catalogo-sidebar--cerrado {
+    min-height: 34px;
+    padding: 0;
+  }
+}

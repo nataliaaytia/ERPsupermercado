@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { ThemeProvider } from './ThemeContext';
 import Cabecera from './Cabecera';
 import Home from './Home';
-import Catalogo from './Catalogo';
+import Catalogo from './catalogo/Catalogo';
 import Login from './Login';
 
 export const App = () => {
@@ -31,7 +31,9 @@ export const App = () => {
           isLoggedIn={isLoggedIn}
         />
         <main className="app-main-content">
-          {currentPage === 'home' && <Home />}
+          {currentPage === 'home' && (
+            <Home onNavigateToCatalogo={() => setCurrentPage('catalogo')} />
+          )}
           {currentPage === 'catalogo' && <Catalogo />}
           {currentPage === 'login' && (
             <Login

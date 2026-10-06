@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
-import { AlertCircle, BellRing, CalendarClock } from 'lucide-react';
-import type { Documento, Proveedor } from './Catalogo';
+import "./AlertasDocumentos.css";
+import { useEffect, useMemo, useState } from "react";
+import { AlertCircle, BellRing, CalendarClock } from "lucide-react";
+import type { Documento, Proveedor } from "./tipos";
 
 const DIAS_ALERTA_VENCIMIENTO = 30;
 const MILISEGUNDOS_POR_DIA = 24 * 60 * 60 * 1000;
@@ -11,7 +12,7 @@ interface AlertaDocumento {
   documento: Documento;
   fechaVencimiento: number;
   diasRestantes: number;
-  estado: 'Vencido' | 'Próximo a vencer';
+  estado: "Vencido" | "Próximo a vencer";
 }
 
 interface AlertasDocumentosProps {
@@ -40,11 +41,11 @@ const obtenerFechaUTC = (fecha: string): number | null => {
   return fechaUTC.getTime();
 };
 
-const formatoFecha = new Intl.DateTimeFormat('es-BO', {
-  day: '2-digit',
-  month: '2-digit',
-  year: 'numeric',
-  timeZone: 'UTC',
+const formatoFecha = new Intl.DateTimeFormat("es-BO", {
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric",
+  timeZone: "UTC",
 });
 
 const AlertasDocumentos = ({ proveedores }: AlertasDocumentosProps) => {
@@ -72,44 +73,53 @@ const AlertasDocumentos = ({ proveedores }: AlertasDocumentosProps) => {
       fechaActual.getDate(),
     );
 
-    return proveedores.flatMap<AlertaDocumento>((proveedor) =>
-      proveedor.documentos.flatMap<AlertaDocumento>((documento) => {
-        const fechaVencimiento = obtenerFechaUTC(documento.fechaVencimiento);
-        if (fechaVencimiento === null) return [];
+    return proveedores
+      .flatMap<AlertaDocumento>((proveedor) =>
+        proveedor.documentos.flatMap<AlertaDocumento>((documento) => {
+          const fechaVencimiento = obtenerFechaUTC(documento.fechaVencimiento);
+          if (fechaVencimiento === null) return [];
 
-        const diasRestantes = Math.round(
-          (fechaVencimiento - hoyUTC) / MILISEGUNDOS_POR_DIA,
-        );
+          const diasRestantes = Math.round(
+            (fechaVencimiento - hoyUTC) / MILISEGUNDOS_POR_DIA,
+          );
 
-        if (diasRestantes < 0) {
-          return [{
-            id: `${proveedor.idProveedor}-${documento.idDocumento}`,
-            nombreProveedor: proveedor.razonSocial,
-            documento,
-            fechaVencimiento,
-            diasRestantes,
-            estado: 'Vencido' as const,
-          }];
-        }
+          if (diasRestantes < 0) {
+            return [
+              {
+                id: `${proveedor.idProveedor}-${documento.idDocumento}`,
+                nombreProveedor: proveedor.razonSocial,
+                documento,
+                fechaVencimiento,
+                diasRestantes,
+                estado: "Vencido" as const,
+              },
+            ];
+          }
 
-        if (diasRestantes <= DIAS_ALERTA_VENCIMIENTO) {
-          return [{
-            id: `${proveedor.idProveedor}-${documento.idDocumento}`,
-            nombreProveedor: proveedor.razonSocial,
-            documento,
-            fechaVencimiento,
-            diasRestantes,
-            estado: 'Próximo a vencer' as const,
-          }];
-        }
+          if (diasRestantes <= DIAS_ALERTA_VENCIMIENTO) {
+            return [
+              {
+                id: `${proveedor.idProveedor}-${documento.idDocumento}`,
+                nombreProveedor: proveedor.razonSocial,
+                documento,
+                fechaVencimiento,
+                diasRestantes,
+                estado: "Próximo a vencer" as const,
+              },
+            ];
+          }
 
-        return [];
-      }),
-    );
+          return [];
+        }),
+      )
+      .sort((a, b) => a.fechaVencimiento - b.fechaVencimiento);
   }, [fechaActual, proveedores]);
 
   return (
-    <section className="chart-card alertas-documentos" aria-labelledby="alertas-documentos-titulo">
+    <section
+      className="chart-card alertas-documentos"
+      aria-labelledby="alertas-documentos-titulo"
+    >
       <div className="chart-header">
         <div>
           <h3 className="chart-title" id="alertas-documentos-titulo">
@@ -118,13 +128,13 @@ const AlertasDocumentos = ({ proveedores }: AlertasDocumentosProps) => {
           </h3>
           <p className="chart-subtitle">
             {alertas.length === 1
-              ? '1 documento requiere atención'
+              ? "1 documento requiere atención"
               : `${alertas.length} documentos requieren atención`}
           </p>
         </div>
         <span
           className="alertas-documentos-contador"
-          aria-label={`${alertas.length} ${alertas.length === 1 ? 'alerta' : 'alertas'}`}
+          aria-label={`${alertas.length} ${alertas.length === 1 ? "alerta" : "alertas"}`}
         >
           {alertas.length}
         </span>
@@ -134,7 +144,7 @@ const AlertasDocumentos = ({ proveedores }: AlertasDocumentosProps) => {
         <ul className="alertas-documentos-lista" aria-live="polite">
           {alertas.map((alerta) => (
             <li
-              className={`alerta-documento-item ${alerta.estado === 'Vencido' ? 'alerta-documento-vencido' : 'alerta-documento-proximo'}`}
+              className={`alerta-documento-item ${alerta.estado === "Vencido" ? "alerta-documento-vencido" : "alerta-documento-proximo"}`}
               key={alerta.id}
             >
               <AlertCircle size={17} aria-hidden="true" />
@@ -142,20 +152,27 @@ const AlertasDocumentos = ({ proveedores }: AlertasDocumentosProps) => {
                 <strong>{alerta.nombreProveedor}</strong>
                 <span>
                   {alerta.documento.tipoDocumento}
-                  {alerta.documento.numeroDocumento && ` · ${alerta.documento.numeroDocumento}`}
+                  {alerta.documento.numeroDocumento &&
+                    ` · ${alerta.documento.numeroDocumento}`}
                 </span>
                 <small>
-                  {alerta.estado === 'Vencido' ? 'Venció' : 'Vence'}:{' '}
+                  {alerta.estado === "Vencido" ? "Venció" : "Vence"}:{" "}
                   {formatoFecha.format(alerta.fechaVencimiento)}
-                  {alerta.estado === 'Vencido'
-                    ? ` · Hace ${Math.abs(alerta.diasRestantes)} ${Math.abs(alerta.diasRestantes) === 1 ? 'día' : 'días'}`
+                  {alerta.estado === "Vencido"
+                    ? ` · Hace ${Math.abs(alerta.diasRestantes)} ${Math.abs(alerta.diasRestantes) === 1 ? "día" : "días"}`
                     : alerta.diasRestantes === 0
-                      ? ' · Hoy'
-                      : ` · En ${alerta.diasRestantes} ${alerta.diasRestantes === 1 ? 'día' : 'días'}`}
+                      ? " · Hoy"
+                      : ` · En ${alerta.diasRestantes} ${alerta.diasRestantes === 1 ? "día" : "días"}`}
                 </small>
               </div>
               <span className="alerta-documento-estado">
-                {alerta.estado === 'Vencido' ? 'Vencido' : <><CalendarClock size={13} /> Próximo a vencer</>}
+                {alerta.estado === "Vencido" ? (
+                  "Vencido"
+                ) : (
+                  <>
+                    <CalendarClock size={13} /> Próximo a vencer
+                  </>
+                )}
               </span>
             </li>
           ))}

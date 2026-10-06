@@ -1,0 +1,37 @@
+.catalogo-container .precio-pactado-detalle {
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 0.9rem 1rem;
+  background: var(--background-secondary);
+}
+
+.catalogo-container .precio-pactado-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.catalogo-container .precio-pactado-vigente {
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--cat-success);
+  background: var(--cat-soft);
+}
+
+.catalogo-container .precio-pactado-valor {
+  display: block;
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.catalogo-container .precio-pactado-unidad {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
