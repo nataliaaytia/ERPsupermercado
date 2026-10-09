@@ -1,0 +1,36 @@
+.lista-requisiciones__vacio {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.lista-requisiciones__contenedor {
+  overflow-x: auto;
+}
+
+.lista-requisiciones__tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.lista-requisiciones__tabla th,
+.lista-requisiciones__tabla td {
+  padding: 0.7rem 0.75rem;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.lista-requisiciones__tabla th {
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.lista-requisiciones__estado {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--text-primary);
+  font-size: 0.8rem;
+}
