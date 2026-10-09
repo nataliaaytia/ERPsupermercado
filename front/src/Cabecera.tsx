@@ -36,6 +36,12 @@ export const Cabecera: React.FC<CabeceraProps> = ({
                     >
                         Catálogo
                     </button>
+                    <button
+                        className={`cabecera-link ${currentPage === 'requisiciones' ? 'active' : ''}`}
+                        onClick={() => onNavigate('requisiciones')}
+                    >
+                        Requisiciones
+                    </button>
                 </nav>
 
                 <div className="cabecera-actions">

@@ -4,6 +4,7 @@ import Cabecera from './Cabecera';
 import Home from './Home';
 import Catalogo from './catalogo/Catalogo';
 import Login from './Login';
+import Requisiciones from './requisicionesCotizaciones/Requisiciones';
 
 export const App = () => {
   const [currentPage, setCurrentPage] = useState<string>('home');
@@ -35,6 +36,7 @@ export const App = () => {
             <Home onNavigateToCatalogo={() => setCurrentPage('catalogo')} />
           )}
           {currentPage === 'catalogo' && <Catalogo />}
+          {currentPage === 'requisiciones' && <Requisiciones />}
           {currentPage === 'login' && (
             <Login
               isLoggedIn={isLoggedIn}
