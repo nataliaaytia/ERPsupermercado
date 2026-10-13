@@ -14,10 +14,18 @@ export interface ProductoRequisicion {
   cantidad: number;
 }
 
+export type EstadoRequisicion = "Pendiente" | "Validada" | "Rechazada";
+
+export interface ResultadoValidacion {
+  errores: string[];
+  advertencias: string[];
+}
+
 export interface Requisicion {
   id: string;
   fecha: string;
   productos: ProductoRequisicion[];
   motivo: string;
-  estado: "Pendiente";
+  estado: EstadoRequisicion;
+  validacion?: ResultadoValidacion;
 }
