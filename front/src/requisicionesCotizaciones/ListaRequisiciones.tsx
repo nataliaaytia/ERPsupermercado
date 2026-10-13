@@ -1,5 +1,6 @@
 import type { Requisicion } from "./tipos";
 import "./ListaRequisiciones.css";
+import EtiquetaEstado from "./EtiquetaEstado";
 
 interface Props {
   requisiciones: Requisicion[];
@@ -27,17 +28,15 @@ export default function ListaRequisiciones({ requisiciones }: Props) {
               <td>{requisicion.id}</td>
               <td>{requisicion.fecha}</td>
               <td>
-                {requisicion.productos.map((producto) => (
-                  <div key={producto.nombre}>
-                    {producto.nombre} × {producto.cantidad}
+                {requisicion.productos.map((producto, indice) => (
+                  <div key={indice}>
+                    {producto.nombre || "(sin nombre)"} × {producto.cantidad}
                   </div>
                 ))}
               </td>
               <td>{requisicion.motivo}</td>
               <td>
-                <span className="lista-requisiciones__estado">
-                  {requisicion.estado}
-                </span>
+                <EtiquetaEstado requisicion={requisicion} />
               </td>
             </tr>
           ))}

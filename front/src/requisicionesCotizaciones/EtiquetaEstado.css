@@ -1,0 +1,35 @@
+.etiqueta-estado {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.65rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.etiqueta-estado--pendiente {
+  color: var(--text-secondary);
+  background: var(--accent-soft);
+  border-color: var(--border-color);
+}
+
+.etiqueta-estado--validada {
+  color: #16a34a;
+  background: rgba(22, 163, 74, 0.1);
+  border-color: #16a34a;
+}
+
+.etiqueta-estado--advertencia {
+  color: #d97706;
+  background: rgba(217, 119, 6, 0.1);
+  border-color: #d97706;
+}
+
+.etiqueta-estado--rechazada {
+  color: #dc2626;
+  background: rgba(220, 38, 38, 0.1);
+  border-color: #dc2626;
+}

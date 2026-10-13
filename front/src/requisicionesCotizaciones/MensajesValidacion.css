@@ -1,0 +1,48 @@
+.mensajes-validacion__grupo {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.mensajes-validacion {
+  margin: 0;
+  padding: 0.85rem 1rem;
+  border: 1px solid;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.mensajes-validacion strong {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.mensajes-validacion ul {
+  margin: 0.5rem 0 0;
+  padding-left: 1.5rem;
+}
+
+.mensajes-validacion li + li {
+  margin-top: 0.25rem;
+}
+
+.mensajes-validacion--correcto {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #16a34a;
+  background: rgba(22, 163, 74, 0.1);
+  border-color: #16a34a;
+}
+
+.mensajes-validacion--error {
+  color: #dc2626;
+  background: rgba(220, 38, 38, 0.1);
+  border-color: #dc2626;
+}
+
+.mensajes-validacion--advertencia {
+  color: #d97706;
+  background: rgba(217, 119, 6, 0.1);
+  border-color: #d97706;
+}

@@ -6,11 +6,12 @@ import type { DatosRequisicion, Requisicion } from "./tipos";
 import "./Requisiciones.css";
 import MenuLateral from "./MenuLateral";
 import ListaRequisiciones from "./ListaRequisiciones";
+import ValidarRequisicion from "./ValidarRequisicion";
 
-const opciones = ["Nueva requisición", "Requisiciones registradas"];
+const opciones = ["Nueva requisición", "Requisiciones registradas", "Validar requisicion"];
 
 export const Requisiciones = () => {
-  const { requisiciones, registrarRequisicion } = useRequisiciones();
+  const { requisiciones, registrarRequisicion, validar } = useRequisiciones();
   const [opcionActiva, setOpcionActiva] = useState(0);
   const [menuAbierto, setMenuAbierto] = useState(true);
   const [ultima, setUltima] = useState<Requisicion | null>(null);
@@ -57,6 +58,9 @@ export const Requisiciones = () => {
           <div className="requisiciones-tarjeta">
             <ListaRequisiciones requisiciones={requisiciones} />
           </div>
+        )}
+        {opcionActiva === 2 && (
+          <ValidarRequisicion requisiciones={requisiciones} onValidar={validar} />
         )}
       </section>
     </div>

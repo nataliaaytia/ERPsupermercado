@@ -1,8 +1,11 @@
 import { useState } from "react";
 import type { DatosRequisicion, Requisicion } from "./tipos";
+import { revisarRequisicion } from "./revisionRequisicion";
+import { requisicionesEjemplo } from "./requisicionesEjemplo";
 
 export function useRequisiciones() {
-  const [requisiciones, setRequisiciones] = useState<Requisicion[]>([]);
+  const [requisiciones, setRequisiciones] =
+    useState<Requisicion[]>(requisicionesEjemplo);
 
   const registrarRequisicion = (datos: DatosRequisicion): Requisicion => {
     const nueva: Requisicion = {
@@ -19,5 +22,19 @@ export function useRequisiciones() {
     return nueva;
   };
 
-  return { requisiciones, registrarRequisicion };
+  const validar = (id: string) => {
+    setRequisiciones((actuales) =>
+      actuales.map((requisicion) => {
+        if (requisicion.id !== id) return requisicion;
+        const validacion = revisarRequisicion(requisicion);
+        return {
+          ...requisicion,
+          validacion,
+          estado: validacion.errores.length > 0 ? "Rechazada" : "Validada",
+        };
+      }),
+    );
+  };
+
+  return { requisiciones, registrarRequisicion, validar };
 }
