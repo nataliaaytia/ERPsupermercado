@@ -2,7 +2,7 @@ spring:
   application:
     name: ms-proveedores-catalogo
   datasource:
-    url: 
+    url:
     username:
     password:
     driver-class-name: org.postgresql.Driver
