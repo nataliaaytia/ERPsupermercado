@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { ThemeProvider } from './ThemeContext';
 import Cabecera from './Cabecera';
@@ -6,16 +7,34 @@ import Catalogo from './catalogo/Catalogo';
 import Login from './Login';
 import Requisiciones from './requisicionesCotizaciones/Requisiciones';
 
+const paginasValidas = [
+  'home',
+  'catalogo',
+  'requisiciones',
+  'login',
+];
+
 export const App = () => {
-  const [currentPage, setCurrentPage] = useState<string>('home');
+  const [currentPage, setCurrentPage] = useState<string>(() => {
+    const paginaGuardada = sessionStorage.getItem('currentPage');
+
+    return paginaGuardada && paginasValidas.includes(paginaGuardada)
+      ? paginaGuardada
+      : 'home';
+  });
 
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => {
     return localStorage.getItem('isLoggedIn') === 'true';
   });
 
+  const navegar = (pagina: string) => {
+    setCurrentPage(pagina);
+    sessionStorage.setItem('currentPage', pagina);
+  };
+
   const handleLoginSuccess = () => {
     setIsLoggedIn(true);
-    setCurrentPage('home');
+    navegar('home');
   };
 
   const handleLogout = () => {
@@ -28,15 +47,21 @@ export const App = () => {
       <div className="app-container">
         <Cabecera
           currentPage={currentPage}
-          onNavigate={setCurrentPage}
+          onNavigate={navegar}
           isLoggedIn={isLoggedIn}
         />
+
         <main className="app-main-content">
           {currentPage === 'home' && (
-            <Home onNavigateToCatalogo={() => setCurrentPage('catalogo')} />
+            <Home
+              onNavigateToCatalogo={() => navegar('catalogo')}
+            />
           )}
+
           {currentPage === 'catalogo' && <Catalogo />}
+
           {currentPage === 'requisiciones' && <Requisiciones />}
+
           {currentPage === 'login' && (
             <Login
               isLoggedIn={isLoggedIn}
