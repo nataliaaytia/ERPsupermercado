@@ -1,12 +1,8 @@
+
 'use client';
 
 import React, { useRef } from 'react';
 import './SpotlightCard.css';
-
-interface Position {
-    x: number;
-    y: number;
-}
 
 interface SpotlightCardProps extends React.PropsWithChildren {
     className?: string;
@@ -33,7 +29,11 @@ const SpotlightCard: React.FC<SpotlightCardProps> = ({
     };
 
     return (
-        <div ref={divRef} onMouseMove={handleMouseMove} className={`card-spotlight ${className}`}>
+        <div
+            ref={divRef}
+            onMouseMove={handleMouseMove}
+            className={`card-spotlight ${className}`}
+        >
             {children}
         </div>
     );
