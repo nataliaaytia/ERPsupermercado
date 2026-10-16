@@ -351,7 +351,7 @@
   align-items: center;
   gap: 0.5rem;
   background: var(--cat-soft);
-  color: var(#3a2509, #818cf8);
+  color: var(--text-primary);
   border: 1px solid rgba(129, 140, 248, 0.2);
   padding: 0.5rem 0.9rem;
   border-radius: 8px;

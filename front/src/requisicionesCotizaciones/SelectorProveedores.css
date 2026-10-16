@@ -1,0 +1,138 @@
+
+.selector-proveedores {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  color: var(--text-primary);
+}
+
+.selector-proveedores h2 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.selector-proveedores h3 {
+  margin: 0.5rem 0 0;
+  font-size: 1rem;
+}
+
+.selector-proveedores p {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.selector-proveedores input[type="search"],
+.selector-proveedores select {
+  width: 100%;
+  padding: 0.75rem;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font: inherit;
+}
+
+.selector-proveedores select {
+  cursor: pointer;
+}
+
+.selector-proveedores-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.selector-proveedor {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.selector-proveedor:hover {
+  border-color: var(--text-secondary);
+}
+
+.selector-proveedor input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.selector-proveedor input[type="checkbox"]:disabled {
+  cursor: not-allowed;
+}
+
+.selector-proveedor span {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.selector-proveedor small {
+  color: var(--text-secondary);
+}
+
+.selector-proveedores-boton {
+  align-self: flex-end;
+  padding: 0.75rem 1.25rem;
+  background: #38b6e8;
+  color: #071522;
+  border: none;
+  border-radius: 8px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.selector-proveedores-boton:hover:not(:disabled) {
+  background: #249dcc;
+}
+
+.selector-proveedores-boton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.selector-proveedores-mensaje {
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-primary) !important;
+}
+
+@media (max-width: 600px) {
+  .selector-proveedor {
+    padding: 0.75rem;
+  }
+
+  .selector-proveedores-boton {
+    width: 100%;
+  }
+}
+
+.selector-proveedores-resumen {
+  padding: 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-primary);
+}
+
+.selector-proveedores-resumen strong {
+  display: block;
+  margin-bottom: 0.75rem;
+}
+
+.selector-proveedores-resumen ul {
+  margin: 0;
+  padding-left: 1.5rem;
+}
+
+.selector-proveedores-resumen li {
+  margin-bottom: 0.35rem;
+}
