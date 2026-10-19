@@ -26,6 +26,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/proveedores")
+@CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 public class ProveedorController {
     private final ProveedorService proveedorService;
@@ -218,7 +219,6 @@ public class ProveedorController {
 
     @GetMapping("/resumen-comparativo")
     public ResponseEntity<List<ResumenComparativoProveedorResponse>> obtenerResumenComparativo() {
-
         return ResponseEntity.ok(
                 proveedorService.obtenerResumenComparativo()
         );
@@ -239,4 +239,6 @@ public class ProveedorController {
                 proveedorService.obtenerDocumentosProximosAVencer()
         );
     }
+
+
 }
