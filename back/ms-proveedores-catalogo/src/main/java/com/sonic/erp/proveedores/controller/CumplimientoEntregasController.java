@@ -5,6 +5,8 @@ import com.sonic.erp.proveedores.service.CumplimientoEntregasService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.sonic.erp.proveedores.dto.response.FrecuenciaMensualResponse;
+import java.util.List;
 
 @RestController
 @RequestMapping("/proveedores")
@@ -22,5 +24,14 @@ public class CumplimientoEntregasController {
                         .obtenerCumplimientoEntregas(idProveedor);
 
         return ResponseEntity.ok(respuesta);
+    }
+
+    @GetMapping("/ordenes/frecuencia-mensual")
+    public ResponseEntity<List<FrecuenciaMensualResponse>>
+    obtenerFrecuenciaMensual() {
+
+        return ResponseEntity.ok(
+                cumplimientoEntregasService.obtenerFrecuenciaMensual()
+        );
     }
 }
