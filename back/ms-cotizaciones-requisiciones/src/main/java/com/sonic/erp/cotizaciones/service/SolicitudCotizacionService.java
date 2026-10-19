@@ -2,6 +2,8 @@
 package com.sonic.erp.cotizaciones.service;
 
 import com.sonic.erp.cotizaciones.dto.request.GenerarSolicitudCotizacionRequest;
+import com.sonic.erp.cotizaciones.dto.response.SolicitudCotizacionResponse;
+import java.util.List;
 import com.sonic.erp.cotizaciones.entity.Requisicion;
 import com.sonic.erp.cotizaciones.entity.SolicitudCotizacion;
 import com.sonic.erp.cotizaciones.repository.RequisicionRepository;
@@ -63,4 +65,47 @@ public class SolicitudCotizacionService {
                 .save(solicitud)
                 .getIdSolicitud();
     }
+
+    @Transactional(readOnly = true)
+    public List<SolicitudCotizacionResponse> listar(String estado) {
+
+        List<SolicitudCotizacion> solicitudes;
+
+        if (estado == null || estado.isBlank()) {
+            solicitudes = solicitudCotizacionRepository.findAll();
+        } else {
+            solicitudes = solicitudCotizacionRepository
+                    .findByEstadoIgnoreCase(estado.trim());
+        }
+
+        return solicitudes.stream()
+                .map(this::convertirAResponse)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public SolicitudCotizacionResponse obtenerPorId(Long id) {
+
+        SolicitudCotizacion solicitud = solicitudCotizacionRepository
+                .findById(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "La solicitud de cotización no existe"
+                ));
+
+        return convertirAResponse(solicitud);
+    }
+
+    private SolicitudCotizacionResponse convertirAResponse(
+            SolicitudCotizacion solicitud) {
+
+        return new SolicitudCotizacionResponse(
+                solicitud.getIdSolicitud(),
+                solicitud.getRequisicion().getIdRequisicion(),
+                solicitud.getFecha(),
+                solicitud.getFechaLimite(),
+                solicitud.getEstado()
+        );
+    }
+
 }
