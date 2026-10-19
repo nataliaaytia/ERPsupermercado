@@ -1,40 +1,49 @@
-import { useState } from "react";
-import type { DatosRequisicion, Requisicion } from "./tipos";
-import { revisarRequisicion } from "./revisionRequisicion";
-import { requisicionesEjemplo } from "./requisicionesEjemplo";
+import { useReducer } from "react";
+import {
+  estadoInicial,
+  reducirCompras,
+} from "./modeloCompras";
+import type { DatosRequisicion } from "./tipos";
+
+export const fechaHoy = () => {
+  const d = new Date();
+
+  return [
+    d.getFullYear(),
+    String(d.getMonth() + 1).padStart(2, "0"),
+    String(d.getDate()).padStart(2, "0"),
+  ].join("-");
+};
 
 export function useRequisiciones() {
-  const [requisiciones, setRequisiciones] =
-    useState<Requisicion[]>(requisicionesEjemplo);
+  const [estado, dispatch] = useReducer(
+    reducirCompras,
+    estadoInicial,
+  );
 
-  const registrarRequisicion = (datos: DatosRequisicion): Requisicion => {
-    const nueva: Requisicion = {
-      id: `REQ-${String(requisiciones.length + 1).padStart(4, "0")}`,
-      fecha: new Date().toLocaleDateString("es-BO"),
-      productos: datos.productos.map((producto) => ({
-        nombre: producto.nombre.trim(),
-        cantidad: Number(producto.cantidad),
-      })),
-      motivo: datos.motivo.trim(),
-      estado: "Pendiente",
-    };
-    setRequisiciones((actuales) => [nueva, ...actuales]);
-    return nueva;
-  };
+  return {
+    ...estado,
+    dispatch,
 
-  const validar = (id: string) => {
-    setRequisiciones((actuales) =>
-      actuales.map((requisicion) => {
-        if (requisicion.id !== id) return requisicion;
-        const validacion = revisarRequisicion(requisicion);
-        return {
-          ...requisicion,
-          validacion,
-          estado: validacion.errores.length > 0 ? "Rechazada" : "Validada",
-        };
+    registrarRequisicion: (
+      datos: DatosRequisicion,
+    ) =>
+      dispatch({
+        tipo: "crear",
+        datos,
+        hoy: fechaHoy(),
       }),
-    );
-  };
 
-  return { requisiciones, registrarRequisicion, validar };
+    validar: (id: number) =>
+      dispatch({
+        tipo: "aprobar",
+        id,
+      }),
+
+    anular: (id: number) =>
+      dispatch({
+        tipo: "anular",
+        id,
+      }),
+  };
 }
