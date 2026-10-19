@@ -13,7 +13,17 @@ interface Props {
 }
 
 const datosVacios = (): DatosRequisicion => ({
-  productos: [{ id: 1, nombre: "", cantidad: "" }],
+  productos: [
+    {
+      id: 1,
+      idProducto: "",
+      nombre: "",
+      cantidad: "",
+      observacion: "",
+    },
+  ],
+  solicitante: "",
+  prioridad: "Media",
   motivo: "",
 });
 
@@ -27,7 +37,7 @@ export default function FormularioRequisicion({ onGuardar }: Props) {
 
   const cambiarProducto = (
     idProducto: number,
-    campo: "nombre" | "cantidad",
+    campo: "idProducto" | "nombre" | "cantidad" | "observacion",
     valor: string,
   ) => {
     setDatos((actuales) => ({
@@ -52,7 +62,13 @@ export default function FormularioRequisicion({ onGuardar }: Props) {
       ...actuales,
       productos: [
         ...actuales.productos,
-        { id: siguienteId.current++, nombre: "", cantidad: "" },
+        {
+          id: siguienteId.current++,
+          idProducto: "",
+          nombre: "",
+          cantidad: "",
+          observacion: "",
+        },
       ],
     }));
     setErrores((actuales) => ({ ...actuales, general: undefined }));
@@ -102,6 +118,7 @@ export default function FormularioRequisicion({ onGuardar }: Props) {
   };
 
   return (
+
     <form className="formulario-requisicion" onSubmit={guardar} noValidate>
       {errores.general && (
         <p role="alert" className="formulario-requisicion__error-general">
@@ -121,6 +138,24 @@ export default function FormularioRequisicion({ onGuardar }: Props) {
           return (
             <div key={producto.id} className="formulario-requisicion__fila">
               <div className="formulario-requisicion__campo">
+                <label>
+                  ID del producto en catálogo
+
+                  <input
+                    className="formulario-requisicion__input"
+                    type="number"
+                    min="1"
+                    step="1"
+                    value={producto.idProducto}
+                    onChange={(event) =>
+                      cambiarProducto(
+                        producto.id,
+                        "idProducto",
+                        event.target.value,
+                      )
+                    }
+                  />
+                </label>
                 <input
                   id={`${id}-nombre-${producto.id}`}
                   className="formulario-requisicion__input"
@@ -130,11 +165,28 @@ export default function FormularioRequisicion({ onGuardar }: Props) {
                   maxLength={120}
                   autoFocus={indice === 0}
                   value={producto.nombre}
+
                   aria-invalid={Boolean(error?.nombre)}
                   onChange={(event) =>
                     cambiarProducto(producto.id, "nombre", event.target.value)
                   }
                 />
+                <label>
+                  Observación del detalle
+
+                  <input
+                    className="formulario-requisicion__input"
+                    maxLength={300}
+                    value={producto.observacion}
+                    onChange={(event) =>
+                      cambiarProducto(
+                        producto.id,
+                        "observacion",
+                        event.target.value,
+                      )
+                    }
+                  />
+                </label>
                 {error?.nombre && (
                   <span role="alert" className="formulario-requisicion__error">
                     {error.nombre}
@@ -183,6 +235,43 @@ export default function FormularioRequisicion({ onGuardar }: Props) {
           Agregar producto
         </button>
       </div>
+
+      <label className="formulario-requisicion__campo">
+        Solicitante
+
+        <input
+          className="formulario-requisicion__input"
+          required
+          maxLength={120}
+          value={datos.solicitante}
+          onChange={(event) =>
+            setDatos((actuales) => ({
+              ...actuales,
+              solicitante: event.target.value,
+            }))
+          }
+        />
+      </label>
+
+      <label className="formulario-requisicion__campo">
+        Prioridad
+
+        <select
+          className="formulario-requisicion__input"
+          value={datos.prioridad}
+          onChange={(event) =>
+            setDatos((actuales) => ({
+              ...actuales,
+              prioridad:
+                event.target.value as DatosRequisicion["prioridad"],
+            }))
+          }
+        >
+          <option value="Baja">Baja</option>
+          <option value="Media">Media</option>
+          <option value="Alta">Alta</option>
+        </select>
+      </label>
 
       <div className="formulario-requisicion__campo">
         <label
