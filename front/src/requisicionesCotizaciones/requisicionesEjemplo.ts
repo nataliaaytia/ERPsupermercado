@@ -1,31 +1,80 @@
+
 import type { Requisicion } from "./tipos";
 
 export const requisicionesEjemplo: Requisicion[] = [
   {
-    id: "REQ-0001",
-    fecha: "10/10/2026",
-    productos: [
-      { nombre: "Papel bond tamaño carta", cantidad: 50 },
-      { nombre: "Tinta negra", cantidad: 5 },
-    ],
-    motivo: "Reposición mensual de insumos de oficina.",
+    idRequisicion: 1,
+    fecha: "2026-10-10",
+    solicitante: "Usuario de ejemplo",
+    prioridad: "Media",
+    observacion: "Reposición mensual de insumos de oficina.",
     estado: "Pendiente",
+    detalles: [
+      {
+        idDetalle: 1,
+        producto: {
+          idProducto: 1,
+          descripcion: "Papel bond tamaño carta",
+        },
+        cantidad: 50,
+        observacion: "",
+      },
+      {
+        idDetalle: 2,
+        producto: {
+          idProducto: 2,
+          descripcion: "Tinta negra",
+        },
+        cantidad: 5,
+        observacion: "",
+      },
+    ],
   },
   {
-    id: "REQ-0002",
-    fecha: "10/10/2026",
-    productos: [{ nombre: "Marcadores", cantidad: 2000 }],
-    motivo: "Para clases",
+    idRequisicion: 2,
+    fecha: "2026-10-10",
+    solicitante: "Usuario de ejemplo",
+    prioridad: "Media",
+    observacion: "Para clases",
     estado: "Pendiente",
+    detalles: [
+      {
+        idDetalle: 1,
+        producto: {
+          idProducto: 3,
+          descripcion: "Marcadores",
+        },
+        cantidad: 2000,
+        observacion: "",
+      },
+    ],
   },
   {
-    id: "REQ-0003",
-    fecha: "11/10/2026",
-    productos: [
-      { nombre: "Hojas", cantidad: 0 },
-      { nombre: "", cantidad: 3 },
-    ],
-    motivo: "Urgente",
+    idRequisicion: 3,
+    fecha: "2026-10-11",
+    solicitante: "Usuario de ejemplo",
+    prioridad: "Alta",
+    observacion: "Urgente",
     estado: "Pendiente",
+    detalles: [
+      {
+        idDetalle: 1,
+        producto: {
+          idProducto: 4,
+          descripcion: "Hojas",
+        },
+        cantidad: 0,
+        observacion: "",
+      },
+      {
+        idDetalle: 2,
+        producto: {
+          idProducto: 5,
+          descripcion: "",
+        },
+        cantidad: 3,
+        observacion: "",
+      },
+    ],
   },
 ];

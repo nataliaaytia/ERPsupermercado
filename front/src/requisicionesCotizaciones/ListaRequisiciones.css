@@ -1,3 +1,4 @@
+
 .lista-requisiciones__vacio {
   margin: 0;
   color: var(--text-secondary);
@@ -17,11 +18,37 @@
 .lista-requisiciones__tabla td {
   padding: 0.7rem 0.75rem;
   text-align: left;
-  vertical-align: top;
+  vertical-align: middle;
   border-bottom: 1px solid var(--border-color);
 }
 
 .lista-requisiciones__tabla th {
   color: var(--text-secondary);
   font-weight: 600;
+}
+
+.lista-requisiciones__accion {
+  padding: 0.55rem 0.85rem;
+  background: #38b6e8;
+  color: #071522;
+  border: none;
+  border-radius: 8px;
+  font: inherit;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.lista-requisiciones__accion:hover {
+  background: #249dcc;
+}
+
+.lista-requisiciones__accion:focus-visible {
+  outline: 2px solid var(--text-primary);
+  outline-offset: 2px;
+}
+
+.lista-requisiciones__tabla td:last-child span {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
 }

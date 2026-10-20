@@ -1,5 +1,7 @@
+
 import EtiquetaEstado from "./EtiquetaEstado";
 import MensajesValidacion from "./MensajesValidacion";
+import { codigoRequisicion } from "./formatoRequisicion";
 import type { Requisicion } from "./tipos";
 import "./ValidarRequisicion.css";
 
@@ -32,7 +34,9 @@ export default function ValidarRequisicion({
           <header className="validar-requisicion__encabezado">
             <div>
               <strong>
-                REQ-{requisicion.idRequisicion}
+                {codigoRequisicion(
+                  requisicion.idRequisicion
+                )}
               </strong>
 
               <span className="validar-requisicion__fecha">

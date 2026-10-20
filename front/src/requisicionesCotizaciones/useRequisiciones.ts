@@ -1,9 +1,63 @@
-import { useReducer } from "react";
+
+import { useEffect, useReducer } from "react";
+
 import {
   estadoInicial,
   reducirCompras,
 } from "./modeloCompras";
+
 import type { DatosRequisicion } from "./tipos";
+
+const CLAVE_COMPRAS = "erp-compras-estado";
+
+type EstadoCompras = typeof estadoInicial;
+
+const cargarEstado = (
+  inicial: EstadoCompras,
+): EstadoCompras => {
+  try {
+    const guardado = localStorage.getItem(CLAVE_COMPRAS);
+
+    if (!guardado) {
+      return inicial;
+    }
+
+    const datos: unknown = JSON.parse(guardado);
+
+    if (
+      typeof datos !== "object" ||
+      datos === null ||
+      Array.isArray(datos)
+    ) {
+      return inicial;
+    }
+
+    const estado = datos as Partial<EstadoCompras>;
+
+    if (
+      !Array.isArray(estado.requisiciones) ||
+      !Array.isArray(estado.solicitudes) ||
+      !Array.isArray(estado.ofertas)
+    ) {
+      return inicial;
+    }
+
+    return {
+      ...inicial,
+      requisiciones: estado.requisiciones,
+      solicitudes: estado.solicitudes,
+      ofertas: estado.ofertas,
+      mensaje: "",
+    };
+  } catch (error) {
+    console.error(
+      "No se pudo recuperar el estado de compras:",
+      error,
+    );
+
+    return inicial;
+  }
+};
 
 export const fechaHoy = () => {
   const d = new Date();
@@ -19,7 +73,32 @@ export function useRequisiciones() {
   const [estado, dispatch] = useReducer(
     reducirCompras,
     estadoInicial,
+    cargarEstado,
   );
+
+  useEffect(() => {
+    try {
+      const datos = {
+        requisiciones: estado.requisiciones,
+        solicitudes: estado.solicitudes,
+        ofertas: estado.ofertas,
+      };
+
+      localStorage.setItem(
+        CLAVE_COMPRAS,
+        JSON.stringify(datos),
+      );
+    } catch (error) {
+      console.error(
+        "No se pudo guardar el estado de compras:",
+        error,
+      );
+    }
+  }, [
+    estado.requisiciones,
+    estado.solicitudes,
+    estado.ofertas,
+  ]);
 
   return {
     ...estado,
