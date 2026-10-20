@@ -39,6 +39,24 @@ public class RequisicionValidacionController {
         return ResponseEntity.ok(respuesta);
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<Map<String, Object>> consultar(
+            @PathVariable Long id) {
+
+        return ResponseEntity.ok(
+                validacionService.consultarPorId(id)
+        );
+    }
+
+    @GetMapping("/{id}/historial")
+    public ResponseEntity<?> consultarHistorial(
+            @PathVariable Long id) {
+
+        return ResponseEntity.ok(
+                validacionService.consultarHistorial(id)
+        );
+    }
+
     @PutMapping("/{id}/prioridad")
     public ResponseEntity<Map<String, Object>> actualizarPrioridad(
             @PathVariable Long id,
@@ -46,10 +64,9 @@ public class RequisicionValidacionController {
 
         String prioridad = solicitud.get("prioridad");
 
-        Map<String, Object> respuesta =
-                validacionService.actualizarPrioridad(id, prioridad);
-
-        return ResponseEntity.ok(respuesta);
+        return ResponseEntity.ok(
+                validacionService.actualizarPrioridad(id, prioridad)
+        );
     }
 
     @PutMapping("/{id}/aprobar")
@@ -72,5 +89,4 @@ public class RequisicionValidacionController {
 
         return ResponseEntity.ok(validacionService.cancelar(id));
     }
-
 }

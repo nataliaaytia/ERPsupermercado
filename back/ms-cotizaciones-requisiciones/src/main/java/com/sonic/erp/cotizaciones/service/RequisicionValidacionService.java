@@ -2,13 +2,17 @@
 package com.sonic.erp.cotizaciones.service;
 
 import com.sonic.erp.cotizaciones.entity.DetalleRequisicion;
+import com.sonic.erp.cotizaciones.entity.HistorialRequisicion;
 import com.sonic.erp.cotizaciones.entity.Requisicion;
+import com.sonic.erp.cotizaciones.repository.HistorialRequisicionRepository;
 import com.sonic.erp.cotizaciones.repository.RequisicionRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -23,30 +27,48 @@ public class RequisicionValidacionService {
             List.of("ALTA", "MEDIA", "BAJA");
 
     private final RequisicionRepository requisicionRepository;
+    private final HistorialRequisicionRepository historialRepository;
 
     public RequisicionValidacionService(
-            RequisicionRepository requisicionRepository) {
+            RequisicionRepository requisicionRepository,
+            HistorialRequisicionRepository historialRepository) {
         this.requisicionRepository = requisicionRepository;
+        this.historialRepository = historialRepository;
     }
 
     @Transactional(readOnly = true)
     public List<String> validarPorId(Long idRequisicion) {
+        validarId(idRequisicion);
+        return validar(buscarRequisicion(idRequisicion));
+    }
 
-        if (idRequisicion == null || idRequisicion <= 0) {
-            throw new ResponseStatusException(
-                    BAD_REQUEST,
-                    "El identificador de la requisición debe ser positivo."
-            );
-        }
+    @Transactional(readOnly = true)
+    public Map<String, Object> consultarPorId(Long idRequisicion) {
+        validarId(idRequisicion);
 
-        Requisicion requisicion = requisicionRepository
-                .findById(idRequisicion)
-                .orElseThrow(() -> new ResponseStatusException(
-                        NOT_FOUND,
-                        "No se encontró la requisición con ID " + idRequisicion
-                ));
+        Requisicion requisicion = buscarRequisicion(idRequisicion);
 
-        return validar(requisicion);
+        Map<String, Object> respuesta = new LinkedHashMap<>();
+        respuesta.put("idRequisicion", requisicion.getIdRequisicion());
+        respuesta.put("fecha", requisicion.getFecha());
+        respuesta.put("prioridad", requisicion.getPrioridad());
+        respuesta.put("estado", requisicion.getEstado());
+        respuesta.put("solicitante", requisicion.getSolicitante());
+        respuesta.put("observacion", requisicion.getObservacion());
+        respuesta.put("detalles", requisicion.getDetalles());
+
+        return respuesta;
+    }
+
+    @Transactional(readOnly = true)
+    public List<HistorialRequisicion> consultarHistorial(
+            Long idRequisicion) {
+
+        validarId(idRequisicion);
+        buscarRequisicion(idRequisicion);
+
+        return historialRepository
+                .findByIdRequisicionOrderByFechaCambioDesc(idRequisicion);
     }
 
     @Transactional
@@ -58,9 +80,7 @@ public class RequisicionValidacionService {
 
         if (nuevaPrioridad == null || nuevaPrioridad.isBlank()) {
             throw new ResponseStatusException(
-                    BAD_REQUEST,
-                    "La prioridad es obligatoria."
-            );
+                    BAD_REQUEST, "La prioridad es obligatoria.");
         }
 
         String prioridadNormalizada =
@@ -69,21 +89,31 @@ public class RequisicionValidacionService {
         if (!PRIORIDADES_VALIDAS.contains(prioridadNormalizada)) {
             throw new ResponseStatusException(
                     BAD_REQUEST,
-                    "La prioridad debe ser ALTA, MEDIA o BAJA."
-            );
+                    "La prioridad debe ser ALTA, MEDIA o BAJA.");
         }
 
         Requisicion requisicion = buscarRequisicion(idRequisicion);
         exigirEstadoPendiente(requisicion);
 
+        String prioridadAnterior = requisicion.getPrioridad();
+
         requisicion.setPrioridad(prioridadNormalizada);
         Requisicion guardada = requisicionRepository.save(requisicion);
 
-        return Map.of(
-                "mensaje", "La prioridad se actualizó correctamente.",
-                "idRequisicion", guardada.getIdRequisicion(),
-                "prioridad", guardada.getPrioridad()
-        );
+        if (!prioridadNormalizada.equals(prioridadAnterior)) {
+            registrarCambio(
+                    idRequisicion,
+                    "PRIORIDAD",
+                    prioridadAnterior,
+                    prioridadNormalizada
+            );
+        }
+
+        Map<String, Object> respuesta = new LinkedHashMap<>();
+        respuesta.put("mensaje", "La prioridad se actualizó correctamente.");
+        respuesta.put("idRequisicion", guardada.getIdRequisicion());
+        respuesta.put("prioridad", guardada.getPrioridad());
+        return respuesta;
     }
 
     @Transactional
@@ -106,18 +136,10 @@ public class RequisicionValidacionService {
 
     @Transactional
     public Map<String, Object> cancelar(Long idRequisicion) {
-        validarId(idRequisicion);
-
-        Requisicion requisicion = buscarRequisicion(idRequisicion);
-        exigirEstadoPendiente(requisicion);
-
-        requisicion.setEstado("ANULADA");
-        Requisicion guardada = requisicionRepository.save(requisicion);
-
-        return Map.of(
-                "mensaje", "La requisición se canceló correctamente.",
-                "idRequisicion", guardada.getIdRequisicion(),
-                "estado", guardada.getEstado()
+        return cambiarEstado(
+                idRequisicion,
+                "ANULADA",
+                "La requisición se canceló correctamente."
         );
     }
 
@@ -131,14 +153,40 @@ public class RequisicionValidacionService {
         Requisicion requisicion = buscarRequisicion(idRequisicion);
         exigirEstadoPendiente(requisicion);
 
+        String estadoAnterior = requisicion.getEstado();
+
         requisicion.setEstado(nuevoEstado);
         Requisicion guardada = requisicionRepository.save(requisicion);
 
-        return Map.of(
-                "mensaje", mensaje,
-                "idRequisicion", guardada.getIdRequisicion(),
-                "estado", guardada.getEstado()
+        registrarCambio(
+                idRequisicion,
+                "ESTADO",
+                estadoAnterior,
+                nuevoEstado
         );
+
+        Map<String, Object> respuesta = new LinkedHashMap<>();
+        respuesta.put("mensaje", mensaje);
+        respuesta.put("idRequisicion", guardada.getIdRequisicion());
+        respuesta.put("estado", guardada.getEstado());
+        return respuesta;
+    }
+
+    private void registrarCambio(
+            Long idRequisicion,
+            String tipoCambio,
+            String valorAnterior,
+            String valorNuevo) {
+
+        HistorialRequisicion historial = HistorialRequisicion.builder()
+                .idRequisicion(idRequisicion)
+                .tipoCambio(tipoCambio)
+                .valorAnterior(valorAnterior)
+                .valorNuevo(valorNuevo)
+                .fechaCambio(LocalDateTime.now())
+                .build();
+
+        historialRepository.save(historial);
     }
 
     private void validarId(Long idRequisicion) {
@@ -169,7 +217,6 @@ public class RequisicionValidacionService {
     }
 
     public List<String> validar(Requisicion requisicion) {
-
         List<String> errores = new ArrayList<>();
 
         if (requisicion == null) {
