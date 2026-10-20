@@ -4,7 +4,9 @@ import {
   Clock,
   XCircle,
 } from "lucide-react";
+
 import type { Requisicion } from "./tipos";
+
 import "./EtiquetaEstado.css";
 
 interface Props {
@@ -23,13 +25,20 @@ export default function EtiquetaEstado({
 }: Props) {
   const conAdvertencias =
     requisicion.estado === "Aprobada" &&
-    (requisicion.validacion?.advertencias.length ?? 0) > 0;
+    (
+      requisicion.validacion?.advertencias.length ??
+      0
+    ) > 0;
+
+  const cerrada =
+    requisicion.estado === "Anulada" ||
+    requisicion.estado === "Cancelada";
 
   const tipo = conAdvertencias
     ? "advertencia"
     : requisicion.estado === "Aprobada"
       ? "validada"
-      : requisicion.estado === "Anulada"
+      : cerrada
         ? "rechazada"
         : "pendiente";
 
@@ -38,7 +47,9 @@ export default function EtiquetaEstado({
     : requisicion.estado;
 
   return (
-    <span className={`etiqueta-estado etiqueta-estado--${tipo}`}>
+    <span
+      className={`etiqueta-estado etiqueta-estado--${tipo}`}
+    >
       {iconos[tipo]}
       {texto}
     </span>
