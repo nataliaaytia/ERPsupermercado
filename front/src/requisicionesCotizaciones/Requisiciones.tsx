@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 
 import FormularioRequisicion from "./FormularioRequisicion";
+import EditarRequisicion from "./editarRequisicion";
 import MenuLateral from "./MenuLateral";
 import ListaRequisiciones from "./ListaRequisiciones";
 import ValidarRequisicion from "./ValidarRequisicion";
 import SelectorProveedores from "./SelectorProveedores";
-import EditarRequisicion from "./editarRequisicion";
+import ConsolidarRequisiciones from "./ConsolidarRequisiciones";
 
 import {
   useRequisiciones,
@@ -22,6 +23,7 @@ const opciones = [
   "Aprobar o anular requisición",
   "Requisiciones registradas",
   "Solicitudes y ofertas",
+  "Consolidar requisiciones",
 ];
 
 const CLAVE_PESTANA = "requisiciones-pestana";
@@ -49,13 +51,6 @@ const cargarPestana = (): number => {
 export const Requisiciones = () => {
   const compras = useRequisiciones();
   const { dispatch } = compras;
-  const [idEdicion, setIdEdicion] =
-    useState<number | null>(null);
-
-  const requisicionEnEdicion =
-    compras.requisiciones.find(
-      r => r.idRequisicion === idEdicion,
-    );
 
   const [opcionActiva, setOpcionActiva] =
     useState(cargarPestana);
@@ -66,7 +61,11 @@ export const Requisiciones = () => {
   const [idRequisicion, setIdRequisicion] =
     useState<number | null>(null);
 
-  const [fechaLimite, setFechaLimite] = useState("");
+  const [idEdicion, setIdEdicion] =
+    useState<number | null>(null);
+
+  const [fechaLimite, setFechaLimite] =
+    useState("");
 
   const [requisicionEnProceso, setRequisicionEnProceso] =
     useState<number | null>(null);
@@ -80,6 +79,11 @@ export const Requisiciones = () => {
   const requisicionSeleccionada =
     compras.requisiciones.find(
       r => r.idRequisicion === idRequisicion,
+    );
+
+  const requisicionEnEdicion =
+    compras.requisiciones.find(
+      r => r.idRequisicion === idEdicion,
     );
 
   const puedeGenerar =
@@ -102,6 +106,7 @@ export const Requisiciones = () => {
     setSolicitudActiva(solicitudCreada.idSolicitud);
     setRequisicionEnProceso(null);
     setIdRequisicion(null);
+    setIdEdicion(null);
     setFechaLimite("");
     setErrorFormulario("");
     setOpcionActiva(3);
@@ -110,9 +115,7 @@ export const Requisiciones = () => {
 
     try {
       sessionStorage.setItem(CLAVE_PESTANA, "3");
-    } catch {
-      // La navegación funciona sin sessionStorage.
-    }
+    } catch { }
   }, [
     compras.solicitudes,
     requisicionEnProceso,
@@ -120,12 +123,10 @@ export const Requisiciones = () => {
   ]);
 
   const elegirOpcion = (indice: number) => {
-
-    setIdEdicion(null);
-
     dispatch({ tipo: "limpiarMensaje" });
 
     setOpcionActiva(indice);
+    setIdEdicion(null);
     setErrorFormulario("");
     setRequisicionEnProceso(null);
 
@@ -139,12 +140,12 @@ export const Requisiciones = () => {
         CLAVE_PESTANA,
         String(indice),
       );
-    } catch {
-    }
+    } catch { }
   };
 
   const abrirGeneracion = (id: number) => {
     dispatch({ tipo: "limpiarMensaje" });
+
     setIdEdicion(null);
     setIdRequisicion(id);
     setFechaLimite("");
@@ -210,8 +211,15 @@ export const Requisiciones = () => {
 
         {compras.mensaje && (
           <p
-            role="status"
-            className="selector-proveedores-mensaje"
+            role={
+              compras.tipoMensaje === "error"
+                ? "alert"
+                : "status"
+            }
+            className={
+              "requisiciones-aviso " +
+              `requisiciones-aviso--${compras.tipoMensaje}`
+            }
           >
             {compras.mensaje}
           </p>
@@ -234,30 +242,39 @@ export const Requisiciones = () => {
         )}
 
         {opcionActiva === 2 && (
-
           <>
             <div className="requisiciones-tarjeta">
               <ListaRequisiciones
                 requisiciones={compras.requisiciones}
                 solicitudes={compras.solicitudes}
+                idEnEdicion={idEdicion}
                 onGenerarCotizacion={abrirGeneracion}
                 onEditar={id => {
                   dispatch({ tipo: "limpiarMensaje" });
                   cerrarGeneracion();
                   setIdEdicion(id);
                 }}
+                onCambiarPrioridad={(id, prioridad) =>
+                  dispatch({
+                    tipo: "cambiarPrioridad",
+                    id,
+                    prioridad,
+                  })
+                }
               />
             </div>
+
             {requisicionEnEdicion && (
               <div className="requisiciones-tarjeta">
                 <EditarRequisicion
                   key={requisicionEnEdicion.idRequisicion}
                   requisicion={requisicionEnEdicion}
                   bloqueada={
-                    requisicionEnEdicion.estado !== "Pendiente" ||
+                    requisicionEnEdicion.estado !==
+                    "Pendiente" ||
                     compras.solicitudes.some(
-                      solicitud =>
-                        solicitud.requisicion ===
+                      s =>
+                        s.requisicion ===
                         requisicionEnEdicion.idRequisicion,
                     )
                   }
@@ -302,8 +319,8 @@ export const Requisiciones = () => {
                       type="date"
                       min={fechaHoy()}
                       value={fechaLimite}
-                      onChange={e => {
-                        setFechaLimite(e.target.value);
+                      onChange={event => {
+                        setFechaLimite(event.target.value);
                         setErrorFormulario("");
                       }}
                     />
@@ -354,6 +371,14 @@ export const Requisiciones = () => {
               estado={compras}
               dispatch={dispatch}
               solicitudInicialId={solicitudActiva}
+            />
+          </div>
+        )}
+        {opcionActiva === 4 && (
+          <div className="requisiciones-tarjeta">
+            <ConsolidarRequisiciones
+              estado={compras}
+              dispatch={dispatch}
             />
           </div>
         )}

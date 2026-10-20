@@ -1,4 +1,5 @@
 import type {
+  Prioridad,
   Requisicion,
   SolicitudCotizacion,
 } from "./tipos";
@@ -11,8 +12,13 @@ import "./ListaRequisiciones.css";
 interface Props {
   requisiciones: Requisicion[];
   solicitudes: SolicitudCotizacion[];
-  onGenerarCotizacion: (idRequisicion: number) => void;
-  onEditar: (idRequisicion: number) => void;
+  onGenerarCotizacion: (id: number) => void;
+  onEditar: (id: number) => void;
+  onCambiarPrioridad: (
+    id: number,
+    prioridad: Prioridad,
+  ) => void;
+  idEnEdicion?: number | null;
 }
 
 export default function ListaRequisiciones({
@@ -20,6 +26,8 @@ export default function ListaRequisiciones({
   solicitudes,
   onGenerarCotizacion,
   onEditar,
+  onCambiarPrioridad,
+  idEnEdicion = null,
 }: Props) {
   if (requisiciones.length === 0) {
     return (
@@ -31,11 +39,16 @@ export default function ListaRequisiciones({
 
   return (
     <div className="lista-requisiciones__contenedor">
+      <p className="lista-requisiciones__ayuda">
+        La prioridad se guarda automáticamente al cambiarla.
+      </p>
+
       <table className="lista-requisiciones__tabla">
         <thead>
           <tr>
             <th>Identificador</th>
             <th>Fecha</th>
+            <th>Prioridad</th>
             <th>Productos</th>
             <th>Motivo</th>
             <th>Estado</th>
@@ -44,20 +57,23 @@ export default function ListaRequisiciones({
         </thead>
 
         <tbody>
-          {requisiciones.map((requisicion) => {
+          {requisiciones.map(requisicion => {
             const tieneSolicitud = solicitudes.some(
-              (solicitud) =>
-                solicitud.requisicion ===
+              s =>
+                s.requisicion ===
                 requisicion.idRequisicion,
             );
+
+            const puedeGenerar =
+              requisicion.estado === "Aprobada" &&
+              !tieneSolicitud;
 
             const puedeEditar =
               requisicion.estado === "Pendiente" &&
               !tieneSolicitud;
 
-            const puedeGenerar =
-              requisicion.estado === "Aprobada" &&
-              !tieneSolicitud;
+            const formularioAbierto =
+              idEnEdicion === requisicion.idRequisicion;
 
             return (
               <tr key={requisicion.idRequisicion}>
@@ -70,7 +86,43 @@ export default function ListaRequisiciones({
                 <td>{requisicion.fecha}</td>
 
                 <td>
-                  {requisicion.detalles.map((detalle) => (
+                  <select
+                    className={
+                      "lista-requisiciones__prioridad " +
+                      `lista-requisiciones__prioridad--${requisicion.prioridad.toLowerCase()}`
+                    }
+                    aria-label={
+                      "Prioridad de " +
+                      codigoRequisicion(
+                        requisicion.idRequisicion,
+                      )
+                    }
+                    value={requisicion.prioridad}
+                    disabled={
+                      !puedeEditar || formularioAbierto
+                    }
+                    title={
+                      formularioAbierto
+                        ? "Cambia la prioridad desde el formulario de edición"
+                        : !puedeEditar
+                          ? "La requisición ya fue procesada"
+                          : "Selecciona la prioridad"
+                    }
+                    onChange={event =>
+                      onCambiarPrioridad(
+                        requisicion.idRequisicion,
+                        event.target.value as Prioridad,
+                      )
+                    }
+                  >
+                    <option value="Alta">Alta</option>
+                    <option value="Media">Media</option>
+                    <option value="Baja">Baja</option>
+                  </select>
+                </td>
+
+                <td>
+                  {requisicion.detalles.map(detalle => (
                     <div key={detalle.idDetalle}>
                       {detalle.producto.descripcion ||
                         "(sin nombre)"}
@@ -100,7 +152,9 @@ export default function ListaRequisiciones({
                           : "Solo se pueden editar requisiciones pendientes sin procesar"
                       }
                       onClick={() =>
-                        onEditar(requisicion.idRequisicion)
+                        onEditar(
+                          requisicion.idRequisicion,
+                        )
                       }
                     >
                       Editar
