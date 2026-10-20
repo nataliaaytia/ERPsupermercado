@@ -1,6 +1,5 @@
 export interface ProductoFormulario {
-  id: number; // ID de la fila del formulario, no del producto.
-  idProducto: string;
+  id: number;
   nombre: string;
   cantidad: string;
   observacion: string;
@@ -8,24 +7,22 @@ export interface ProductoFormulario {
 
 export type Prioridad = "Baja" | "Media" | "Alta";
 
+
+export interface ProductoReferencia {
+  idProducto: number;
+  descripcion: string;
+}
+
 export type EstadoRequisicion =
   | "Pendiente"
   | "Aprobada"
   | "Anulada";
 
-// Datos capturados por la interfaz.
 export interface DatosRequisicion {
   solicitante: string;
   prioridad: Prioridad;
   motivo: string;
   productos: ProductoFormulario[];
-}
-
-// Referencia mínima al producto del catálogo.
-// No reemplaza la entidad completa de tu módulo de catálogo.
-export interface ProductoReferencia {
-  idProducto: number;
-  descripcion: string;
 }
 
 export interface DetalleRequisicion {
@@ -58,7 +55,6 @@ export interface SolicitudCotizacion {
   fechaLimite: string;
   estado: "Generada" | "Enviada" | "Cancelada";
 
-  // Proveedores invitados; todavía no son ofertas recibidas.
   proveedoresIds: number[];
 }
 

@@ -16,7 +16,7 @@ const datosVacios = (): DatosRequisicion => ({
   productos: [
     {
       id: 1,
-      idProducto: "",
+      //idProducto: "",
       nombre: "",
       cantidad: "",
       observacion: "",

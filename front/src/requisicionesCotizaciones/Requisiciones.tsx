@@ -5,6 +5,7 @@ import MenuLateral from "./MenuLateral";
 import ListaRequisiciones from "./ListaRequisiciones";
 import ValidarRequisicion from "./ValidarRequisicion";
 import SelectorProveedores from "./SelectorProveedores";
+import EditarRequisicion from "./editarRequisicion";
 
 import {
   useRequisiciones,
@@ -48,6 +49,13 @@ const cargarPestana = (): number => {
 export const Requisiciones = () => {
   const compras = useRequisiciones();
   const { dispatch } = compras;
+  const [idEdicion, setIdEdicion] =
+    useState<number | null>(null);
+
+  const requisicionEnEdicion =
+    compras.requisiciones.find(
+      r => r.idRequisicion === idEdicion,
+    );
 
   const [opcionActiva, setOpcionActiva] =
     useState(cargarPestana);
@@ -112,6 +120,9 @@ export const Requisiciones = () => {
   ]);
 
   const elegirOpcion = (indice: number) => {
+
+    setIdEdicion(null);
+
     dispatch({ tipo: "limpiarMensaje" });
 
     setOpcionActiva(indice);
@@ -129,13 +140,12 @@ export const Requisiciones = () => {
         String(indice),
       );
     } catch {
-      // La navegación funciona sin sessionStorage.
     }
   };
 
   const abrirGeneracion = (id: number) => {
     dispatch({ tipo: "limpiarMensaje" });
-
+    setIdEdicion(null);
     setIdRequisicion(id);
     setFechaLimite("");
     setErrorFormulario("");
@@ -224,14 +234,44 @@ export const Requisiciones = () => {
         )}
 
         {opcionActiva === 2 && (
+
           <>
             <div className="requisiciones-tarjeta">
               <ListaRequisiciones
                 requisiciones={compras.requisiciones}
                 solicitudes={compras.solicitudes}
                 onGenerarCotizacion={abrirGeneracion}
+                onEditar={id => {
+                  dispatch({ tipo: "limpiarMensaje" });
+                  cerrarGeneracion();
+                  setIdEdicion(id);
+                }}
               />
             </div>
+            {requisicionEnEdicion && (
+              <div className="requisiciones-tarjeta">
+                <EditarRequisicion
+                  key={requisicionEnEdicion.idRequisicion}
+                  requisicion={requisicionEnEdicion}
+                  bloqueada={
+                    requisicionEnEdicion.estado !== "Pendiente" ||
+                    compras.solicitudes.some(
+                      solicitud =>
+                        solicitud.requisicion ===
+                        requisicionEnEdicion.idRequisicion,
+                    )
+                  }
+                  onGuardar={datos =>
+                    dispatch({
+                      tipo: "modificar",
+                      id: requisicionEnEdicion.idRequisicion,
+                      datos,
+                    })
+                  }
+                  onCancelar={() => setIdEdicion(null)}
+                />
+              </div>
+            )}
 
             {idRequisicion !== null && (
               <div className="requisiciones-tarjeta">
