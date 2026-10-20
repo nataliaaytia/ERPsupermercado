@@ -22,6 +22,8 @@ public class DetalleOferta {
     @Column(nullable = false)
     private Long productoId;
 
+    private Integer cantidad;
+
     private BigDecimal precio;
 
     private Integer plazoEntrega;

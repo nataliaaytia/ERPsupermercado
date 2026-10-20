@@ -96,16 +96,22 @@ public class SolicitudCotizacionService {
         return convertirAResponse(solicitud);
     }
 
+
     private SolicitudCotizacionResponse convertirAResponse(
             SolicitudCotizacion solicitud) {
 
+        Long idRequisicion = solicitud.getRequisicion() != null
+                ? solicitud.getRequisicion().getIdRequisicion()
+                : null;
+
         return new SolicitudCotizacionResponse(
                 solicitud.getIdSolicitud(),
-                solicitud.getRequisicion().getIdRequisicion(),
+                idRequisicion,
                 solicitud.getFecha(),
                 solicitud.getFechaLimite(),
                 solicitud.getEstado()
         );
     }
+
 
 }
