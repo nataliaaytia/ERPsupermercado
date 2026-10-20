@@ -1,6 +1,7 @@
 
 package com.sonic.erp.cotizaciones.controller;
 
+import com.sonic.erp.cotizaciones.entity.Requisicion;
 import com.sonic.erp.cotizaciones.service.RequisicionValidacionService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -54,6 +55,20 @@ public class RequisicionValidacionController {
 
         return ResponseEntity.ok(
                 validacionService.consultarHistorial(id)
+        );
+    }
+
+    // NUEVO: editar una requisición pendiente
+    @PutMapping("/{id}")
+    public ResponseEntity<Map<String, Object>> actualizarRequisicion(
+            @PathVariable Long id,
+            @RequestBody Requisicion datosActualizados) {
+
+        return ResponseEntity.ok(
+                validacionService.actualizarRequisicion(
+                        id,
+                        datosActualizados
+                )
         );
     }
 

@@ -279,4 +279,120 @@ public class RequisicionValidacionService {
 
         return errores;
     }
+
+    @Transactional
+    public Map<String, Object> actualizarRequisicion(
+            Long idRequisicion,
+            Requisicion datosActualizados) {
+
+        validarId(idRequisicion);
+
+        Requisicion existente = buscarRequisicion(idRequisicion);
+        exigirEstadoPendiente(existente);
+
+        if (datosActualizados == null) {
+            throw new ResponseStatusException(
+                    BAD_REQUEST,
+                    "Los datos de la requisición son obligatorios."
+            );
+        }
+
+        // La edición no debe cambiar el identificador ni el estado.
+        datosActualizados.setIdRequisicion(idRequisicion);
+        datosActualizados.setEstado(existente.getEstado());
+
+        List<String> errores = validar(datosActualizados);
+
+        if (!errores.isEmpty()) {
+            throw new ResponseStatusException(
+                    BAD_REQUEST,
+                    String.join("; ", errores)
+            );
+        }
+
+        String prioridadAnterior = existente.getPrioridad();
+        String solicitanteAnterior = existente.getSolicitante();
+        String observacionAnterior = existente.getObservacion();
+        String fechaAnterior = existente.getFecha() == null
+                ? null : existente.getFecha().toString();
+
+        // Actualizar los datos generales.
+        existente.setFecha(datosActualizados.getFecha());
+        existente.setPrioridad(datosActualizados.getPrioridad().trim().toUpperCase());
+        existente.setSolicitante(datosActualizados.getSolicitante().trim());
+        existente.setObservacion(datosActualizados.getObservacion());
+
+        // Reemplazar los detalles conservando la relación JPA.
+        existente.getDetalles().clear();
+
+        for (DetalleRequisicion detalleNuevo : datosActualizados.getDetalles()) {
+            DetalleRequisicion detalle = DetalleRequisicion.builder()
+                    .productoId(detalleNuevo.getProductoId())
+                    .cantidad(detalleNuevo.getCantidad())
+                    .observacion(detalleNuevo.getObservacion())
+                    .requisicion(existente)
+                    .build();
+
+            existente.getDetalles().add(detalle);
+        }
+
+        Requisicion guardada = requisicionRepository.save(existente);
+
+        registrarCambioSiDifiere(
+                idRequisicion, "PRIORIDAD",
+                prioridadAnterior, guardada.getPrioridad()
+        );
+
+        registrarCambioSiDifiere(
+                idRequisicion, "SOLICITANTE",
+                solicitanteAnterior, guardada.getSolicitante()
+        );
+
+        registrarCambioSiDifiere(
+                idRequisicion, "OBSERVACION",
+                observacionAnterior, guardada.getObservacion()
+        );
+
+        registrarCambioSiDifiere(
+                idRequisicion, "FECHA",
+                fechaAnterior,
+                guardada.getFecha() == null
+                        ? null : guardada.getFecha().toString()
+        );
+
+        registrarCambio(
+                idRequisicion,
+                "DETALLES",
+                "Detalles anteriores reemplazados",
+                "Cantidad de detalles: " + guardada.getDetalles().size()
+        );
+
+        Map<String, Object> respuesta = new LinkedHashMap<>();
+        respuesta.put("mensaje", "La requisición se actualizó correctamente.");
+        respuesta.put("idRequisicion", guardada.getIdRequisicion());
+        respuesta.put("fecha", guardada.getFecha());
+        respuesta.put("prioridad", guardada.getPrioridad());
+        respuesta.put("estado", guardada.getEstado());
+        respuesta.put("solicitante", guardada.getSolicitante());
+        respuesta.put("observacion", guardada.getObservacion());
+        respuesta.put("detalles", guardada.getDetalles());
+
+        return respuesta;
+    }
+
+    private void registrarCambioSiDifiere(
+            Long idRequisicion,
+            String tipoCambio,
+            String valorAnterior,
+            String valorNuevo) {
+
+        if (!java.util.Objects.equals(valorAnterior, valorNuevo)) {
+            registrarCambio(
+                    idRequisicion,
+                    tipoCambio,
+                    valorAnterior,
+                    valorNuevo
+            );
+        }
+    }
 }
