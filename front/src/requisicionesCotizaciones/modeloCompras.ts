@@ -1,22 +1,34 @@
-import type {
-    DatosRequisicion,
-    DetalleOferta,
-    OfertaProveedor,
-    ProveedorReferencia,
-    Requisicion,
-    SolicitudCotizacion,
-} from "./tipos";
-import { revisarRequisicion } from "./revisionRequisicion";
 import {
     validarRequisicion,
     hayErrores,
 } from "./validacionRequisicion";
+
+import {
+    consolidarRequisiciones,
+} from "./consolidacionRequisiciones";
+
+import type {
+    AccionConsolidar,
+} from "./consolidacionRequisiciones";
+
+import type {
+    DatosRequisicion,
+    DetalleOferta,
+    OfertaProveedor,
+    Prioridad,
+    ProveedorReferencia,
+    Requisicion,
+    SolicitudCotizacion,
+} from "./tipos";
+
+import { revisarRequisicion } from "./revisionRequisicion";
 
 export interface EstadoCompras {
     requisiciones: Requisicion[];
     solicitudes: SolicitudCotizacion[];
     ofertas: OfertaProveedor[];
     mensaje: string;
+    tipoMensaje: "exito" | "error" | "neutro";
 }
 
 export const estadoInicial: EstadoCompras = {
@@ -24,24 +36,31 @@ export const estadoInicial: EstadoCompras = {
     solicitudes: [],
     ofertas: [],
     mensaje: "",
+    tipoMensaje: "neutro",
 };
 
 export type AccionCompras =
+    | AccionConsolidar
+    | {
+        tipo: "limpiarMensaje";
+    }
+    | {
+        tipo: "limpiarMensaje";
+    }
+    | {
+        tipo: "crear";
+        datos: DatosRequisicion;
+        hoy: string;
+    }
     | {
         tipo: "modificar";
         id: number;
         datos: DatosRequisicion;
     }
-    | { tipo: "limpiarMensaje" }
     | {
-        tipo: "crear";
-        datos: DatosRequisicion;
-        hoy: string;
-    }
-    | {
-        tipo: "crear";
-        datos: DatosRequisicion;
-        hoy: string;
+        tipo: "cambiarPrioridad";
+        id: number;
+        prioridad: Prioridad;
     }
     | {
         tipo: "aprobar" | "anular";
@@ -94,9 +113,15 @@ export function reducirCompras(
     e: EstadoCompras,
     a: AccionCompras,
 ): EstadoCompras {
+    e = {
+        ...e,
+        tipoMensaje: "neutro",
+    };
+
     const fallo = (mensaje: string): EstadoCompras => ({
         ...e,
         mensaje,
+        tipoMensaje: "error",
     });
 
     if (a.tipo === "limpiarMensaje") {
@@ -105,6 +130,46 @@ export function reducirCompras(
             mensaje: "",
         };
     }
+
+    if (a.tipo === "cambiarPrioridad") {
+        const requisicion = e.requisiciones.find(
+            r => r.idRequisicion === a.id,
+        );
+
+        if (!requisicion) {
+            return fallo("La requisición no existe.");
+        }
+
+        if (
+            requisicion.estado !== "Pendiente" ||
+            e.solicitudes.some(s => s.requisicion === a.id)
+        ) {
+            return fallo(
+                "Solo puedes cambiar la prioridad de una requisición pendiente sin procesar.",
+            );
+        }
+
+        if (!["Baja", "Media", "Alta"].includes(a.prioridad)) {
+            return fallo(
+                "Selecciona una prioridad válida: Baja, Media o Alta.",
+            );
+        }
+
+        return {
+            ...e,
+            requisiciones: e.requisiciones.map(r =>
+                r.idRequisicion === a.id
+                    ? {
+                        ...r,
+                        prioridad: a.prioridad,
+                    }
+                    : r,
+            ),
+            mensaje: `Prioridad actualizada a ${a.prioridad}.`,
+            tipoMensaje: "exito",
+        };
+    }
+
     if (a.tipo === "modificar") {
         const actual = e.requisiciones.find(
             r => r.idRequisicion === a.id,
@@ -172,7 +237,6 @@ export function reducirCompras(
             solicitante: a.datos.solicitante.trim(),
             prioridad: a.datos.prioridad,
             observacion: a.datos.motivo.trim(),
-
             detalles: a.datos.productos.map(p => {
                 const nombre = p.nombre.trim();
                 const clave = nombre.toLowerCase();
@@ -211,9 +275,12 @@ export function reducirCompras(
                 r.idRequisicion === a.id ? actualizada : r,
             ),
             mensaje: "Cambios de la requisición guardados.",
+            tipoMensaje: "exito",
         };
     }
-
+    if (a.tipo === "consolidar") {
+        return consolidarRequisiciones(e, a);
+    }
     if (a.tipo === "crear") {
         const existentes = e.requisiciones.flatMap(r =>
             r.detalles.map(d => d.producto),
@@ -254,7 +321,7 @@ export function reducirCompras(
                 };
             });
 
-        const r: Requisicion = {
+        const nueva: Requisicion = {
             idRequisicion: siguiente(
                 e.requisiciones.map(r => r.idRequisicion),
             ),
@@ -266,7 +333,7 @@ export function reducirCompras(
             detalles,
         };
 
-        const revision = revisarRequisicion(r);
+        const revision = revisarRequisicion(nueva);
 
         if (revision.errores.length) {
             return fallo(revision.errores.join(" "));
@@ -274,23 +341,24 @@ export function reducirCompras(
 
         return {
             ...e,
-            requisiciones: [...e.requisiciones, r],
+            requisiciones: [...e.requisiciones, nueva],
             mensaje: "Requisición registrada.",
+            tipoMensaje: "exito",
         };
     }
 
     if (a.tipo === "aprobar" || a.tipo === "anular") {
-        const r = e.requisiciones.find(
+        const requisicion = e.requisiciones.find(
             r => r.idRequisicion === a.id,
         );
 
-        if (!r || r.estado !== "Pendiente") {
+        if (!requisicion || requisicion.estado !== "Pendiente") {
             return fallo(
                 "Solo se modifica una requisición pendiente.",
             );
         }
 
-        const validacion = revisarRequisicion(r);
+        const validacion = revisarRequisicion(requisicion);
 
         const estado: Requisicion["estado"] =
             a.tipo === "anular"
@@ -301,31 +369,33 @@ export function reducirCompras(
 
         return {
             ...e,
-            requisiciones: e.requisiciones.map(item =>
-                item.idRequisicion === a.id
+            requisiciones: e.requisiciones.map(r =>
+                r.idRequisicion === a.id
                     ? {
-                        ...item,
+                        ...r,
                         estado,
                         validacion:
                             a.tipo === "aprobar"
                                 ? validacion
-                                : item.validacion,
+                                : r.validacion,
                     }
-                    : item,
+                    : r,
             ),
             mensaje:
                 estado === "Pendiente"
                     ? "Corrige los errores antes de aprobar."
                     : `Requisición ${estado.toLowerCase()}.`,
+            tipoMensaje:
+                estado === "Pendiente" ? "error" : "exito",
         };
     }
 
     if (a.tipo === "generar") {
-        const r = e.requisiciones.find(
+        const requisicion = e.requisiciones.find(
             r => r.idRequisicion === a.requisicion,
         );
 
-        if (r?.estado !== "Aprobada") {
+        if (requisicion?.estado !== "Aprobada") {
             return fallo(
                 "Selecciona una requisición aprobada.",
             );
@@ -335,9 +405,7 @@ export function reducirCompras(
             !fechaValida(a.fechaLimite) ||
             a.fechaLimite < a.hoy
         ) {
-            return fallo(
-                "Fecha límite inválida o pasada.",
-            );
+            return fallo("Fecha límite inválida o pasada.");
         }
 
         const solicitud: SolicitudCotizacion = {
@@ -355,24 +423,23 @@ export function reducirCompras(
             ...e,
             solicitudes: [...e.solicitudes, solicitud],
             mensaje: "Solicitud generada.",
+            tipoMensaje: "exito",
         };
     }
 
     if (a.tipo === "enviar") {
-        const s = e.solicitudes.find(
+        const solicitud = e.solicitudes.find(
             s => s.idSolicitud === a.id,
         );
 
-        if (!s || s.estado !== "Generada") {
+        if (!solicitud || solicitud.estado !== "Generada") {
             return fallo(
                 "Solo se envían solicitudes generadas.",
             );
         }
 
-        if (s.fechaLimite < a.hoy) {
-            return fallo(
-                "La fecha límite ya venció.",
-            );
+        if (solicitud.fechaLimite < a.hoy) {
+            return fallo("La fecha límite ya venció.");
         }
 
         if (
@@ -386,10 +453,10 @@ export function reducirCompras(
 
         return {
             ...e,
-            solicitudes: e.solicitudes.map(item =>
-                item.idSolicitud === a.id
+            solicitudes: e.solicitudes.map(s =>
+                s.idSolicitud === a.id
                     ? {
-                        ...item,
+                        ...s,
                         estado: "Enviada",
                         proveedoresIds: [
                             ...new Set(
@@ -397,19 +464,20 @@ export function reducirCompras(
                             ),
                         ],
                     }
-                    : item,
+                    : s,
             ),
             mensaje:
                 "Solicitud marcada como enviada (demostración local).",
+            tipoMensaje: "exito",
         };
     }
 
     if (a.tipo === "cancelar") {
-        const s = e.solicitudes.find(
+        const solicitud = e.solicitudes.find(
             s => s.idSolicitud === a.id,
         );
 
-        if (!s || s.estado === "Cancelada") {
+        if (!solicitud || solicitud.estado === "Cancelada") {
             return fallo(
                 "La solicitud no está disponible.",
             );
@@ -429,10 +497,10 @@ export function reducirCompras(
 
         return {
             ...e,
-            solicitudes: e.solicitudes.map(item =>
-                item.idSolicitud === a.id
-                    ? { ...item, estado: "Cancelada" }
-                    : item,
+            solicitudes: e.solicitudes.map(s =>
+                s.idSolicitud === a.id
+                    ? { ...s, estado: "Cancelada" }
+                    : s,
             ),
             ofertas: e.ofertas.map(o =>
                 o.solicitud === a.id
@@ -441,23 +509,24 @@ export function reducirCompras(
             ),
             mensaje:
                 "Solicitud cancelada; sus ofertas quedaron rechazadas.",
+            tipoMensaje: "exito",
         };
     }
 
     if (a.tipo === "registrarOferta") {
-        const s = e.solicitudes.find(
+        const solicitud = e.solicitudes.find(
             s => s.idSolicitud === a.solicitud,
         );
 
-        const r = e.requisiciones.find(
-            r => r.idRequisicion === s?.requisicion,
+        const requisicion = e.requisiciones.find(
+            r => r.idRequisicion === solicitud?.requisicion,
         );
 
         if (
-            !s ||
-            !r ||
-            s.estado !== "Enviada" ||
-            s.fechaLimite < a.hoy
+            !solicitud ||
+            !requisicion ||
+            solicitud.estado !== "Enviada" ||
+            solicitud.fechaLimite < a.hoy
         ) {
             return fallo(
                 "La solicitud debe estar enviada y dentro de plazo.",
@@ -466,7 +535,7 @@ export function reducirCompras(
 
         if (
             a.proveedor.estado !== "Activo" ||
-            !s.proveedoresIds.includes(
+            !solicitud.proveedoresIds.includes(
                 a.proveedor.idProveedor,
             )
         ) {
@@ -478,7 +547,7 @@ export function reducirCompras(
         if (
             e.ofertas.some(
                 o =>
-                    o.solicitud === s.idSolicitud &&
+                    o.solicitud === solicitud.idSolicitud &&
                     o.estado === "Seleccionada",
             )
         ) {
@@ -490,7 +559,7 @@ export function reducirCompras(
         if (
             e.ofertas.some(
                 o =>
-                    o.solicitud === s.idSolicitud &&
+                    o.solicitud === solicitud.idSolicitud &&
                     o.proveedor.idProveedor ===
                     a.proveedor.idProveedor,
             )
@@ -514,9 +583,9 @@ export function reducirCompras(
         );
 
         if (
-            ids.length !== r.detalles.length ||
+            ids.length !== requisicion.detalles.length ||
             new Set(ids).size !== ids.length ||
-            r.detalles.some(
+            requisicion.detalles.some(
                 d => !ids.includes(d.producto.idProducto),
             ) ||
             a.detalles.some(
@@ -537,7 +606,7 @@ export function reducirCompras(
                 e.ofertas.map(o => o.idOferta),
             ),
             proveedor: { ...a.proveedor },
-            solicitud: s.idSolicitud,
+            solicitud: solicitud.idSolicitud,
             fecha: a.hoy,
             validez: a.validez,
             estado: "Registrada",
@@ -545,7 +614,7 @@ export function reducirCompras(
                 ...d,
                 idDetalle: i + 1,
                 producto: {
-                    ...r.detalles.find(
+                    ...requisicion.detalles.find(
                         item =>
                             item.producto.idProducto ===
                             d.producto.idProducto,
@@ -558,39 +627,35 @@ export function reducirCompras(
             ...e,
             ofertas: [...e.ofertas, oferta],
             mensaje: "Oferta registrada.",
+            tipoMensaje: "exito",
         };
     }
 
-    if (
-        a.tipo === "seleccionar" ||
-        a.tipo === "rechazar"
-    ) {
-        const o = e.ofertas.find(
+    if (a.tipo === "seleccionar" || a.tipo === "rechazar") {
+        const oferta = e.ofertas.find(
             o => o.idOferta === a.id,
         );
 
-        const s = e.solicitudes.find(
-            s => s.idSolicitud === o?.solicitud,
+        const solicitud = e.solicitudes.find(
+            s => s.idSolicitud === oferta?.solicitud,
         );
 
         if (
-            !o ||
-            o.estado !== "Registrada" ||
-            s?.estado !== "Enviada"
+            !oferta ||
+            oferta.estado !== "Registrada" ||
+            solicitud?.estado !== "Enviada"
         ) {
-            return fallo(
-                "La oferta no está disponible.",
-            );
+            return fallo("La oferta no está disponible.");
         }
 
         if (
             a.tipo === "seleccionar" &&
             (
-                o.validez < a.hoy ||
+                oferta.validez < a.hoy ||
                 e.ofertas.some(
-                    item =>
-                        item.solicitud === o.solicitud &&
-                        item.estado === "Seleccionada",
+                    o =>
+                        o.solicitud === oferta.solicitud &&
+                        o.estado === "Seleccionada",
                 )
             )
         ) {
@@ -601,23 +666,23 @@ export function reducirCompras(
 
         return {
             ...e,
-            ofertas: e.ofertas.map(item =>
-                item.idOferta === o.idOferta
+            ofertas: e.ofertas.map(o =>
+                o.idOferta === oferta.idOferta
                     ? {
-                        ...item,
+                        ...o,
                         estado:
                             a.tipo === "seleccionar"
                                 ? "Seleccionada"
                                 : "Rechazada",
                     }
                     : a.tipo === "seleccionar" &&
-                        item.solicitud === o.solicitud &&
-                        item.estado === "Registrada"
-                        ? { ...item, estado: "Rechazada" }
-                        : item,
+                        o.solicitud === oferta.solicitud &&
+                        o.estado === "Registrada"
+                        ? { ...o, estado: "Rechazada" }
+                        : o,
             ),
-            mensaje:
-                "Estado de la oferta actualizado.",
+            mensaje: "Estado de la oferta actualizado.",
+            tipoMensaje: "exito",
         };
     }
 
