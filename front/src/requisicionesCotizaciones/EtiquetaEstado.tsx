@@ -1,4 +1,9 @@
-import { AlertTriangle, CheckCircle2, Clock, XCircle } from "lucide-react";
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Clock,
+  XCircle,
+} from "lucide-react";
 import type { Requisicion } from "./tipos";
 import "./EtiquetaEstado.css";
 
@@ -13,21 +18,23 @@ const iconos = {
   rechazada: <XCircle size={14} />,
 };
 
-export default function EtiquetaEstado({ requisicion }: Props) {
+export default function EtiquetaEstado({
+  requisicion,
+}: Props) {
   const conAdvertencias =
-    requisicion.estado === "Validada" &&
+    requisicion.estado === "Aprobada" &&
     (requisicion.validacion?.advertencias.length ?? 0) > 0;
 
   const tipo = conAdvertencias
     ? "advertencia"
-    : requisicion.estado === "Validada"
+    : requisicion.estado === "Aprobada"
       ? "validada"
-      : requisicion.estado === "Rechazada"
+      : requisicion.estado === "Anulada"
         ? "rechazada"
         : "pendiente";
 
   const texto = conAdvertencias
-    ? "Validada con advertencias"
+    ? "Aprobada con advertencias"
     : requisicion.estado;
 
   return (

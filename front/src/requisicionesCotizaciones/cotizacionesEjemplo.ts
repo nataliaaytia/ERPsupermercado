@@ -1,16 +1,5 @@
+import type { SolicitudCotizacion } from "./tipos";
 
-export interface SolicitudCotizacion {
-  id: string;
-  descripcion: string;
-}
+export type { SolicitudCotizacion } from "./tipos";
 
-export const cotizacionesEjemplo: SolicitudCotizacion[] = [
-  {
-    id: "COT-0001",
-    descripcion: "Adquisición de productos de limpieza",
-  },
-  {
-    id: "COT-0002",
-    descripcion: "Reposición de productos de abarrotes",
-  },
-];
+export const cotizacionesEjemplo: SolicitudCotizacion[] = [];

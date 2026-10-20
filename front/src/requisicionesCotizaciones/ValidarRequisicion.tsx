@@ -1,5 +1,6 @@
 import EtiquetaEstado from "./EtiquetaEstado";
 import MensajesValidacion from "./MensajesValidacion";
+import { codigoRequisicion } from "./formatoRequisicion";
 import type { Requisicion } from "./tipos";
 import "./ValidarRequisicion.css";
 
@@ -17,7 +18,7 @@ export default function ValidarRequisicion({
   if (requisiciones.length === 0) {
     return (
       <p className="validar-requisicion__vacio">
-        Todavía no hay requisiciones para revisar.
+        Todavía no hay requisiciones para validar.
       </p>
     );
   }
@@ -32,7 +33,7 @@ export default function ValidarRequisicion({
           <header className="validar-requisicion__encabezado">
             <div>
               <strong>
-                REQ-{requisicion.idRequisicion}
+                {codigoRequisicion(requisicion.idRequisicion)}
               </strong>
 
               <span className="validar-requisicion__fecha">
@@ -52,7 +53,7 @@ export default function ValidarRequisicion({
           <ul className="validar-requisicion__productos">
             {requisicion.detalles.map((detalle) => (
               <li key={detalle.idDetalle}>
-                {detalle.producto.descripcion}
+                {detalle.producto.descripcion || "(sin nombre)"}
                 {" × "}
                 {detalle.cantidad}
 
