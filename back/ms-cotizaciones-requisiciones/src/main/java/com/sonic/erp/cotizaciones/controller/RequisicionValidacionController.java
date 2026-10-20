@@ -51,4 +51,18 @@ public class RequisicionValidacionController {
 
         return ResponseEntity.ok(respuesta);
     }
+
+    @PutMapping("/{id}/aprobar")
+    public ResponseEntity<Map<String, Object>> aprobar(
+            @PathVariable Long id) {
+
+        return ResponseEntity.ok(validacionService.aprobar(id));
+    }
+
+    @PutMapping("/{id}/rechazar")
+    public ResponseEntity<Map<String, Object>> rechazar(
+            @PathVariable Long id) {
+
+        return ResponseEntity.ok(validacionService.rechazar(id));
+    }
 }

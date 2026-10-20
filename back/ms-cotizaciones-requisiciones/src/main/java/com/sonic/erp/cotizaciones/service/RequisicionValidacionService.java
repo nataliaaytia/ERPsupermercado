@@ -54,12 +54,7 @@ public class RequisicionValidacionService {
             Long idRequisicion,
             String nuevaPrioridad) {
 
-        if (idRequisicion == null || idRequisicion <= 0) {
-            throw new ResponseStatusException(
-                    BAD_REQUEST,
-                    "El identificador de la requisición debe ser positivo."
-            );
-        }
+        validarId(idRequisicion);
 
         if (nuevaPrioridad == null || nuevaPrioridad.isBlank()) {
             throw new ResponseStatusException(
@@ -78,19 +73,8 @@ public class RequisicionValidacionService {
             );
         }
 
-        Requisicion requisicion = requisicionRepository
-                .findById(idRequisicion)
-                .orElseThrow(() -> new ResponseStatusException(
-                        NOT_FOUND,
-                        "No se encontró la requisición con ID " + idRequisicion
-                ));
-
-        if (!"PENDIENTE".equalsIgnoreCase(requisicion.getEstado())) {
-            throw new ResponseStatusException(
-                    CONFLICT,
-                    "Solo se puede cambiar la prioridad de una requisición pendiente."
-            );
-        }
+        Requisicion requisicion = buscarRequisicion(idRequisicion);
+        exigirEstadoPendiente(requisicion);
 
         requisicion.setPrioridad(prioridadNormalizada);
         Requisicion guardada = requisicionRepository.save(requisicion);
@@ -100,6 +84,71 @@ public class RequisicionValidacionService {
                 "idRequisicion", guardada.getIdRequisicion(),
                 "prioridad", guardada.getPrioridad()
         );
+    }
+
+    @Transactional
+    public Map<String, Object> aprobar(Long idRequisicion) {
+        return cambiarEstado(
+                idRequisicion,
+                "APROBADA",
+                "La requisición se aprobó correctamente."
+        );
+    }
+
+    @Transactional
+    public Map<String, Object> rechazar(Long idRequisicion) {
+        return cambiarEstado(
+                idRequisicion,
+                "RECHAZADA",
+                "La requisición se rechazó correctamente."
+        );
+    }
+
+    private Map<String, Object> cambiarEstado(
+            Long idRequisicion,
+            String nuevoEstado,
+            String mensaje) {
+
+        validarId(idRequisicion);
+
+        Requisicion requisicion = buscarRequisicion(idRequisicion);
+        exigirEstadoPendiente(requisicion);
+
+        requisicion.setEstado(nuevoEstado);
+        Requisicion guardada = requisicionRepository.save(requisicion);
+
+        return Map.of(
+                "mensaje", mensaje,
+                "idRequisicion", guardada.getIdRequisicion(),
+                "estado", guardada.getEstado()
+        );
+    }
+
+    private void validarId(Long idRequisicion) {
+        if (idRequisicion == null || idRequisicion <= 0) {
+            throw new ResponseStatusException(
+                    BAD_REQUEST,
+                    "El identificador de la requisición debe ser positivo."
+            );
+        }
+    }
+
+    private Requisicion buscarRequisicion(Long idRequisicion) {
+        return requisicionRepository
+                .findById(idRequisicion)
+                .orElseThrow(() -> new ResponseStatusException(
+                        NOT_FOUND,
+                        "No se encontró la requisición con ID " + idRequisicion
+                ));
+    }
+
+    private void exigirEstadoPendiente(Requisicion requisicion) {
+        if (!"PENDIENTE".equalsIgnoreCase(requisicion.getEstado())) {
+            throw new ResponseStatusException(
+                    CONFLICT,
+                    "Solo se pueden modificar requisiciones pendientes."
+            );
+        }
     }
 
     public List<String> validar(Requisicion requisicion) {
@@ -139,7 +188,6 @@ public class RequisicionValidacionService {
         }
 
         for (int i = 0; i < detalles.size(); i++) {
-
             DetalleRequisicion detalle = detalles.get(i);
             int numero = i + 1;
 
