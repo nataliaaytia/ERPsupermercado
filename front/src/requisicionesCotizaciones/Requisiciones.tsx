@@ -7,6 +7,7 @@ import ListaRequisiciones from "./ListaRequisiciones";
 import ValidarRequisicion from "./ValidarRequisicion";
 import SelectorProveedores from "./SelectorProveedores";
 import ConsolidarRequisiciones from "./ConsolidarRequisiciones";
+import ConsultarRequisicion from "./ConsultarRequisicion";
 
 import {
   useRequisiciones,
@@ -24,6 +25,7 @@ const opciones = [
   "Requisiciones registradas",
   "Solicitudes y ofertas",
   "Consolidar requisiciones",
+  "Estado e historial",
 ];
 
 const CLAVE_PESTANA = "requisiciones-pestana";
@@ -261,6 +263,12 @@ export const Requisiciones = () => {
                     prioridad,
                   })
                 }
+                onCancelar={id =>
+                  dispatch({
+                    tipo: "cancelarRequisicion",
+                    id,
+                  })
+                }
               />
             </div>
 
@@ -379,6 +387,14 @@ export const Requisiciones = () => {
             <ConsolidarRequisiciones
               estado={compras}
               dispatch={dispatch}
+            />
+          </div>
+        )}
+        {opcionActiva === 5 && (
+          <div className="requisiciones-tarjeta">
+            <ConsultarRequisicion
+              requisiciones={compras.requisiciones}
+              solicitudes={compras.solicitudes}
             />
           </div>
         )}

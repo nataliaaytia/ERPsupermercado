@@ -1,0 +1,175 @@
+.consulta-requisicion {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    color: var(--text-primary);
+}
+
+.consulta-requisicion h2,
+.consulta-requisicion h3 {
+    margin: 0;
+}
+
+.consulta-requisicion h2 {
+    font-size: 1.2rem;
+}
+
+.consulta-requisicion h3 {
+    font-size: 1rem;
+}
+
+.consulta-requisicion__selector {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.consulta-requisicion__selector select {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.8rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--bg-card);
+    color: var(--text-primary);
+    font: inherit;
+    cursor: pointer;
+}
+
+.consulta-requisicion__selector select:focus-visible {
+    outline: 2px solid var(--accent, #38b6e8);
+    outline-offset: 3px;
+}
+
+.consulta-requisicion__panel {
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+    padding: 1.25rem;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    background: var(--bg-card);
+}
+
+.consulta-requisicion__encabezado,
+.consulta-requisicion__evento-encabezado {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.consulta-requisicion__datos {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+    margin: 0;
+}
+
+.consulta-requisicion__datos div {
+    padding: 0.85rem;
+    border-radius: 8px;
+    background: var(--bg-primary);
+}
+
+.consulta-requisicion__datos dt {
+    margin-bottom: 0.4rem;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+.consulta-requisicion__datos dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.consulta-requisicion__texto {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+p.consulta-requisicion__texto {
+    margin: 0.6rem 0 0;
+    line-height: 1.6;
+}
+
+.consulta-requisicion__tabla-contenedor {
+    overflow-x: auto;
+}
+
+.consulta-requisicion__tabla {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.consulta-requisicion__tabla th,
+.consulta-requisicion__tabla td {
+    padding: 0.75rem;
+    border-bottom: 1px solid var(--border-color);
+    text-align: left;
+    vertical-align: top;
+}
+
+.consulta-requisicion__tabla th {
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+.consulta-requisicion__solicitudes {
+    display: grid;
+    gap: 0.75rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.consulta-requisicion__solicitudes li {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding: 0.85rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+}
+
+.consulta-requisicion__historial {
+    display: grid;
+    gap: 1rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.consulta-requisicion__evento {
+    display: grid;
+    gap: 0.85rem;
+    padding: 1rem;
+    border: 1px solid var(--border-color);
+    border-left: 3px solid var(--accent, #38b6e8);
+    border-radius: 8px;
+}
+
+.consulta-requisicion__evento time {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+.consulta-requisicion__nota,
+.consulta-requisicion__vacio {
+    margin: 0;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+@media (max-width: 650px) {
+    .consulta-requisicion__datos {
+        grid-template-columns: 1fr;
+    }
+
+    .consulta-requisicion__panel {
+        padding: 1rem;
+    }
+}

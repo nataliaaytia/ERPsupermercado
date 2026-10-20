@@ -1,21 +1,32 @@
-import { useEffect, useReducer } from "react";
-
 import {
-  estadoInicial,
-  reducirCompras,
+  useCallback,
+  useEffect,
+  useReducer,
+} from "react";
+
+import { estadoInicial } from "./modeloCompras";
+
+import type {
+  AccionCompras,
+  EstadoCompras,
 } from "./modeloCompras";
 
-import type { DatosRequisicion } from "./tipos";
+import {
+  reducirComprasConHistorial,
+} from "./historialRequisiciones";
+
+import type {
+  DatosRequisicion,
+} from "./tipos";
 
 const CLAVE_COMPRAS = "erp-compras-estado";
-
-type EstadoCompras = typeof estadoInicial;
 
 const cargarEstado = (
   inicial: EstadoCompras,
 ): EstadoCompras => {
   try {
-    const guardado = localStorage.getItem(CLAVE_COMPRAS);
+    const guardado =
+      localStorage.getItem(CLAVE_COMPRAS);
 
     if (!guardado) {
       return inicial;
@@ -31,7 +42,8 @@ const cargarEstado = (
       return inicial;
     }
 
-    const estado = datos as Partial<EstadoCompras>;
+    const estado =
+      datos as Partial<EstadoCompras>;
 
     if (
       !Array.isArray(estado.requisiciones) ||
@@ -69,26 +81,37 @@ export const fechaHoy = () => {
 };
 
 export function useRequisiciones() {
-  const [estado, dispatch] = useReducer(
-    reducirCompras,
+  const [estado, enviar] = useReducer(
+    reducirComprasConHistorial,
     estadoInicial,
     cargarEstado,
   );
 
-  // Ocultar el mensaje después de 3,5 segundos.
+  const dispatch = useCallback(
+    (accion: AccionCompras) => {
+      enviar({
+        accion,
+        fecha: new Date().toISOString(),
+      });
+    },
+    [],
+  );
+
   useEffect(() => {
     if (!estado.mensaje) return;
 
-    const temporizador = window.setTimeout(() => {
-      dispatch({ tipo: "limpiarMensaje" });
-    }, 3500);
+    const temporizador =
+      window.setTimeout(() => {
+        dispatch({
+          tipo: "limpiarMensaje",
+        });
+      }, 3500);
 
     return () => {
       window.clearTimeout(temporizador);
     };
   }, [estado, dispatch]);
 
-  // Conservar los datos al recargar la página.
   useEffect(() => {
     try {
       const datos = {

@@ -40,6 +40,10 @@ export const estadoInicial: EstadoCompras = {
 };
 
 export type AccionCompras =
+    | {
+        tipo: "cancelarRequisicion";
+        id: number;
+    }
     | AccionConsolidar
     | {
         tipo: "limpiarMensaje";
@@ -280,6 +284,43 @@ export function reducirCompras(
     }
     if (a.tipo === "consolidar") {
         return consolidarRequisiciones(e, a);
+    }
+    if (a.tipo === "cancelarRequisicion") {
+        const requisicion = e.requisiciones.find(
+            r => r.idRequisicion === a.id,
+        );
+
+        if (!requisicion) {
+            return fallo("La requisición no existe.");
+        }
+
+        if (
+            requisicion.estado !== "Pendiente" ||
+            e.solicitudes.some(
+                solicitud =>
+                    solicitud.requisicion === a.id,
+            )
+        ) {
+            return fallo(
+                "Solo puedes cancelar requisiciones pendientes y sin procesar.",
+            );
+        }
+
+        return {
+            ...e,
+            requisiciones: e.requisiciones.map(
+                (r): Requisicion =>
+                    r.idRequisicion === a.id
+                        ? {
+                            ...r,
+                            estado: "Cancelada",
+                        }
+                        : r,
+            ),
+            mensaje:
+                "Requisición cancelada correctamente.",
+            tipoMensaje: "exito",
+        };
     }
     if (a.tipo === "crear") {
         const existentes = e.requisiciones.flatMap(r =>

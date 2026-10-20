@@ -16,7 +16,8 @@ export interface ProductoReferencia {
 export type EstadoRequisicion =
   | "Pendiente"
   | "Aprobada"
-  | "Anulada";
+  | "Anulada"
+  | "Cancelada";
 
 export interface DatosRequisicion {
   solicitante: string;
@@ -46,6 +47,7 @@ export interface Requisicion {
   observacion: string;
   detalles: DetalleRequisicion[];
   validacion?: ResultadoValidacion;
+  historial?: RegistroHistorialRequisicion[];
 }
 
 export interface SolicitudCotizacion {
@@ -80,4 +82,17 @@ export interface OfertaProveedor {
   validez: string;
   estado: "Registrada" | "Seleccionada" | "Rechazada";
   detalles: DetalleOferta[];
+}
+
+export interface CambioHistorialRequisicion {
+  campo: string;
+  anterior: string;
+  actual: string;
+}
+
+export interface RegistroHistorialRequisicion {
+  idRegistro: number;
+  fecha: string;
+  accion: string;
+  cambios: CambioHistorialRequisicion[];
 }

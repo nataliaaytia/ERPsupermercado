@@ -123,3 +123,19 @@
   opacity: 0.65;
   cursor: not-allowed;
 }
+
+.lista-requisiciones__accion--cancelar {
+  color: var(--text-primary);
+  background: rgba(220, 38, 38, 0.08);
+  border: 1px solid #dc2626;
+}
+
+.lista-requisiciones__accion--cancelar:hover:not(:disabled) {
+  background: rgba(220, 38, 38, 0.18);
+  border-color: #b91c1c;
+}
+
+.lista-requisiciones__accion--cancelar:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
