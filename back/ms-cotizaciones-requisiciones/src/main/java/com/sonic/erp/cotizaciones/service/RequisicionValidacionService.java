@@ -104,6 +104,23 @@ public class RequisicionValidacionService {
         );
     }
 
+    @Transactional
+    public Map<String, Object> cancelar(Long idRequisicion) {
+        validarId(idRequisicion);
+
+        Requisicion requisicion = buscarRequisicion(idRequisicion);
+        exigirEstadoPendiente(requisicion);
+
+        requisicion.setEstado("ANULADA");
+        Requisicion guardada = requisicionRepository.save(requisicion);
+
+        return Map.of(
+                "mensaje", "La requisición se canceló correctamente.",
+                "idRequisicion", guardada.getIdRequisicion(),
+                "estado", guardada.getEstado()
+        );
+    }
+
     private Map<String, Object> cambiarEstado(
             Long idRequisicion,
             String nuevoEstado,

@@ -65,4 +65,12 @@ public class RequisicionValidacionController {
 
         return ResponseEntity.ok(validacionService.rechazar(id));
     }
+
+    @PutMapping("/{id}/cancelar")
+    public ResponseEntity<Map<String, Object>> cancelar(
+            @PathVariable Long id) {
+
+        return ResponseEntity.ok(validacionService.cancelar(id));
+    }
+
 }
