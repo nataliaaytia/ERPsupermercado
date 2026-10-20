@@ -29,7 +29,7 @@ export default function MensajesValidacion({ validacion }: Props) {
         >
           <strong>
             <AlertCircle size={18} />
-            Requisición rechazada por estos errores:
+            No se pudo aprobar la requisición:
           </strong>
           <ul>
             {errores.map((error) => (
@@ -45,7 +45,7 @@ export default function MensajesValidacion({ validacion }: Props) {
         >
           <strong>
             <AlertTriangle size={18} />
-            Advertencias (no impiden la validación):
+            Advertencias (no impiden la aprobación):
           </strong>
           <ul>
             {advertencias.map((advertencia) => (

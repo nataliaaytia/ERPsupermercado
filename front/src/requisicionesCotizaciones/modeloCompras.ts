@@ -23,6 +23,12 @@ export const estadoInicial: EstadoCompras = {
 };
 
 export type AccionCompras =
+    | { tipo: "limpiarMensaje" }
+    | {
+        tipo: "crear";
+        datos: DatosRequisicion;
+        hoy: string;
+    }
     | {
         tipo: "crear";
         datos: DatosRequisicion;
@@ -84,7 +90,53 @@ export function reducirCompras(
         mensaje,
     });
 
+    if (a.tipo === "limpiarMensaje") {
+        return {
+            ...e,
+            mensaje: "",
+        };
+    }
+
     if (a.tipo === "crear") {
+        const existentes = e.requisiciones.flatMap(r =>
+            r.detalles.map(d => d.producto),
+        );
+
+        const porNombre = new Map(
+            existentes.map(p => [
+                p.descripcion.trim().toLowerCase(),
+                p,
+            ]),
+        );
+
+        let siguienteProducto = siguiente(
+            existentes.map(p => p.idProducto),
+        );
+
+        const detalles: Requisicion["detalles"] =
+            a.datos.productos.map((p, i) => {
+                const nombre = p.nombre.trim();
+                const clave = nombre.toLowerCase();
+
+                let producto = porNombre.get(clave);
+
+                if (!producto) {
+                    producto = {
+                        idProducto: siguienteProducto++,
+                        descripcion: nombre,
+                    };
+
+                    porNombre.set(clave, producto);
+                }
+
+                return {
+                    idDetalle: i + 1,
+                    producto: { ...producto },
+                    cantidad: Number(p.cantidad),
+                    observacion: p.observacion.trim(),
+                };
+            });
+
         const r: Requisicion = {
             idRequisicion: siguiente(
                 e.requisiciones.map(r => r.idRequisicion),
@@ -94,15 +146,7 @@ export function reducirCompras(
             prioridad: a.datos.prioridad,
             estado: "Pendiente",
             observacion: a.datos.motivo.trim(),
-            detalles: a.datos.productos.map((p, i) => ({
-                idDetalle: i + 1,
-                producto: {
-                    idProducto: Number(p.idProducto),
-                    descripcion: p.nombre.trim(),
-                },
-                cantidad: Number(p.cantidad),
-                observacion: p.observacion.trim(),
-            })),
+            detalles,
         };
 
         const revision = revisarRequisicion(r);

@@ -1,4 +1,3 @@
-
 .selector-proveedores {
   display: flex;
   flex-direction: column;
@@ -135,4 +134,36 @@
 
 .selector-proveedores-resumen li {
   margin-bottom: 0.35rem;
+}
+
+
+.selector-proveedores button:not(.selector-proveedores-boton) {
+  align-self: flex-start;
+  padding: 0.7rem 1.1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color 0.2s,
+    border-color 0.2s,
+    opacity 0.2s;
+}
+
+.selector-proveedores button:not(.selector-proveedores-boton):hover:not(:disabled) {
+  background: var(--accent-soft, rgba(56, 182, 232, 0.12));
+  border-color: var(--accent, #38b6e8);
+}
+
+.selector-proveedores button:not(.selector-proveedores-boton):focus-visible {
+  outline: 2px solid var(--accent, #38b6e8);
+  outline-offset: 3px;
+}
+
+.selector-proveedores button:not(.selector-proveedores-boton):disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }

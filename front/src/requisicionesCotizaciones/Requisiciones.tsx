@@ -1,6 +1,4 @@
-
-import { useEffect, useState } from "react";
-import { CheckCircle2 } from "lucide-react";
+import { useState } from "react";
 
 import FormularioRequisicion from "./FormularioRequisicion";
 import MenuLateral from "./MenuLateral";
@@ -10,71 +8,30 @@ import SelectorProveedores from "./SelectorProveedores";
 
 import { useRequisiciones } from "./useRequisiciones";
 import { proveedoresIniciales } from "../catalogo/datosProveedores";
-import type { DatosRequisicion, Requisicion } from "./tipos";
 
 import "./Requisiciones.css";
 
 const opciones = [
   "Nueva requisición",
   "Requisiciones registradas",
-  "Validar requisición",
-  "Seleccionar proveedores",
+  "Aprobar o anular requisición",
+  "Solicitudes y ofertas",
 ];
 
-const CLAVE_ASOCIACIONES = "erp-asociaciones-proveedores";
 const CLAVE_PESTANA = "requisiciones-pestana";
 
-// Recuperar asociaciones guardadas
-const cargarAsociaciones = (): Record<string, number[]> => {
+const cargarPestana = () => {
   try {
-    const guardadas = localStorage.getItem(CLAVE_ASOCIACIONES);
+    const n = Number(
+      sessionStorage.getItem(CLAVE_PESTANA),
+    );
 
-    if (!guardadas) return {};
-
-    const datos: unknown = JSON.parse(guardadas);
-
-    if (
-      typeof datos !== "object" ||
-      datos === null ||
-      Array.isArray(datos)
-    ) {
-      return {};
-    }
-
-    const asociacionesValidas: Record<string, number[]> = {};
-
-    for (const [cotizacionId, ids] of Object.entries(datos)) {
-      if (
-        Array.isArray(ids) &&
-        ids.every(
-          (id) =>
-            typeof id === "number" &&
-            Number.isInteger(id)
-        )
-      ) {
-        asociacionesValidas[cotizacionId] = ids;
-      }
-    }
-
-    return asociacionesValidas;
-  } catch {
-    return {};
-  }
-};
-
-// Recuperar la última pestaña utilizada
-const cargarPestana = (): number => {
-  try {
-    const guardada = sessionStorage.getItem(CLAVE_PESTANA);
-
-    if (guardada === null) return 0;
-
-    const indice = Number(guardada);
-
-    return Number.isInteger(indice) &&
-      indice >= 0 &&
-      indice < opciones.length
-      ? indice
+    return (
+      Number.isInteger(n) &&
+      n >= 0 &&
+      n < opciones.length
+    )
+      ? n
       : 0;
   } catch {
     return 0;
@@ -82,67 +39,25 @@ const cargarPestana = (): number => {
 };
 
 export const Requisiciones = () => {
-  const { requisiciones, registrarRequisicion, validar } =
-    useRequisiciones();
+  const compras = useRequisiciones();
 
   const [opcionActiva, setOpcionActiva] =
-    useState<number>(cargarPestana);
+    useState(cargarPestana);
 
-  const [menuAbierto, setMenuAbierto] = useState(true);
-  const [ultima, setUltima] = useState<Requisicion | null>(null);
+  const [menuAbierto, setMenuAbierto] =
+    useState(true);
 
-  const [asociaciones, setAsociaciones] = useState<
-    Record<string, number[]>
-  >(cargarAsociaciones);
-
-  // Guardar asociaciones de proveedores
-  useEffect(() => {
-    try {
-      localStorage.setItem(
-        CLAVE_ASOCIACIONES,
-        JSON.stringify(asociaciones)
-      );
-    } catch (error) {
-      console.error(
-        "No se pudieron guardar las asociaciones:",
-        error
-      );
-    }
-  }, [asociaciones]);
-
-  // Registrar requisición
-  const guardar = (datos: DatosRequisicion) => {
-    setUltima(registrarRequisicion(datos));
-  };
-
-  // Cambiar y recordar la pestaña seleccionada
   const elegirOpcion = (indice: number) => {
+    compras.dispatch({ tipo: "limpiarMensaje" });
     setOpcionActiva(indice);
 
     try {
       sessionStorage.setItem(
         CLAVE_PESTANA,
-        String(indice)
+        String(indice),
       );
-    } catch (error) {
-      console.error(
-        "No se pudo guardar la pestaña activa:",
-        error
-      );
+    } catch {
     }
-
-    setUltima(null);
-  };
-
-  // Asociar proveedores a una cotización
-  const asociarProveedores = (
-    cotizacionId: string,
-    proveedoresIds: number[]
-  ) => {
-    setAsociaciones((actuales) => ({
-      ...actuales,
-      [cotizacionId]: [...proveedoresIds],
-    }));
   };
 
   return (
@@ -152,7 +67,7 @@ export const Requisiciones = () => {
         opcionActiva={opcionActiva}
         abierto={menuAbierto}
         onAbrirCerrar={() =>
-          setMenuAbierto((abierto) => !abierto)
+          setMenuAbierto(actual => !actual)
         }
         onElegir={elegirOpcion}
       />
@@ -168,39 +83,33 @@ export const Requisiciones = () => {
           </h1>
         </header>
 
-        {opcionActiva === 0 && (
-          <>
-            {ultima && (
-              <p
-                role="status"
-                className="requisiciones-exito"
-              >
-                <CheckCircle2 size={18} />
-                Requisición {ultima.id} registrada con estado{" "}
-                {ultima.estado}.
-              </p>
-            )}
+        {compras.mensaje && (
+          <p role="status">
+            {compras.mensaje}
+          </p>
+        )}
 
-            <div className="requisiciones-tarjeta">
-              <FormularioRequisicion
-                onGuardar={guardar}
-              />
-            </div>
-          </>
+        {opcionActiva === 0 && (
+          <div className="requisiciones-tarjeta">
+            <FormularioRequisicion
+              onGuardar={compras.registrarRequisicion}
+            />
+          </div>
         )}
 
         {opcionActiva === 1 && (
           <div className="requisiciones-tarjeta">
             <ListaRequisiciones
-              requisiciones={requisiciones}
+              requisiciones={compras.requisiciones}
             />
           </div>
         )}
 
         {opcionActiva === 2 && (
           <ValidarRequisicion
-            requisiciones={requisiciones}
-            onValidar={validar}
+            requisiciones={compras.requisiciones}
+            onValidar={compras.validar}
+            onAnular={compras.anular}
           />
         )}
 
@@ -208,8 +117,8 @@ export const Requisiciones = () => {
           <div className="requisiciones-tarjeta">
             <SelectorProveedores
               proveedores={proveedoresIniciales}
-              asociaciones={asociaciones}
-              onAsociar={asociarProveedores}
+              estado={compras}
+              dispatch={compras.dispatch}
             />
           </div>
         )}

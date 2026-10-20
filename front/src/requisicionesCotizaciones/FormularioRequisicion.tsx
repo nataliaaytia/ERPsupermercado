@@ -37,7 +37,7 @@ export default function FormularioRequisicion({ onGuardar }: Props) {
 
   const cambiarProducto = (
     idProducto: number,
-    campo: "idProducto" | "nombre" | "cantidad" | "observacion",
+    campo: "nombre" | "cantidad" | "observacion",
     valor: string,
   ) => {
     setDatos((actuales) => ({
@@ -138,24 +138,7 @@ export default function FormularioRequisicion({ onGuardar }: Props) {
           return (
             <div key={producto.id} className="formulario-requisicion__fila">
               <div className="formulario-requisicion__campo">
-                <label>
-                  ID del producto en catálogo
 
-                  <input
-                    className="formulario-requisicion__input"
-                    type="number"
-                    min="1"
-                    step="1"
-                    value={producto.idProducto}
-                    onChange={(event) =>
-                      cambiarProducto(
-                        producto.id,
-                        "idProducto",
-                        event.target.value,
-                      )
-                    }
-                  />
-                </label>
                 <input
                   id={`${id}-nombre-${producto.id}`}
                   className="formulario-requisicion__input"

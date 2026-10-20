@@ -24,17 +24,17 @@ export default function ListaRequisiciones({ requisiciones }: Props) {
         </thead>
         <tbody>
           {requisiciones.map((requisicion) => (
-            <tr key={requisicion.id}>
-              <td>{requisicion.id}</td>
+            <tr key={requisicion.idRequisicion}>
+              <td>{requisicion.idRequisicion}</td>
               <td>{requisicion.fecha}</td>
               <td>
-                {requisicion.productos.map((producto, indice) => (
+                {requisicion.detalles.map((producto, indice) => (
                   <div key={indice}>
-                    {producto.nombre || "(sin nombre)"} × {producto.cantidad}
+                    {producto.producto.descripcion || "(sin nombre)"} × {producto.cantidad}
                   </div>
                 ))}
               </td>
-              <td>{requisicion.motivo}</td>
+              <td>{requisicion.observacion}</td>
               <td>
                 <EtiquetaEstado requisicion={requisicion} />
               </td>

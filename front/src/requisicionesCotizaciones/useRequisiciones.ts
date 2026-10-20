@@ -1,4 +1,4 @@
-import { useReducer } from "react";
+import { useEffect, useReducer } from "react";
 import {
   estadoInicial,
   reducirCompras,
@@ -20,6 +20,18 @@ export function useRequisiciones() {
     reducirCompras,
     estadoInicial,
   );
+
+  useEffect(() => {
+    if (!estado.mensaje) return;
+
+    const temporizador = window.setTimeout(() => {
+      dispatch({ tipo: "limpiarMensaje" });
+    }, 3500);
+
+    return () => {
+      window.clearTimeout(temporizador);
+    };
+  }, [estado, dispatch]);
 
   return {
     ...estado,

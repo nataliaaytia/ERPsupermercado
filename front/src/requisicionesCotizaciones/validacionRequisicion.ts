@@ -35,12 +35,13 @@ export function validarRequisicion(
     errores.general = "Escribe el solicitante.";
   }
 
-  const ids = new Set<number>();
+  //const ids = new Set<number>();
   const vistos = new Set<string>();
 
   datos.productos.forEach((producto) => {
     const error: ErroresProducto = {};
 
+    /*
     const idProducto = Number(producto.idProducto);
 
     if (
@@ -56,6 +57,7 @@ export function validarRequisicion(
     }
 
     ids.add(idProducto);
+    */
 
     const nombre = producto.nombre.trim().toLowerCase();
 
