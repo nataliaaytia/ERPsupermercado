@@ -12,12 +12,14 @@ interface Props {
   requisiciones: Requisicion[];
   solicitudes: SolicitudCotizacion[];
   onGenerarCotizacion: (idRequisicion: number) => void;
+  onEditar: (idRequisicion: number) => void;
 }
 
 export default function ListaRequisiciones({
   requisiciones,
   solicitudes,
   onGenerarCotizacion,
+  onEditar,
 }: Props) {
   if (requisiciones.length === 0) {
     return (
@@ -48,6 +50,10 @@ export default function ListaRequisiciones({
                 solicitud.requisicion ===
                 requisicion.idRequisicion,
             );
+
+            const puedeEditar =
+              requisicion.estado === "Pendiente" &&
+              !tieneSolicitud;
 
             const puedeGenerar =
               requisicion.estado === "Aprobada" &&
@@ -83,23 +89,41 @@ export default function ListaRequisiciones({
                 </td>
 
                 <td>
-                  {puedeGenerar ? (
+                  <div className="lista-requisiciones__acciones">
                     <button
                       type="button"
                       className="lista-requisiciones__accion"
+                      disabled={!puedeEditar}
+                      title={
+                        puedeEditar
+                          ? "Modificar esta requisición"
+                          : "Solo se pueden editar requisiciones pendientes sin procesar"
+                      }
                       onClick={() =>
-                        onGenerarCotizacion(
-                          requisicion.idRequisicion,
-                        )
+                        onEditar(requisicion.idRequisicion)
                       }
                     >
-                      Generar cotización
+                      Editar
                     </button>
-                  ) : tieneSolicitud ? (
-                    <span>Solicitud generada</span>
-                  ) : (
-                    <span>—</span>
-                  )}
+
+                    {puedeGenerar ? (
+                      <button
+                        type="button"
+                        className="lista-requisiciones__accion"
+                        onClick={() =>
+                          onGenerarCotizacion(
+                            requisicion.idRequisicion,
+                          )
+                        }
+                      >
+                        Generar cotización
+                      </button>
+                    ) : tieneSolicitud ? (
+                      <span>Solicitud generada</span>
+                    ) : (
+                      <span>—</span>
+                    )}
+                  </div>
                 </td>
               </tr>
             );

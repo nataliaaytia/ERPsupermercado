@@ -7,6 +7,10 @@ import type {
     SolicitudCotizacion,
 } from "./tipos";
 import { revisarRequisicion } from "./revisionRequisicion";
+import {
+    validarRequisicion,
+    hayErrores,
+} from "./validacionRequisicion";
 
 export interface EstadoCompras {
     requisiciones: Requisicion[];
@@ -23,6 +27,11 @@ export const estadoInicial: EstadoCompras = {
 };
 
 export type AccionCompras =
+    | {
+        tipo: "modificar";
+        id: number;
+        datos: DatosRequisicion;
+    }
     | { tipo: "limpiarMensaje" }
     | {
         tipo: "crear";
@@ -94,6 +103,114 @@ export function reducirCompras(
         return {
             ...e,
             mensaje: "",
+        };
+    }
+    if (a.tipo === "modificar") {
+        const actual = e.requisiciones.find(
+            r => r.idRequisicion === a.id,
+        );
+
+        if (!actual) {
+            return fallo("La requisición no existe.");
+        }
+
+        if (
+            actual.estado !== "Pendiente" ||
+            e.solicitudes.some(s => s.requisicion === a.id)
+        ) {
+            return fallo(
+                "Esta requisición ya fue procesada y no se puede editar.",
+            );
+        }
+
+        const errores = validarRequisicion(a.datos);
+
+        if (hayErrores(errores)) {
+            const mensajes = [
+                errores.general,
+                errores.motivo,
+                ...Object.values(errores.productos).flatMap(
+                    error => [error.nombre, error.cantidad],
+                ),
+            ].filter(Boolean);
+
+            return fallo(mensajes.join(" "));
+        }
+
+        const idsDetalle = a.datos.productos.map(p => p.id);
+
+        if (
+            new Set(idsDetalle).size !== idsDetalle.length ||
+            idsDetalle.some(
+                id => !Number.isSafeInteger(id) || id < 1,
+            )
+        ) {
+            return fallo(
+                "Los identificadores internos de los detalles no son válidos.",
+            );
+        }
+
+        const productos = e.requisiciones.flatMap(r =>
+            r.detalles.map(d => d.producto),
+        );
+
+        const porNombre = new Map(
+            productos.map(p => [
+                p.descripcion.trim().toLowerCase(),
+                p,
+            ]),
+        );
+
+        let siguienteProducto =
+            Math.max(
+                0,
+                ...productos.map(p => p.idProducto),
+            ) + 1;
+
+        const actualizada: Requisicion = {
+            ...actual,
+            solicitante: a.datos.solicitante.trim(),
+            prioridad: a.datos.prioridad,
+            observacion: a.datos.motivo.trim(),
+
+            detalles: a.datos.productos.map(p => {
+                const nombre = p.nombre.trim();
+                const clave = nombre.toLowerCase();
+
+                let producto = porNombre.get(clave);
+
+                if (!producto) {
+                    producto = {
+                        idProducto: siguienteProducto++,
+                        descripcion: nombre,
+                    };
+
+                    porNombre.set(clave, producto);
+                }
+
+                return {
+                    idDetalle: p.id,
+                    producto: { ...producto },
+                    cantidad: Number(p.cantidad),
+                    observacion: p.observacion.trim(),
+                };
+            }),
+        };
+
+        const revision = revisarRequisicion(actualizada);
+
+        if (revision.errores.length) {
+            return fallo(revision.errores.join(" "));
+        }
+
+        delete actualizada.validacion;
+
+        return {
+            ...e,
+            requisiciones: e.requisiciones.map(r =>
+                r.idRequisicion === a.id ? actualizada : r,
+            ),
+            mensaje: "Cambios de la requisición guardados.",
         };
     }
 
