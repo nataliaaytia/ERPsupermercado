@@ -1,36 +1,60 @@
 import { useState } from "react";
 import type { Dispatch } from "react";
+
 import type {
   AccionCompras,
   EstadoCompras,
 } from "./modeloCompras";
 import type { ProveedorReferencia } from "./tipos";
+
+import { codigoRequisicion } from "./formatoRequisicion";
 import { fechaHoy } from "./useRequisiciones";
+
 import "./SelectorProveedores.css";
 
 interface Props {
   proveedores: ProveedorReferencia[];
   estado: EstadoCompras;
   dispatch: Dispatch<AccionCompras>;
+  solicitudInicialId?: number | null;
 }
+
+const codigoCotizacion = (idSolicitud: number) =>
+  `COT-${String(idSolicitud).padStart(4, "0")}`;
 
 export default function SelectorProveedores({
   proveedores,
   estado,
   dispatch,
+  solicitudInicialId = null,
 }: Props) {
   const [requisicionId, setRequisicionId] = useState("");
   const [fechaLimite, setFechaLimite] = useState("");
-  const [solicitudId, setSolicitudId] = useState("");
+  const [solicitudId, setSolicitudId] = useState(
+    solicitudInicialId === null
+      ? ""
+      : String(solicitudInicialId),
+  );
+
   const [seleccionados, setSeleccionados] =
     useState<number[]>([]);
+
   const [proveedorId, setProveedorId] = useState("");
   const [validez, setValidez] = useState("");
+
   const [precios, setPrecios] =
     useState<Record<number, string>>({});
+
   const [plazos, setPlazos] =
     useState<Record<number, string>>({});
+
   const [busqueda, setBusqueda] = useState("");
+
+  const hoy = fechaHoy();
+
+  const aprobadas = estado.requisiciones.filter(
+    r => r.estado === "Aprobada",
+  );
 
   const solicitud = estado.solicitudes.find(
     s => s.idSolicitud === Number(solicitudId),
@@ -43,6 +67,15 @@ export default function SelectorProveedores({
   const activos = proveedores.filter(
     p => p.estado === "Activo",
   );
+
+  const proveedoresVisibles = activos.filter(p => {
+    const texto = busqueda.trim().toLowerCase();
+
+    return (
+      p.razonSocial.toLowerCase().includes(texto) ||
+      p.nitRuc.includes(texto)
+    );
+  });
 
   const invitados = activos.filter(
     p =>
@@ -59,10 +92,12 @@ export default function SelectorProveedores({
     o => o.estado === "Seleccionada",
   );
 
-  const hoy = fechaHoy();
+  const solicitudEnviada =
+    solicitud?.estado === "Enviada";
 
   const puedeOfertar =
-    solicitud?.estado === "Enviada" &&
+    solicitudEnviada &&
+    solicitud !== undefined &&
     solicitud.fechaLimite >= hoy &&
     !adjudicada;
 
@@ -76,12 +111,53 @@ export default function SelectorProveedores({
     setBusqueda("");
   };
 
+  const cambiarSeleccion = (idProveedor: number) => {
+    if (solicitud?.estado !== "Generada") return;
+
+    setSeleccionados(actuales =>
+      actuales.includes(idProveedor)
+        ? actuales.filter(id => id !== idProveedor)
+        : [...actuales, idProveedor],
+    );
+  };
+
+  const asociarProveedores = () => {
+    if (
+      solicitud?.estado !== "Generada" ||
+      seleccionados.length === 0
+    ) {
+      return;
+    }
+
+    // Si algún proveedor dejó de estar activo,
+    // el reductor rechazará la operación completa.
+    const seleccion = proveedores.filter(p =>
+      seleccionados.includes(p.idProveedor),
+    );
+
+    if (seleccion.length !== seleccionados.length) {
+      return;
+    }
+
+    dispatch({
+      tipo: "enviar",
+      id: solicitud.idSolicitud,
+      proveedores: seleccion,
+      hoy,
+    });
+  };
+
   const registrarOferta = () => {
     const proveedor = invitados.find(
       p => p.idProveedor === Number(proveedorId),
     );
 
-    if (!solicitud || !requisicion || !proveedor) {
+    if (
+      !puedeOfertar ||
+      !solicitud ||
+      !requisicion ||
+      !proveedor
+    ) {
       return;
     }
 
@@ -91,14 +167,14 @@ export default function SelectorProveedores({
       proveedor,
       validez,
       hoy,
-      detalles: requisicion.detalles.map((d, i) => ({
+      detalles: requisicion.detalles.map((detalle, i) => ({
         idDetalle: i + 1,
-        producto: d.producto,
+        producto: detalle.producto,
         precio: Number(
-          precios[d.producto.idProducto] ?? "",
+          precios[detalle.producto.idProducto] ?? "",
         ),
         plazoEntrega: Number(
-          plazos[d.producto.idProducto] ?? "",
+          plazos[detalle.producto.idProducto] ?? "",
         ),
       })),
     });
@@ -107,6 +183,12 @@ export default function SelectorProveedores({
   return (
     <div className="selector-proveedores">
       <h2>Generar solicitud de cotización</h2>
+
+      {aprobadas.length === 0 && (
+        <p className="selector-proveedores-vacio">
+          Primero debes aprobar una requisición.
+        </p>
+      )}
 
       <label>
         Requisición aprobada
@@ -121,18 +203,16 @@ export default function SelectorProveedores({
             Seleccionar requisición
           </option>
 
-          {estado.requisiciones
-            .filter(r => r.estado === "Aprobada")
-            .map(r => (
-              <option
-                key={r.idRequisicion}
-                value={r.idRequisicion}
-              >
-                REQ-{r.idRequisicion}
-                {" · "}
-                {r.observacion}
-              </option>
-            ))}
+          {aprobadas.map(r => (
+            <option
+              key={r.idRequisicion}
+              value={r.idRequisicion}
+            >
+              {codigoRequisicion(r.idRequisicion)}
+              {" · "}
+              {r.observacion}
+            </option>
+          ))}
         </select>
       </label>
 
@@ -166,7 +246,12 @@ export default function SelectorProveedores({
         Generar solicitud
       </button>
 
-      <h2>Solicitudes y proveedores</h2>
+      <h2>Solicitudes de cotización</h2>
+
+      <p>
+        Selecciona una solicitud para consultar sus productos,
+        asociar proveedores y registrar sus ofertas.
+      </p>
 
       <label>
         Solicitud de cotización
@@ -186,9 +271,9 @@ export default function SelectorProveedores({
               key={s.idSolicitud}
               value={s.idSolicitud}
             >
-              SOL-{s.idSolicitud}
+              {codigoCotizacion(s.idSolicitud)}
               {" · "}
-              REQ-{s.requisicion}
+              {codigoRequisicion(s.requisicion)}
               {" · "}
               {s.estado}
             </option>
@@ -196,31 +281,88 @@ export default function SelectorProveedores({
         </select>
       </label>
 
-      {solicitud && (
-        <>
-          <p>
-            Fecha: {solicitud.fecha}
-            {" · "}
-            Límite: {solicitud.fechaLimite}
-            {" · "}
-            {solicitud.estado}
-          </p>
+      {estado.solicitudes.length === 0 && (
+        <p className="selector-proveedores-vacio">
+          Todavía no hay solicitudes de cotización.
+          Genera una desde una requisición aprobada.
+        </p>
+      )}
 
-          <p>
-            Destinatarios:{" "}
-            {solicitud.proveedoresIds
-              .map(
-                id =>
-                  proveedores.find(
-                    p => p.idProveedor === id,
-                  )?.razonSocial ??
-                  `Proveedor ${id}`,
-              )
-              .join(", ") || "Sin asignar"}
-          </p>
+      {solicitud && requisicion && (
+        <>
+          <div className="selector-proveedores-resumen">
+            <div className="selector-proveedores-encabezado">
+              <div>
+                <strong>
+                  {codigoCotizacion(solicitud.idSolicitud)}
+                </strong>
+
+                <p>
+                  Requisición vinculada:{" "}
+                  {codigoRequisicion(
+                    requisicion.idRequisicion,
+                  )}
+                </p>
+              </div>
+
+              <span
+                className={
+                  solicitudEnviada
+                    ? "selector-proveedores-estado enviado"
+                    : "selector-proveedores-estado"
+                }
+              >
+                {solicitud.estado}
+              </span>
+            </div>
+
+            <p>
+              Solicitante: {requisicion.solicitante}
+            </p>
+
+            <p>Fecha: {solicitud.fecha}</p>
+
+            <p>
+              Fecha límite: {solicitud.fechaLimite}
+            </p>
+
+            <strong>Productos solicitados</strong>
+
+            <ul>
+              {requisicion.detalles.map(detalle => (
+                <li key={detalle.idDetalle}>
+                  {detalle.producto.descripcion}
+                  {" × "}
+                  {detalle.cantidad}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {solicitudEnviada && (
+            <div className="selector-proveedores-confirmacion">
+              <strong>Proveedores asociados</strong>
+
+              <p>
+                Esta solicitud fue marcada como enviada.
+              </p>
+
+              <ul>
+                {solicitud.proveedoresIds.map(id => (
+                  <li key={id}>
+                    {proveedores.find(
+                      p => p.idProveedor === id,
+                    )?.razonSocial ?? `Proveedor ${id}`}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           {solicitud.estado === "Generada" && (
             <>
+              <h3>Proveedores disponibles</h3>
+
               <input
                 type="search"
                 placeholder="Buscar por razón social o NIT"
@@ -232,63 +374,66 @@ export default function SelectorProveedores({
               />
 
               <div className="selector-proveedores-lista">
-                {activos
-                  .filter(p =>
-                    `${p.razonSocial} ${p.nitRuc}`
-                      .toLowerCase()
-                      .includes(busqueda.toLowerCase()),
-                  )
-                  .map(p => (
+                {proveedoresVisibles.length === 0 ? (
+                  <p>
+                    No se encontraron proveedores disponibles.
+                  </p>
+                ) : (
+                  proveedoresVisibles.map(proveedor => (
                     <label
-                      key={p.idProveedor}
+                      key={proveedor.idProveedor}
                       className="selector-proveedor"
                     >
                       <input
                         type="checkbox"
                         checked={seleccionados.includes(
-                          p.idProveedor,
+                          proveedor.idProveedor,
                         )}
                         onChange={() =>
-                          setSeleccionados(ids =>
-                            ids.includes(p.idProveedor)
-                              ? ids.filter(
-                                id =>
-                                  id !== p.idProveedor,
-                              )
-                              : [...ids, p.idProveedor],
+                          cambiarSeleccion(
+                            proveedor.idProveedor,
                           )
                         }
                       />
 
                       <span>
                         <strong>
-                          {p.razonSocial}
+                          {proveedor.razonSocial}
                         </strong>
-                        <small>{p.nitRuc}</small>
+
+                        <small>
+                          NIT/RUC: {proveedor.nitRuc}
+                        </small>
                       </span>
                     </label>
-                  ))}
+                  ))
+                )}
               </div>
 
-              <button
-                type="button"
-                className="selector-proveedores-boton"
-                disabled={!seleccionados.length}
-                onClick={() =>
-                  dispatch({
-                    tipo: "enviar",
-                    id: solicitud.idSolicitud,
-                    proveedores: activos.filter(p =>
-                      seleccionados.includes(
-                        p.idProveedor,
-                      ),
-                    ),
-                    hoy,
-                  })
-                }
-              >
-                Confirmar proveedores y marcar como enviada
-              </button>
+              <div className="selector-proveedores-acciones">
+                <p>
+                  Proveedores seleccionados:{" "}
+                  {seleccionados.length}
+                </p>
+
+                <button
+                  type="button"
+                  className="selector-proveedores-boton"
+                  disabled={
+                    seleccionados.length === 0 ||
+                    solicitud.fechaLimite < hoy
+                  }
+                  onClick={asociarProveedores}
+                >
+                  Asociar proveedores y marcar como enviada
+                </button>
+              </div>
+
+              {solicitud.fechaLimite < hoy && (
+                <p role="alert">
+                  La fecha límite de esta solicitud ya venció.
+                </p>
+              )}
             </>
           )}
 
@@ -307,7 +452,7 @@ export default function SelectorProveedores({
               </button>
             )}
 
-          {puedeOfertar && requisicion && (
+          {puedeOfertar && (
             <>
               <h2>Registrar oferta del proveedor</h2>
 
@@ -324,12 +469,12 @@ export default function SelectorProveedores({
                     Seleccionar proveedor
                   </option>
 
-                  {invitados.map(p => (
+                  {invitados.map(proveedor => (
                     <option
-                      key={p.idProveedor}
-                      value={p.idProveedor}
+                      key={proveedor.idProveedor}
+                      value={proveedor.idProveedor}
                     >
-                      {p.razonSocial}
+                      {proveedor.razonSocial}
                     </option>
                   ))}
                 </select>
@@ -349,12 +494,12 @@ export default function SelectorProveedores({
                 />
               </label>
 
-              {requisicion.detalles.map(d => (
-                <fieldset key={d.idDetalle}>
+              {requisicion.detalles.map(detalle => (
+                <fieldset key={detalle.idDetalle}>
                   <legend>
-                    {d.producto.descripcion}
+                    {detalle.producto.descripcion}
                     {" · "}
-                    Cantidad: {d.cantidad}
+                    Cantidad: {detalle.cantidad}
                   </legend>
 
                   <label>
@@ -366,13 +511,14 @@ export default function SelectorProveedores({
                       min="0.01"
                       step="0.01"
                       value={
-                        precios[d.producto.idProducto] ??
-                        ""
+                        precios[
+                        detalle.producto.idProducto
+                        ] ?? ""
                       }
                       onChange={e =>
-                        setPrecios(p => ({
-                          ...p,
-                          [d.producto.idProducto]:
+                        setPrecios(actuales => ({
+                          ...actuales,
+                          [detalle.producto.idProducto]:
                             e.target.value,
                         }))
                       }
@@ -388,13 +534,14 @@ export default function SelectorProveedores({
                       min="1"
                       step="1"
                       value={
-                        plazos[d.producto.idProducto] ??
-                        ""
+                        plazos[
+                        detalle.producto.idProducto
+                        ] ?? ""
                       }
                       onChange={e =>
-                        setPlazos(p => ({
-                          ...p,
-                          [d.producto.idProducto]:
+                        setPlazos(actuales => ({
+                          ...actuales,
+                          [detalle.producto.idProducto]:
                             e.target.value,
                         }))
                       }
@@ -416,54 +563,54 @@ export default function SelectorProveedores({
 
           <h2>Ofertas recibidas</h2>
 
-          {!ofertas.length && (
+          {ofertas.length === 0 && (
             <p>Todavía no hay ofertas.</p>
           )}
 
-          {ofertas.map(o => (
+          {ofertas.map(oferta => (
             <article
-              key={o.idOferta}
+              key={oferta.idOferta}
               className="selector-proveedores-resumen"
             >
               <strong>
-                OF-{o.idOferta}
+                OF-{String(oferta.idOferta).padStart(4, "0")}
                 {" · "}
-                {o.proveedor.razonSocial}
+                {oferta.proveedor.razonSocial}
                 {" · "}
-                {o.estado}
+                {oferta.estado}
               </strong>
 
               <p>
-                Fecha: {o.fecha}
+                Fecha: {oferta.fecha}
                 {" · "}
-                Válida hasta: {o.validez}
+                Válida hasta: {oferta.validez}
               </p>
 
               <ul>
-                {o.detalles.map(d => (
-                  <li key={d.idDetalle}>
-                    {d.producto.descripcion}
+                {oferta.detalles.map(detalle => (
+                  <li key={detalle.idDetalle}>
+                    {detalle.producto.descripcion}
                     {": Bs "}
-                    {d.precio.toFixed(2)}
+                    {detalle.precio.toFixed(2)}
                     {" · "}
-                    {d.plazoEntrega} días
+                    {detalle.plazoEntrega} días
                   </li>
                 ))}
               </ul>
 
-              {o.estado === "Registrada" &&
-                solicitud.estado === "Enviada" && (
-                  <>
+              {oferta.estado === "Registrada" &&
+                solicitudEnviada && (
+                  <div className="selector-proveedores-acciones">
                     <button
                       type="button"
                       disabled={
                         adjudicada ||
-                        o.validez < hoy
+                        oferta.validez < hoy
                       }
                       onClick={() =>
                         dispatch({
                           tipo: "seleccionar",
-                          id: o.idOferta,
+                          id: oferta.idOferta,
                           hoy,
                         })
                       }
@@ -476,14 +623,14 @@ export default function SelectorProveedores({
                       onClick={() =>
                         dispatch({
                           tipo: "rechazar",
-                          id: o.idOferta,
+                          id: oferta.idOferta,
                           hoy,
                         })
                       }
                     >
                       Rechazar oferta
                     </button>
-                  </>
+                  </div>
                 )}
             </article>
           ))}

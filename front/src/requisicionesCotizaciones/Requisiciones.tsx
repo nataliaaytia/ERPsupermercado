@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import FormularioRequisicion from "./FormularioRequisicion";
 import MenuLateral from "./MenuLateral";
@@ -6,32 +6,39 @@ import ListaRequisiciones from "./ListaRequisiciones";
 import ValidarRequisicion from "./ValidarRequisicion";
 import SelectorProveedores from "./SelectorProveedores";
 
-import { useRequisiciones } from "./useRequisiciones";
+import {
+  useRequisiciones,
+  fechaHoy,
+} from "./useRequisiciones";
+
 import { proveedoresIniciales } from "../catalogo/datosProveedores";
+import { codigoRequisicion } from "./formatoRequisicion";
 
 import "./Requisiciones.css";
 
 const opciones = [
   "Nueva requisición",
-  "Requisiciones registradas",
   "Aprobar o anular requisición",
+  "Requisiciones registradas",
   "Solicitudes y ofertas",
 ];
 
 const CLAVE_PESTANA = "requisiciones-pestana";
 
-const cargarPestana = () => {
+const cargarPestana = (): number => {
   try {
-    const n = Number(
-      sessionStorage.getItem(CLAVE_PESTANA),
-    );
+    const guardada = sessionStorage.getItem(CLAVE_PESTANA);
+
+    if (guardada === null) return 0;
+
+    const indice = Number(guardada);
 
     return (
-      Number.isInteger(n) &&
-      n >= 0 &&
-      n < opciones.length
+      Number.isInteger(indice) &&
+      indice >= 0 &&
+      indice < opciones.length
     )
-      ? n
+      ? indice
       : 0;
   } catch {
     return 0;
@@ -40,6 +47,7 @@ const cargarPestana = () => {
 
 export const Requisiciones = () => {
   const compras = useRequisiciones();
+  const { dispatch } = compras;
 
   const [opcionActiva, setOpcionActiva] =
     useState(cargarPestana);
@@ -47,9 +55,73 @@ export const Requisiciones = () => {
   const [menuAbierto, setMenuAbierto] =
     useState(true);
 
+  const [idRequisicion, setIdRequisicion] =
+    useState<number | null>(null);
+
+  const [fechaLimite, setFechaLimite] = useState("");
+
+  const [requisicionEnProceso, setRequisicionEnProceso] =
+    useState<number | null>(null);
+
+  const [solicitudActiva, setSolicitudActiva] =
+    useState<number | null>(null);
+
+  const [errorFormulario, setErrorFormulario] =
+    useState("");
+
+  const requisicionSeleccionada =
+    compras.requisiciones.find(
+      r => r.idRequisicion === idRequisicion,
+    );
+
+  const puedeGenerar =
+    requisicionSeleccionada?.estado === "Aprobada" &&
+    !compras.solicitudes.some(
+      s => s.requisicion === idRequisicion,
+    );
+
+  useEffect(() => {
+    if (requisicionEnProceso === null) return;
+
+    const solicitudCreada = compras.solicitudes.find(
+      s =>
+        s.requisicion === requisicionEnProceso &&
+        s.estado === "Generada",
+    );
+
+    if (!solicitudCreada) return;
+
+    setSolicitudActiva(solicitudCreada.idSolicitud);
+    setRequisicionEnProceso(null);
+    setIdRequisicion(null);
+    setFechaLimite("");
+    setErrorFormulario("");
+    setOpcionActiva(3);
+
+    dispatch({ tipo: "limpiarMensaje" });
+
+    try {
+      sessionStorage.setItem(CLAVE_PESTANA, "3");
+    } catch {
+      // La navegación funciona sin sessionStorage.
+    }
+  }, [
+    compras.solicitudes,
+    requisicionEnProceso,
+    dispatch,
+  ]);
+
   const elegirOpcion = (indice: number) => {
-    compras.dispatch({ tipo: "limpiarMensaje" });
+    dispatch({ tipo: "limpiarMensaje" });
+
     setOpcionActiva(indice);
+    setErrorFormulario("");
+    setRequisicionEnProceso(null);
+
+    if (indice !== 2) {
+      setIdRequisicion(null);
+      setFechaLimite("");
+    }
 
     try {
       sessionStorage.setItem(
@@ -57,7 +129,50 @@ export const Requisiciones = () => {
         String(indice),
       );
     } catch {
+      // La navegación funciona sin sessionStorage.
     }
+  };
+
+  const abrirGeneracion = (id: number) => {
+    dispatch({ tipo: "limpiarMensaje" });
+
+    setIdRequisicion(id);
+    setFechaLimite("");
+    setErrorFormulario("");
+    setRequisicionEnProceso(null);
+  };
+
+  const cerrarGeneracion = () => {
+    setIdRequisicion(null);
+    setFechaLimite("");
+    setErrorFormulario("");
+    setRequisicionEnProceso(null);
+  };
+
+  const generarSolicitud = () => {
+    if (idRequisicion === null || !puedeGenerar) {
+      setErrorFormulario(
+        "La requisición no está disponible para generar una cotización.",
+      );
+      return;
+    }
+
+    if (!fechaLimite || fechaLimite < fechaHoy()) {
+      setErrorFormulario(
+        "Selecciona una fecha límite válida.",
+      );
+      return;
+    }
+
+    setErrorFormulario("");
+    setRequisicionEnProceso(idRequisicion);
+
+    dispatch({
+      tipo: "generar",
+      requisicion: idRequisicion,
+      fechaLimite,
+      hoy: fechaHoy(),
+    });
   };
 
   return (
@@ -84,7 +199,10 @@ export const Requisiciones = () => {
         </header>
 
         {compras.mensaje && (
-          <p role="status">
+          <p
+            role="status"
+            className="selector-proveedores-mensaje"
+          >
             {compras.mensaje}
           </p>
         )}
@@ -98,14 +216,6 @@ export const Requisiciones = () => {
         )}
 
         {opcionActiva === 1 && (
-          <div className="requisiciones-tarjeta">
-            <ListaRequisiciones
-              requisiciones={compras.requisiciones}
-            />
-          </div>
-        )}
-
-        {opcionActiva === 2 && (
           <ValidarRequisicion
             requisiciones={compras.requisiciones}
             onValidar={compras.validar}
@@ -113,12 +223,97 @@ export const Requisiciones = () => {
           />
         )}
 
+        {opcionActiva === 2 && (
+          <>
+            <div className="requisiciones-tarjeta">
+              <ListaRequisiciones
+                requisiciones={compras.requisiciones}
+                solicitudes={compras.solicitudes}
+                onGenerarCotizacion={abrirGeneracion}
+              />
+            </div>
+
+            {idRequisicion !== null && (
+              <div className="requisiciones-tarjeta">
+                <div className="requisiciones-cotizacion">
+                  <h2>
+                    Generar solicitud de cotización
+                  </h2>
+
+                  <p>
+                    Requisición:{" "}
+                    <strong className="requisiciones-cotizacion__codigo">
+                      {codigoRequisicion(idRequisicion)}
+                    </strong>
+                  </p>
+
+                  <p>
+                    Establece la fecha límite para recibir
+                    las ofertas de los proveedores.
+                  </p>
+
+                  <div className="requisiciones-cotizacion__campo">
+                    <label htmlFor="fecha-limite-cotizacion">
+                      Fecha límite de cotización
+                    </label>
+
+                    <input
+                      id="fecha-limite-cotizacion"
+                      type="date"
+                      min={fechaHoy()}
+                      value={fechaLimite}
+                      onChange={e => {
+                        setFechaLimite(e.target.value);
+                        setErrorFormulario("");
+                      }}
+                    />
+                  </div>
+
+                  {errorFormulario && (
+                    <p
+                      role="alert"
+                      className="requisiciones-cotizacion__error"
+                    >
+                      {errorFormulario}
+                    </p>
+                  )}
+
+                  <div className="requisiciones-cotizacion__acciones">
+                    <button
+                      type="button"
+                      className="requisiciones-cotizacion__cancelar"
+                      onClick={cerrarGeneracion}
+                    >
+                      Cancelar
+                    </button>
+
+                    <button
+                      type="button"
+                      className="requisiciones-cotizacion__generar"
+                      disabled={
+                        !puedeGenerar ||
+                        !fechaLimite ||
+                        fechaLimite < fechaHoy()
+                      }
+                      onClick={generarSolicitud}
+                    >
+                      Generar cotización
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+
         {opcionActiva === 3 && (
           <div className="requisiciones-tarjeta">
             <SelectorProveedores
+              key={solicitudActiva ?? "sin-seleccion"}
               proveedores={proveedoresIniciales}
               estado={compras}
-              dispatch={compras.dispatch}
+              dispatch={dispatch}
+              solicitudInicialId={solicitudActiva}
             />
           </div>
         )}
