@@ -395,4 +395,59 @@ public class RequisicionValidacionService {
             );
         }
     }
+
+    @Transactional
+    public Map<String, Object> crearRequisicion(Requisicion datos) {
+
+        if (datos == null) {
+            throw new ResponseStatusException(
+                    BAD_REQUEST,
+                    "Los datos de la requisición son obligatorios."
+            );
+        }
+
+        // Validar los datos antes de guardar.
+        List<String> errores = validar(datos);
+
+        if (!errores.isEmpty()) {
+            throw new ResponseStatusException(
+                    BAD_REQUEST,
+                    String.join("; ", errores)
+            );
+        }
+
+        // El ID y el estado inicial los controla el backend.
+        datos.setIdRequisicion(null);
+        datos.setEstado("PENDIENTE");
+        datos.setPrioridad(datos.getPrioridad().trim().toUpperCase());
+        datos.setSolicitante(datos.getSolicitante().trim());
+
+        // Relacionar cada detalle con su requisición.
+        for (DetalleRequisicion detalle : datos.getDetalles()) {
+            detalle.setIdDetalle(null);
+            detalle.setRequisicion(datos);
+        }
+
+        Requisicion guardada = requisicionRepository.save(datos);
+
+        // Registrar el evento en el historial.
+        registrarCambio(
+                guardada.getIdRequisicion(),
+                "CREACION",
+                null,
+                "Requisición creada en estado PENDIENTE"
+        );
+
+        Map<String, Object> respuesta = new LinkedHashMap<>();
+        respuesta.put("mensaje", "La requisición se registró correctamente.");
+        respuesta.put("idRequisicion", guardada.getIdRequisicion());
+        respuesta.put("fecha", guardada.getFecha());
+        respuesta.put("prioridad", guardada.getPrioridad());
+        respuesta.put("estado", guardada.getEstado());
+        respuesta.put("solicitante", guardada.getSolicitante());
+        respuesta.put("observacion", guardada.getObservacion());
+        respuesta.put("detalles", guardada.getDetalles());
+
+        return respuesta;
+    }
 }

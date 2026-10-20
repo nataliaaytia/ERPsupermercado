@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.PostMapping;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -104,4 +106,15 @@ public class RequisicionValidacionController {
 
         return ResponseEntity.ok(validacionService.cancelar(id));
     }
+
+    @PostMapping
+    public ResponseEntity<Map<String, Object>> crearRequisicion(
+            @RequestBody Requisicion datos) {
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(validacionService.crearRequisicion(datos));
+    }
+
+
 }
