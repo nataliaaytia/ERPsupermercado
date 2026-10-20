@@ -25,6 +25,10 @@ public class SolicitudCotizacion {
     private String estado; // GENERADA, ENVIADA, CANCELADA, CERRADA
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_requisicion", nullable = false)
+    @JoinColumn(name = "id_requisicion")
     private Requisicion requisicion;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_consolidacion")
+    private ConsolidacionRequisiciones consolidacion;
 }
