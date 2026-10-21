@@ -98,7 +98,7 @@ export default function RegistrarOfertaProveedor({
       <h2>Registrar oferta del proveedor</h2>
 
       <label>
-        Proveedor invitado
+        Proveedor
 
         <select
           value={proveedorId}
