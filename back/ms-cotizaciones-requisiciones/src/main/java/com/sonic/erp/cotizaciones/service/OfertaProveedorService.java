@@ -10,7 +10,11 @@ import com.sonic.erp.cotizaciones.repository.OfertaProveedorRepository;
 import com.sonic.erp.cotizaciones.repository.SolicitudCotizacionRepository;
 import com.sonic.erp.cotizaciones.repository.SolicitudProveedorRepository;
 
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
