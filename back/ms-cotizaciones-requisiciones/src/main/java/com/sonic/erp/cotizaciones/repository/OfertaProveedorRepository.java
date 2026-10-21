@@ -20,4 +20,5 @@ public interface OfertaProveedorRepository extends JpaRepository<OfertaProveedor
             "LEFT JOIN FETCH o.detalles " +
             "WHERE o.solicitud.requisicion.idRequisicion = :idRequisicion")
     List<OfertaProveedor> findByRequisicionIdConDetalles(@Param("idRequisicion") Long idRequisicion);
+    List<OfertaProveedor> findBySolicitud_IdSolicitud(Long idSolicitud);
 }
