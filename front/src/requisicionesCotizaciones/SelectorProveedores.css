@@ -239,3 +239,58 @@
     box-sizing: border-box;
   }
 }
+
+.comparacion-ofertas {
+    margin: 1.5rem 0;
+    padding: 1.25rem;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    background: var(--background-secondary);
+}
+
+.comparacion-ofertas h2 {
+    margin-top: 0;
+}
+
+.comparacion-ofertas-tabla-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.comparacion-ofertas-tabla {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+.comparacion-ofertas-tabla th,
+.comparacion-ofertas-tabla td {
+    padding: 0.85rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.comparacion-ofertas-tabla th {
+    font-weight: 700;
+}
+
+.comparacion-costo {
+    font-weight: 800;
+    color: var(--accent);
+    white-space: nowrap;
+}
+
+.comparacion-mejor-oferta {
+    display: inline-block;
+    padding: 0.3rem 0.65rem;
+    border-radius: 999px;
+    background: #dcfce7;
+    color: #166534;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.comparacion-otra-oferta {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
