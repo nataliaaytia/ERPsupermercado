@@ -13,6 +13,10 @@ import type {
   Requisicion,
   SolicitudCotizacion,
 } from "./tipos";
+import type {
+  AlertaReposicion,
+  RegistroRecepcionAlerta,
+} from "./tiposAlertasInventario";
 
 import { revisarRequisicion } from "./revisionRequisicion";
 
@@ -20,6 +24,7 @@ export interface EstadoCompras {
   requisiciones: Requisicion[];
   solicitudes: SolicitudCotizacion[];
   ofertas: OfertaProveedor[];
+  alertasInventario: RegistroRecepcionAlerta[];
   mensaje: string;
   tipoMensaje: "exito" | "error" | "neutro";
 }
@@ -28,11 +33,20 @@ export const estadoInicial: EstadoCompras = {
   requisiciones: [],
   solicitudes: [],
   ofertas: [],
+  alertasInventario: [],
   mensaje: "",
   tipoMensaje: "neutro",
 };
 
 export type AccionCompras =
+  | {
+      tipo: "recibirAlertaInventario";
+      alerta: AlertaReposicion;
+      fechaRecepcion: string;
+    }
+  | {
+      tipo: "limpiarAlertasInventario";
+    }
   | {
       tipo: "cancelarRequisicion";
       id: number;
@@ -122,6 +136,66 @@ export function reducirCompras(
     return {
       ...e,
       mensaje: "",
+    };
+  }
+  if (a.tipo === "recibirAlertaInventario") {
+    const alerta = a.alerta;
+
+    const alertaValida =
+      typeof alerta.idEvento === "string" &&
+      alerta.idEvento.trim().length > 0 &&
+      Number.isSafeInteger(alerta.idProducto) &&
+      alerta.idProducto > 0 &&
+      typeof alerta.nombreProducto === "string" &&
+      alerta.nombreProducto.trim().length > 0 &&
+      Number.isFinite(alerta.cantidadActual) &&
+      alerta.cantidadActual >= 0 &&
+      Number.isFinite(alerta.stockMinimo) &&
+      alerta.stockMinimo >= 0 &&
+      Number.isFinite(alerta.cantidadSugerida) &&
+      alerta.cantidadSugerida > 0 &&
+      typeof alerta.fechaPublicacion === "string" &&
+      Number.isFinite(Date.parse(alerta.fechaPublicacion)) &&
+      Number.isFinite(Date.parse(a.fechaRecepcion));
+
+    if (!alertaValida) {
+      return fallo("La alerta de Inventarios contiene datos inválidos.");
+    }
+
+    if (
+      e.alertasInventario.some(
+        (registro) => registro.idEvento === alerta.idEvento,
+      )
+    ) {
+      return fallo("Esta alerta de Inventarios ya fue recibida.");
+    }
+
+    const registro: RegistroRecepcionAlerta = {
+      idEvento: alerta.idEvento.trim(),
+      idProducto: alerta.idProducto,
+      nombreProducto: alerta.nombreProducto.trim(),
+      cantidadActual: alerta.cantidadActual,
+      stockMinimo: alerta.stockMinimo,
+      cantidadSugerida: alerta.cantidadSugerida,
+      fechaPublicacion: alerta.fechaPublicacion,
+      fechaRecepcion: a.fechaRecepcion,
+      estado: "Recibida",
+      mensaje: "Alerta de reposición recibida y registrada correctamente.",
+    };
+
+    return {
+      ...e,
+      alertasInventario: [...e.alertasInventario, registro],
+      mensaje: registro.mensaje,
+      tipoMensaje: "exito",
+    };
+  }
+  if (a.tipo === "limpiarAlertasInventario") {
+    return {
+      ...e,
+      alertasInventario: [],
+      mensaje: "Se limpió el historial de alertas de Inventarios.",
+      tipoMensaje: "exito",
     };
   }
 

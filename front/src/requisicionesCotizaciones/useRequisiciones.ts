@@ -1,32 +1,18 @@
-import {
-  useCallback,
-  useEffect,
-  useReducer,
-} from "react";
+import { useCallback, useEffect, useReducer } from "react";
 
 import { estadoInicial } from "./modeloCompras";
 
-import type {
-  AccionCompras,
-  EstadoCompras,
-} from "./modeloCompras";
+import type { AccionCompras, EstadoCompras } from "./modeloCompras";
 
-import {
-  reducirComprasConHistorial,
-} from "./historialRequisiciones";
+import { reducirComprasConHistorial } from "./historialRequisiciones";
 
-import type {
-  DatosRequisicion,
-} from "./tipos";
+import type { DatosRequisicion } from "./tipos";
 
 const CLAVE_COMPRAS = "erp-compras-estado";
 
-const cargarEstado = (
-  inicial: EstadoCompras,
-): EstadoCompras => {
+const cargarEstado = (inicial: EstadoCompras): EstadoCompras => {
   try {
-    const guardado =
-      localStorage.getItem(CLAVE_COMPRAS);
+    const guardado = localStorage.getItem(CLAVE_COMPRAS);
 
     if (!guardado) {
       return inicial;
@@ -34,16 +20,11 @@ const cargarEstado = (
 
     const datos: unknown = JSON.parse(guardado);
 
-    if (
-      typeof datos !== "object" ||
-      datos === null ||
-      Array.isArray(datos)
-    ) {
+    if (typeof datos !== "object" || datos === null || Array.isArray(datos)) {
       return inicial;
     }
 
-    const estado =
-      datos as Partial<EstadoCompras>;
+    const estado = datos as Partial<EstadoCompras>;
 
     if (
       !Array.isArray(estado.requisiciones) ||
@@ -53,18 +34,20 @@ const cargarEstado = (
       return inicial;
     }
 
+    const alertasInventarioGuardadas = Array.isArray(estado.alertasInventario)
+      ? estado.alertasInventario
+      : [];
+
     return {
       ...inicial,
       requisiciones: estado.requisiciones,
       solicitudes: estado.solicitudes,
       ofertas: estado.ofertas,
+      alertasInventario: alertasInventarioGuardadas,
       mensaje: "",
     };
   } catch (error) {
-    console.error(
-      "No se pudo recuperar el estado de compras:",
-      error,
-    );
+    console.error("No se pudo recuperar el estado de compras:", error);
 
     return inicial;
   }
@@ -87,25 +70,21 @@ export function useRequisiciones() {
     cargarEstado,
   );
 
-  const dispatch = useCallback(
-    (accion: AccionCompras) => {
-      enviar({
-        accion,
-        fecha: new Date().toISOString(),
-      });
-    },
-    [],
-  );
+  const dispatch = useCallback((accion: AccionCompras) => {
+    enviar({
+      accion,
+      fecha: new Date().toISOString(),
+    });
+  }, []);
 
   useEffect(() => {
     if (!estado.mensaje) return;
 
-    const temporizador =
-      window.setTimeout(() => {
-        dispatch({
-          tipo: "limpiarMensaje",
-        });
-      }, 3500);
+    const temporizador = window.setTimeout(() => {
+      dispatch({
+        tipo: "limpiarMensaje",
+      });
+    }, 3500);
 
     return () => {
       window.clearTimeout(temporizador);
@@ -118,31 +97,25 @@ export function useRequisiciones() {
         requisiciones: estado.requisiciones,
         solicitudes: estado.solicitudes,
         ofertas: estado.ofertas,
+        alertasInventario: estado.alertasInventario,
       };
 
-      localStorage.setItem(
-        CLAVE_COMPRAS,
-        JSON.stringify(datos),
-      );
+      localStorage.setItem(CLAVE_COMPRAS, JSON.stringify(datos));
     } catch (error) {
-      console.error(
-        "No se pudo guardar el estado de compras:",
-        error,
-      );
+      console.error("No se pudo guardar el estado de compras:", error);
     }
   }, [
     estado.requisiciones,
     estado.solicitudes,
     estado.ofertas,
+    estado.alertasInventario,
   ]);
 
   return {
     ...estado,
     dispatch,
 
-    registrarRequisicion: (
-      datos: DatosRequisicion,
-    ) =>
+    registrarRequisicion: (datos: DatosRequisicion) =>
       dispatch({
         tipo: "crear",
         datos,

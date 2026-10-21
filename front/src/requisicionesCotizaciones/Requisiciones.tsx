@@ -1,4 +1,3 @@
-
 import { useCallback, useState } from "react";
 
 import FormularioRequisicion from "./FormularioRequisicion";
@@ -10,6 +9,7 @@ import SelectorProveedores from "./SelectorProveedores";
 import ConsolidarRequisiciones from "./ConsolidarRequisiciones";
 import ConsultarRequisicion from "./ConsultarRequisicion";
 import Notificacion from "./Notificacion";
+import AlertasInventario from "./AlertasInventario";
 
 import { useRequisiciones } from "./useRequisiciones";
 
@@ -24,6 +24,7 @@ const opciones = [
   "Solicitudes y ofertas",
   "Consolidar requisiciones",
   "Estado e historial",
+  "Alertas de Inventarios",
 ];
 
 const CLAVE_PESTANA = "requisiciones-pestana";
@@ -36,9 +37,7 @@ const cargarPestana = (): number => {
 
     const indice = Number(guardada);
 
-    return Number.isInteger(indice) &&
-      indice >= 0 &&
-      indice < opciones.length
+    return Number.isInteger(indice) && indice >= 0 && indice < opciones.length
       ? indice
       : 0;
   } catch {
@@ -50,24 +49,19 @@ export const Requisiciones = () => {
   const compras = useRequisiciones();
   const { dispatch } = compras;
 
-  const [opcionActiva, setOpcionActiva] =
-    useState(cargarPestana);
+  const [opcionActiva, setOpcionActiva] = useState(cargarPestana);
 
-  const [menuAbierto, setMenuAbierto] =
-    useState(true);
+  const [menuAbierto, setMenuAbierto] = useState(true);
 
-  const [idEdicion, setIdEdicion] =
-    useState<number | null>(null);
+  const [idEdicion, setIdEdicion] = useState<number | null>(null);
 
   const cerrarNotificacion = useCallback(() => {
     dispatch({ tipo: "limpiarMensaje" });
   }, [dispatch]);
 
-  const requisicionEnEdicion =
-    compras.requisiciones.find(
-      requisicion =>
-        requisicion.idRequisicion === idEdicion,
-    );
+  const requisicionEnEdicion = compras.requisiciones.find(
+    (requisicion) => requisicion.idRequisicion === idEdicion,
+  );
 
   const elegirOpcion = (indice: number) => {
     cerrarNotificacion();
@@ -76,10 +70,7 @@ export const Requisiciones = () => {
     setIdEdicion(null);
 
     try {
-      sessionStorage.setItem(
-        CLAVE_PESTANA,
-        String(indice),
-      );
+      sessionStorage.setItem(CLAVE_PESTANA, String(indice));
     } catch {
       // La navegación sigue funcionando sin sessionStorage.
     }
@@ -91,21 +82,15 @@ export const Requisiciones = () => {
         opciones={opciones}
         opcionActiva={opcionActiva}
         abierto={menuAbierto}
-        onAbrirCerrar={() =>
-          setMenuAbierto(actual => !actual)
-        }
+        onAbrirCerrar={() => setMenuAbierto((actual) => !actual)}
         onElegir={elegirOpcion}
       />
 
       <section className="requisiciones-contenido">
         <header className="requisiciones-header">
-          <p className="requisiciones-subtitulo">
-            Compras
-          </p>
+          <p className="requisiciones-subtitulo">Compras</p>
 
-          <h1 className="requisiciones-titulo">
-            {opciones[opcionActiva]}
-          </h1>
+          <h1 className="requisiciones-titulo">{opciones[opcionActiva]}</h1>
         </header>
 
         {compras.mensaje && (
@@ -118,9 +103,7 @@ export const Requisiciones = () => {
 
         {opcionActiva === 0 && (
           <div className="requisiciones-tarjeta">
-            <FormularioRequisicion
-              onGuardar={compras.registrarRequisicion}
-            />
+            <FormularioRequisicion onGuardar={compras.registrarRequisicion} />
           </div>
         )}
 
@@ -139,7 +122,7 @@ export const Requisiciones = () => {
                 requisiciones={compras.requisiciones}
                 solicitudes={compras.solicitudes}
                 idEnEdicion={idEdicion}
-                onEditar={id => {
+                onEditar={(id) => {
                   cerrarNotificacion();
                   setIdEdicion(id);
                 }}
@@ -150,7 +133,7 @@ export const Requisiciones = () => {
                     prioridad,
                   })
                 }
-                onCancelar={id =>
+                onCancelar={(id) =>
                   dispatch({
                     tipo: "cancelarRequisicion",
                     id,
@@ -165,15 +148,14 @@ export const Requisiciones = () => {
                   key={requisicionEnEdicion.idRequisicion}
                   requisicion={requisicionEnEdicion}
                   bloqueada={
-                    requisicionEnEdicion.estado !==
-                      "Pendiente" ||
+                    requisicionEnEdicion.estado !== "Pendiente" ||
                     compras.solicitudes.some(
-                      solicitud =>
+                      (solicitud) =>
                         solicitud.requisicion ===
                         requisicionEnEdicion.idRequisicion,
                     )
                   }
-                  onGuardar={datos =>
+                  onGuardar={(datos) =>
                     dispatch({
                       tipo: "modificar",
                       id: requisicionEnEdicion.idRequisicion,
@@ -200,10 +182,7 @@ export const Requisiciones = () => {
 
         {opcionActiva === 4 && (
           <div className="requisiciones-tarjeta">
-            <ConsolidarRequisiciones
-              estado={compras}
-              dispatch={dispatch}
-            />
+            <ConsolidarRequisiciones estado={compras} dispatch={dispatch} />
           </div>
         )}
 
@@ -212,6 +191,14 @@ export const Requisiciones = () => {
             <ConsultarRequisicion
               requisiciones={compras.requisiciones}
               solicitudes={compras.solicitudes}
+            />
+          </div>
+        )}
+        {opcionActiva === 6 && (
+          <div className="requisiciones-tarjeta">
+            <AlertasInventario
+              alertasInventario={compras.alertasInventario}
+              dispatch={dispatch}
             />
           </div>
         )}
