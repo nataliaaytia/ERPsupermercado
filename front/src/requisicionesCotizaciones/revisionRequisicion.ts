@@ -1,43 +1,75 @@
-import type { Requisicion, ResultadoValidacion } from "./tipos";
+import type {
+  Requisicion,
+  ResultadoValidacion,
+} from "./tipos";
 
 export function revisarRequisicion(
-  requisicion: Requisicion,
+  r: Requisicion,
 ): ResultadoValidacion {
   const errores: string[] = [];
   const advertencias: string[] = [];
 
-  if (requisicion.productos.length === 0)
-    errores.push("La requisición no tiene productos.");
+  if (!r.solicitante.trim()) {
+    errores.push("Falta el solicitante.");
+  }
 
-  const vistos = new Set<string>();
-  requisicion.productos.forEach((producto, indice) => {
-    const numero = indice + 1;
-    const nombre = producto.nombre.trim().toLowerCase();
+  if (!["Baja", "Media", "Alta"].includes(r.prioridad)) {
+    errores.push("Prioridad inválida.");
+  }
 
-    if (nombre.length < 3)
-      errores.push(`Producto ${numero}: falta el nombre (mínimo 3 letras).`);
-    else if (vistos.has(nombre))
-      errores.push(`Producto ${numero}: "${producto.nombre}" está repetido.`);
-    vistos.add(nombre);
+  if (!r.detalles.length) {
+    errores.push("Agrega al menos un producto.");
+  }
 
-    if (!Number.isInteger(producto.cantidad) || producto.cantidad < 1)
+  const vistos = new Set<number>();
+
+  r.detalles.forEach((d, i) => {
+    if (
+      !Number.isSafeInteger(d.producto.idProducto) ||
+      d.producto.idProducto < 1
+    ) {
+      errores.push(`Producto ${i + 1}: ID inválido.`);
+    }
+
+    if (vistos.has(d.producto.idProducto)) {
+      errores.push(`Producto ${i + 1}: ID repetido.`);
+    }
+
+    vistos.add(d.producto.idProducto);
+
+    if (d.producto.descripcion.trim().length < 3) {
+      errores.push(`Producto ${i + 1}: nombre inválido.`);
+    }
+
+    if (
+      !Number.isSafeInteger(d.cantidad) ||
+      d.cantidad < 1 ||
+      d.cantidad > 10000
+    ) {
       errores.push(
-        `Producto ${numero}: la cantidad debe ser un número entero mayor a 0.`,
+        `Producto ${i + 1}: cantidad entre 1 y 10000.`,
       );
-    else if (producto.cantidad > 1000)
+    } else if (d.cantidad > 1000) {
       advertencias.push(
-        `Producto ${numero}: la cantidad (${producto.cantidad}) es muy alta, confirma que es correcta.`,
+        `Producto ${i + 1}: confirma la cantidad ${d.cantidad}.`,
       );
+    }
   });
 
-  const motivo = requisicion.motivo.trim();
-  if (motivo.length < 10)
-    errores.push("El motivo debe tener al menos 10 caracteres.");
-  else if (motivo.length < 25)
-    advertencias.push("El motivo es muy corto, conviene explicarlo mejor.");
+  const observacion = r.observacion.trim();
 
-  if (requisicion.productos.length > 10)
-    advertencias.push("La requisición tiene más de 10 productos.");
+  if (
+    observacion.length < 10 ||
+    observacion.length > 300
+  ) {
+    errores.push(
+      "La observación debe tener entre 10 y 300 caracteres.",
+    );
+  } else if (observacion.length < 25) {
+    advertencias.push(
+      "Conviene explicar mejor la observación.",
+    );
+  }
 
   return { errores, advertencias };
 }

@@ -1,4 +1,3 @@
-
 .selector-proveedores {
   display: flex;
   flex-direction: column;
@@ -24,6 +23,7 @@
 .selector-proveedores input[type="search"],
 .selector-proveedores select {
   width: 100%;
+  box-sizing: border-box;
   padding: 0.75rem;
   background: var(--bg-card);
   color: var(--text-primary);
@@ -34,6 +34,67 @@
 
 .selector-proveedores select {
   cursor: pointer;
+}
+
+.selector-proveedores-vacio {
+  padding: 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+}
+
+.selector-proveedores-resumen {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.25rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-primary);
+}
+
+.selector-proveedores-encabezado {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.selector-proveedores-encabezado strong {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.selector-proveedores-estado {
+  padding: 0.35rem 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.selector-proveedores-estado.enviado {
+  color: #35c78a;
+  border-color: #35c78a;
+}
+
+.selector-proveedores-resumen>strong {
+  display: block;
+  margin-top: 0.5rem;
+}
+
+.selector-proveedores-resumen ul,
+.selector-proveedores-confirmacion ul {
+  margin: 0;
+  padding-left: 1.5rem;
+}
+
+.selector-proveedores-resumen li,
+.selector-proveedores-confirmacion li {
+  margin-bottom: 0.35rem;
 }
 
 .selector-proveedores-lista {
@@ -77,6 +138,13 @@
   color: var(--text-secondary);
 }
 
+.selector-proveedores-acciones {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
 .selector-proveedores-boton {
   align-self: flex-end;
   padding: 0.75rem 1.25rem;
@@ -98,6 +166,20 @@
   cursor: not-allowed;
 }
 
+.selector-proveedores-confirmacion {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: var(--bg-card);
+  border: 1px solid #35c78a;
+  border-radius: 8px;
+}
+
+.selector-proveedores-confirmacion strong {
+  color: #35c78a;
+}
+
 .selector-proveedores-mensaje {
   padding: 0.85rem 1rem;
   border: 1px solid var(--border-color);
@@ -105,34 +187,52 @@
   color: var(--text-primary) !important;
 }
 
+/* Botones secundarios: cancelar, seleccionar y rechazar. */
+.selector-proveedores button:not(.selector-proveedores-boton) {
+  align-self: flex-start;
+  padding: 0.7rem 1.1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color 0.2s,
+    border-color 0.2s,
+    opacity 0.2s;
+}
+
+.selector-proveedores button:not(.selector-proveedores-boton):hover:not(:disabled) {
+  background: var(--accent-soft, rgba(56, 182, 232, 0.12));
+  border-color: var(--accent, #38b6e8);
+}
+
+.selector-proveedores button:focus-visible {
+  outline: 2px solid var(--accent, #38b6e8);
+  outline-offset: 3px;
+}
+
+.selector-proveedores button:not(.selector-proveedores-boton):disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 @media (max-width: 600px) {
   .selector-proveedor {
     padding: 0.75rem;
   }
 
-  .selector-proveedores-boton {
-    width: 100%;
+  .selector-proveedores-encabezado,
+  .selector-proveedores-acciones {
+    flex-direction: column;
+    align-items: stretch;
   }
-}
 
-.selector-proveedores-resumen {
-  padding: 1rem;
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  color: var(--text-primary);
-}
-
-.selector-proveedores-resumen strong {
-  display: block;
-  margin-bottom: 0.75rem;
-}
-
-.selector-proveedores-resumen ul {
-  margin: 0;
-  padding-left: 1.5rem;
-}
-
-.selector-proveedores-resumen li {
-  margin-bottom: 0.35rem;
+  .selector-proveedores-boton,
+  .selector-proveedores button:not(.selector-proveedores-boton) {
+    width: 100%;
+    box-sizing: border-box;
+  }
 }

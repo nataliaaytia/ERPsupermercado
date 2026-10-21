@@ -59,4 +59,17 @@ public class SolicitudCotizacionController {
         );
     }
 
+    @PatchMapping("/{idSolicitud}/cerrar")
+    public ResponseEntity<Map<String, Object>> cerrar(
+            @PathVariable Long idSolicitud) {
+
+        Long idCerrado = solicitudCotizacionService.cerrar(idSolicitud);
+
+        return ResponseEntity.ok(Map.of(
+                "mensaje", "Solicitud de cotización cerrada correctamente",
+                "idSolicitud", idCerrado,
+                "estado", "CERRADA"
+        ));
+    }
+
 }

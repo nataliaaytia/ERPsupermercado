@@ -1,40 +1,164 @@
-import { useState } from "react";
-import type { DatosRequisicion, Requisicion } from "./tipos";
-import { revisarRequisicion } from "./revisionRequisicion";
-import { requisicionesEjemplo } from "./requisicionesEjemplo";
+import {
+  useCallback,
+  useEffect,
+  useReducer,
+} from "react";
+
+import { estadoInicial } from "./modeloCompras";
+
+import type {
+  AccionCompras,
+  EstadoCompras,
+} from "./modeloCompras";
+
+import {
+  reducirComprasConHistorial,
+} from "./historialRequisiciones";
+
+import type {
+  DatosRequisicion,
+} from "./tipos";
+
+const CLAVE_COMPRAS = "erp-compras-estado";
+
+const cargarEstado = (
+  inicial: EstadoCompras,
+): EstadoCompras => {
+  try {
+    const guardado =
+      localStorage.getItem(CLAVE_COMPRAS);
+
+    if (!guardado) {
+      return inicial;
+    }
+
+    const datos: unknown = JSON.parse(guardado);
+
+    if (
+      typeof datos !== "object" ||
+      datos === null ||
+      Array.isArray(datos)
+    ) {
+      return inicial;
+    }
+
+    const estado =
+      datos as Partial<EstadoCompras>;
+
+    if (
+      !Array.isArray(estado.requisiciones) ||
+      !Array.isArray(estado.solicitudes) ||
+      !Array.isArray(estado.ofertas)
+    ) {
+      return inicial;
+    }
+
+    return {
+      ...inicial,
+      requisiciones: estado.requisiciones,
+      solicitudes: estado.solicitudes,
+      ofertas: estado.ofertas,
+      mensaje: "",
+    };
+  } catch (error) {
+    console.error(
+      "No se pudo recuperar el estado de compras:",
+      error,
+    );
+
+    return inicial;
+  }
+};
+
+export const fechaHoy = () => {
+  const d = new Date();
+
+  return [
+    d.getFullYear(),
+    String(d.getMonth() + 1).padStart(2, "0"),
+    String(d.getDate()).padStart(2, "0"),
+  ].join("-");
+};
 
 export function useRequisiciones() {
-  const [requisiciones, setRequisiciones] =
-    useState<Requisicion[]>(requisicionesEjemplo);
+  const [estado, enviar] = useReducer(
+    reducirComprasConHistorial,
+    estadoInicial,
+    cargarEstado,
+  );
 
-  const registrarRequisicion = (datos: DatosRequisicion): Requisicion => {
-    const nueva: Requisicion = {
-      id: `REQ-${String(requisiciones.length + 1).padStart(4, "0")}`,
-      fecha: new Date().toLocaleDateString("es-BO"),
-      productos: datos.productos.map((producto) => ({
-        nombre: producto.nombre.trim(),
-        cantidad: Number(producto.cantidad),
-      })),
-      motivo: datos.motivo.trim(),
-      estado: "Pendiente",
+  const dispatch = useCallback(
+    (accion: AccionCompras) => {
+      enviar({
+        accion,
+        fecha: new Date().toISOString(),
+      });
+    },
+    [],
+  );
+
+  useEffect(() => {
+    if (!estado.mensaje) return;
+
+    const temporizador =
+      window.setTimeout(() => {
+        dispatch({
+          tipo: "limpiarMensaje",
+        });
+      }, 3500);
+
+    return () => {
+      window.clearTimeout(temporizador);
     };
-    setRequisiciones((actuales) => [nueva, ...actuales]);
-    return nueva;
-  };
+  }, [estado, dispatch]);
 
-  const validar = (id: string) => {
-    setRequisiciones((actuales) =>
-      actuales.map((requisicion) => {
-        if (requisicion.id !== id) return requisicion;
-        const validacion = revisarRequisicion(requisicion);
-        return {
-          ...requisicion,
-          validacion,
-          estado: validacion.errores.length > 0 ? "Rechazada" : "Validada",
-        };
+  useEffect(() => {
+    try {
+      const datos = {
+        requisiciones: estado.requisiciones,
+        solicitudes: estado.solicitudes,
+        ofertas: estado.ofertas,
+      };
+
+      localStorage.setItem(
+        CLAVE_COMPRAS,
+        JSON.stringify(datos),
+      );
+    } catch (error) {
+      console.error(
+        "No se pudo guardar el estado de compras:",
+        error,
+      );
+    }
+  }, [
+    estado.requisiciones,
+    estado.solicitudes,
+    estado.ofertas,
+  ]);
+
+  return {
+    ...estado,
+    dispatch,
+
+    registrarRequisicion: (
+      datos: DatosRequisicion,
+    ) =>
+      dispatch({
+        tipo: "crear",
+        datos,
+        hoy: fechaHoy(),
       }),
-    );
-  };
 
-  return { requisiciones, registrarRequisicion, validar };
+    validar: (id: number) =>
+      dispatch({
+        tipo: "aprobar",
+        id,
+      }),
+
+    anular: (id: number) =>
+      dispatch({
+        tipo: "anular",
+        id,
+      }),
+  };
 }

@@ -1,3 +1,4 @@
+
 .requisiciones-container {
   display: flex;
   gap: 2rem;
@@ -44,6 +45,7 @@
   font-size: 1.1rem;
 }
 
+/* Mensajes de confirmación */
 
 .requisiciones-exito {
   display: flex;
@@ -57,11 +59,138 @@
   border-radius: 8px;
 }
 
+/* Mensajes de error */
+
+.requisiciones-error {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0.85rem 1rem;
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid #ef4444;
+  border-radius: 8px;
+}
+
+/* Formulario para generar una solicitud de cotización */
+
+.requisiciones-cotizacion {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.requisiciones-cotizacion h2 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.requisiciones-cotizacion p {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.requisiciones-cotizacion__codigo {
+  color: var(--text-primary);
+}
+
+.requisiciones-cotizacion__campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.requisiciones-cotizacion__campo label {
+  font-weight: 500;
+}
+
+.requisiciones-cotizacion__campo input[type="date"] {
+  width: 100%;
+  padding: 0.75rem;
+  box-sizing: border-box;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font: inherit;
+}
+
+.requisiciones-cotizacion__campo input[type="date"]:focus {
+  outline: 2px solid #38b6e8;
+  outline-offset: 2px;
+}
+
+.requisiciones-cotizacion__campo
+  input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+}
+
+/* Acciones del formulario */
+
+.requisiciones-cotizacion__acciones {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.requisiciones-cotizacion__cancelar {
+  padding: 0.75rem 1.25rem;
+  background: transparent;
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font: inherit;
+  cursor: pointer;
+}
+
+.requisiciones-cotizacion__cancelar:hover {
+  background: var(--bg-primary);
+}
+
+.requisiciones-cotizacion__generar {
+  padding: 0.75rem 1.25rem;
+  background: #38b6e8;
+  color: #071522;
+  border: none;
+  border-radius: 8px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.requisiciones-cotizacion__generar:hover:not(:disabled) {
+  background: #249dcc;
+}
+
+.requisiciones-cotizacion__generar:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Validación de fecha límite */
+
+.requisiciones-cotizacion .requisiciones-cotizacion__error {
+  color: #f87171;
+}
+
+/* Diseño adaptable */
 
 @media (max-width: 800px) {
   .requisiciones-container {
     flex-direction: column;
     gap: 1.25rem;
     padding: 1.5rem 1rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .requisiciones-cotizacion__acciones {
+    flex-direction: column;
+  }
+
+  .requisiciones-cotizacion__acciones button {
+    width: 100%;
   }
 }

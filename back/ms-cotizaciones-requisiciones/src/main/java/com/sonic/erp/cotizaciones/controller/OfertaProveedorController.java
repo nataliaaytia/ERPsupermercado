@@ -2,6 +2,7 @@
 package com.sonic.erp.cotizaciones.controller;
 
 import com.sonic.erp.cotizaciones.dto.request.RegistrarOfertaRequest;
+import com.sonic.erp.cotizaciones.dto.request.ActualizarOfertaRequest;
 import com.sonic.erp.cotizaciones.service.OfertaProveedorService;
 
 import jakarta.validation.Valid;
@@ -37,4 +38,20 @@ public class OfertaProveedorController {
                         "idOferta", idOferta
                 ));
     }
+
+    @PutMapping("/{idOferta}")
+    public ResponseEntity<Map<String, Object>> actualizar(
+            @PathVariable Long idOferta,
+            @Valid @RequestBody ActualizarOfertaRequest datos) {
+
+        Long idActualizado = ofertaProveedorService.actualizar(
+                idOferta, datos
+        );
+
+        return ResponseEntity.ok(Map.of(
+                "mensaje", "Oferta actualizada correctamente",
+                "idOferta", idActualizado
+        ));
+    }
+
 }
