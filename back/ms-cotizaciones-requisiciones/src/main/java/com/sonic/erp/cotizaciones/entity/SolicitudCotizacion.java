@@ -22,7 +22,7 @@ public class SolicitudCotizacion {
 
     private LocalDate fechaLimite;
 
-    private String estado; // GENERADA, ENVIADA, CANCELADA, CERRADA
+    private String estado;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_requisicion")
