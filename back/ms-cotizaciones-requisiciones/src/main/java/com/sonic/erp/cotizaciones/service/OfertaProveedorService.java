@@ -8,6 +8,7 @@ import com.sonic.erp.cotizaciones.entity.OfertaProveedor;
 import com.sonic.erp.cotizaciones.entity.SolicitudCotizacion;
 import com.sonic.erp.cotizaciones.repository.OfertaProveedorRepository;
 import com.sonic.erp.cotizaciones.repository.SolicitudCotizacionRepository;
+import com.sonic.erp.cotizaciones.repository.SolicitudProveedorRepository;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -26,12 +27,14 @@ public class OfertaProveedorService {
     private final OfertaValidacionService ofertaValidacionService;
     private final FechaLimiteCotizacionService fechaLimiteService;
     private final ProveedorVerificacionService proveedorVerificacionService;
+    private final SolicitudProveedorRepository solicitudProveedorRepository;
 
     public OfertaProveedorService(
             OfertaProveedorRepository ofertaRepository,
             SolicitudCotizacionRepository solicitudRepository,
             OfertaValidacionService ofertaValidacionService,
             FechaLimiteCotizacionService fechaLimiteService,
+            SolicitudProveedorRepository solicitudProveedorRepository,
             ProveedorVerificacionService proveedorVerificacionService) {
 
         this.ofertaRepository = ofertaRepository;
@@ -39,6 +42,7 @@ public class OfertaProveedorService {
         this.ofertaValidacionService = ofertaValidacionService;
         this.fechaLimiteService = fechaLimiteService;
         this.proveedorVerificacionService = proveedorVerificacionService;
+        this.solicitudProveedorRepository = solicitudProveedorRepository;
     }
 
     @Transactional
@@ -107,6 +111,20 @@ public class OfertaProveedorService {
         }
 
         proveedorVerificacionService.verificarExistencia(datos.proveedorId());
+
+
+        if ("ENVIADA".equalsIgnoreCase(estado)
+                && !solicitudProveedorRepository
+                .existsBySolicitud_IdSolicitudAndProveedorId(
+                        solicitud.getIdSolicitud(),
+                        datos.proveedorId())) {
+
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "El proveedor " + datos.proveedorId()
+                            + " no fue seleccionado para esta solicitud de cotización"
+            );
+        }
 
         LocalDate hoy = LocalDate.now(
                 ZoneId.of("America/La_Paz")

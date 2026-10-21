@@ -23,7 +23,7 @@ public class ProveedorVerificacionService {
                 .build();
     }
 
-    public void verificarExistencia(Long proveedorId) {
+    public ProveedorInfo verificarExistencia(Long proveedorId) {
 
         try {
             ProveedorInfo proveedor = cliente.get()
@@ -40,6 +40,7 @@ public class ProveedorVerificacionService {
                 );
             }
 
+            return proveedor;
 
         } catch (HttpClientErrorException.NotFound e) {
 
