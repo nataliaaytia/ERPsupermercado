@@ -96,16 +96,55 @@ public class SolicitudCotizacionService {
         return convertirAResponse(solicitud);
     }
 
+    @Transactional
+    public Long cerrar(Long idSolicitud) {
+
+        SolicitudCotizacion solicitud = solicitudCotizacionRepository
+                .findById(idSolicitud)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "La solicitud de cotización no existe"
+                ));
+
+        String estado = solicitud.getEstado();
+
+        if ("CERRADA".equalsIgnoreCase(estado)) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "La solicitud de cotización ya está cerrada"
+            );
+        }
+
+        if (!"GENERADA".equalsIgnoreCase(estado)
+                && !"ENVIADA".equalsIgnoreCase(estado)) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "La solicitud no puede cerrarse en su estado actual"
+            );
+        }
+
+        solicitud.setEstado("CERRADA");
+
+        return solicitudCotizacionRepository
+                .save(solicitud)
+                .getIdSolicitud();
+    }
+
     private SolicitudCotizacionResponse convertirAResponse(
             SolicitudCotizacion solicitud) {
 
+        Long idRequisicion = solicitud.getRequisicion() != null
+                ? solicitud.getRequisicion().getIdRequisicion()
+                : null;
+
         return new SolicitudCotizacionResponse(
                 solicitud.getIdSolicitud(),
-                solicitud.getRequisicion().getIdRequisicion(),
+                idRequisicion,
                 solicitud.getFecha(),
                 solicitud.getFechaLimite(),
                 solicitud.getEstado()
         );
     }
+
 
 }
