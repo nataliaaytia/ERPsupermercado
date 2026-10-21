@@ -81,8 +81,11 @@ export interface OfertaProveedor {
   fecha: string;
   validez: string;
   estado: "Registrada" | "Seleccionada" | "Rechazada";
+  descuento: number;
   detalles: DetalleOferta[];
 }
+
+
 
 export interface CambioHistorialRequisicion {
   campo: string;
