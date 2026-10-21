@@ -273,4 +273,42 @@ public class OfertaProveedorService {
         return ofertaRepository.save(oferta).getIdOferta();
     }
 
+    @Transactional
+    public com.sonic.erp.cotizaciones.dto.response.AdjudicarOfertaResponse adjudicarOferta(Long idOferta) {
+        OfertaProveedor ofertaGanadora = ofertaRepository.findById(idOferta)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "La oferta con ID " + idOferta + " no existe"
+                ));
+        SolicitudCotizacion solicitud = ofertaGanadora.getSolicitud();
+        if ("CERRADA".equalsIgnoreCase(solicitud.getEstado())
+                || "CANCELADA".equalsIgnoreCase(solicitud.getEstado())) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "La solicitud de cotización ya se encuentra " + solicitud.getEstado()
+            );
+        }
+        List<OfertaProveedor> ofertasDeSolicitud = ofertaRepository
+                .findBySolicitud_IdSolicitud(solicitud.getIdSolicitud());
+        for (OfertaProveedor oferta : ofertasDeSolicitud) {
+            if (oferta.getIdOferta().equals(idOferta)) {
+                oferta.setEstado("SELECCIONADA");
+            } else {
+                oferta.setEstado("RECHAZADA");
+            }
+        }
+        ofertaRepository.saveAll(ofertasDeSolicitud);
+        solicitud.setEstado("CERRADA");
+        solicitudRepository.save(solicitud);
+        LocalDate hoy = LocalDate.now(ZoneId.of("America/La_Paz"));
+        return com.sonic.erp.cotizaciones.dto.response.AdjudicarOfertaResponse.builder()
+                .mensaje("Oferta adjudicada correctamente como ganadora")
+                .idOfertaGanadora(ofertaGanadora.getIdOferta())
+                .proveedorId(ofertaGanadora.getProveedorId())
+                .idSolicitud(solicitud.getIdSolicitud())
+                .estadoOferta(ofertaGanadora.getEstado())
+                .estadoSolicitud(solicitud.getEstado())
+                .fechaAdjudicacion(hoy)
+                .build();
+    }
 }

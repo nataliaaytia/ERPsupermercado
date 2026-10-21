@@ -54,4 +54,11 @@ public class OfertaProveedorController {
         ));
     }
 
+    @PutMapping("/{idOferta}/adjudicar")
+    public ResponseEntity<com.sonic.erp.cotizaciones.dto.response.AdjudicarOfertaResponse> adjudicar(
+            @PathVariable Long idOferta) {
+        com.sonic.erp.cotizaciones.dto.response.AdjudicarOfertaResponse response =
+                ofertaProveedorService.adjudicarOferta(idOferta);
+        return ResponseEntity.ok(response);
+    }
 }
