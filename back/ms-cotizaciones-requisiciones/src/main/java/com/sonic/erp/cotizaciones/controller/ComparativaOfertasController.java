@@ -1,8 +1,10 @@
 package com.sonic.erp.cotizaciones.controller;
 
 import com.sonic.erp.cotizaciones.dto.response.ComparativaCondicionesEntregaResponse;
+import com.sonic.erp.cotizaciones.dto.response.ComparativaCostosResponse;
 import com.sonic.erp.cotizaciones.dto.response.ComparativaOfertasResponse;
 import com.sonic.erp.cotizaciones.service.ComparativaCondicionesService;
+import com.sonic.erp.cotizaciones.service.ComparativaCostosService;
 import com.sonic.erp.cotizaciones.service.ComparativaOfertasService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,12 +15,15 @@ public class ComparativaOfertasController {
 
     private final ComparativaOfertasService comparativaService;
     private final ComparativaCondicionesService condicionesService;
+    private final ComparativaCostosService comparativaCostosService;
 
     public ComparativaOfertasController(
             ComparativaOfertasService comparativaService,
-            ComparativaCondicionesService condicionesService) {
+            ComparativaCondicionesService condicionesService,
+            ComparativaCostosService comparativaCostosService) {
         this.comparativaService = comparativaService;
         this.condicionesService = condicionesService;
+        this.comparativaCostosService = comparativaCostosService;
     }
 
     @GetMapping("/solicitud/{idSolicitud}")
@@ -33,7 +38,6 @@ public class ComparativaOfertasController {
         return ResponseEntity.ok(comparativaService.compararPorRequisicion(idRequisicion));
     }
 
-    // Endpoint específico para SCRUM-491: Comparación de tiempos y condiciones
     @GetMapping("/condiciones/solicitud/{idSolicitud}")
     public ResponseEntity<ComparativaCondicionesEntregaResponse> compararCondicionesPorSolicitud(
             @PathVariable Long idSolicitud) {
@@ -44,5 +48,12 @@ public class ComparativaOfertasController {
     public ResponseEntity<ComparativaCondicionesEntregaResponse> compararCondicionesPorRequisicion(
             @PathVariable Long idRequisicion) {
         return ResponseEntity.ok(condicionesService.compararCondicionesPorRequisicion(idRequisicion));
+    }
+
+    @GetMapping("/costos/solicitud/{idSolicitud}")
+    public ResponseEntity<ComparativaCostosResponse> compararCostosPorSolicitud(
+            @PathVariable Long idSolicitud,
+            @RequestParam(required = false, defaultValue = "asc") String orden) {
+        return ResponseEntity.ok(comparativaCostosService.calcularCostosPorSolicitud(idSolicitud, orden));
     }
 }
