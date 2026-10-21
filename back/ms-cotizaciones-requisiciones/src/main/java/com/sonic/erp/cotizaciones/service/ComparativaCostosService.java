@@ -113,7 +113,6 @@ public class ComparativaCostosService {
                     .build());
         }
 
-        // Identificar menor y mayor costo
         CostoOfertaDTO minOferta = listaCalculada.stream()
                 .min(Comparator.comparing(CostoOfertaDTO::getCostoTotal))
                 .orElse(null);
@@ -129,7 +128,6 @@ public class ComparativaCostosService {
                 BigDecimal.valueOf(listaCalculada.size()), 2, RoundingMode.HALF_UP
         );
 
-        // Calcular variación económica respecto a la oferta más económica
         for (CostoOfertaDTO propuesta : listaCalculada) {
             BigDecimal diferencia = propuesta.getCostoTotal().subtract(menorCosto);
             propuesta.setDiferenciaConMenorCosto(diferencia);

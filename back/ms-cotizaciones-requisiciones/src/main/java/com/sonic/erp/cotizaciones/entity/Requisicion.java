@@ -31,6 +31,12 @@ public class Requisicion {
 
     private String observacion;
 
+    @Column(name = "alerta_id", unique = true)
+    private String alertaId;
+
+    @Column(name = "origen")
+    private String origen;
+
     @OneToMany(mappedBy = "requisicion", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     @Builder.Default
