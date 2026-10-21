@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import type { Dispatch } from "react";
 
@@ -38,7 +39,19 @@ export default function SelectorProveedores({
       : String(solicitudInicialId),
   );
 
+  const [filtroEstado, setFiltroEstado] = useState("Todas");
+
   const hoy = fechaHoy();
+
+  const solicitudesFiltradas = estado.solicitudes.filter(
+    s =>
+      filtroEstado === "Todas" ||
+      s.estado === filtroEstado,
+  );
+
+  const estadosDisponibles = [
+    ...new Set(estado.solicitudes.map(s => s.estado)),
+  ];
 
   const solicitud = estado.solicitudes.find(
     s => s.idSolicitud === Number(solicitudId),
@@ -80,6 +93,11 @@ export default function SelectorProveedores({
     setSolicitudId(id);
   };
 
+  const cambiarFiltroEstado = (nuevoEstado: string) => {
+    setFiltroEstado(nuevoEstado);
+    setSolicitudId("");
+  };
+
   return (
     <div className="selector-proveedores">
       <GenerarSolicitudCotizacion
@@ -96,6 +114,28 @@ export default function SelectorProveedores({
       </p>
 
       <label>
+        Filtrar por estado
+
+        <select
+          value={filtroEstado}
+          onChange={e =>
+            cambiarFiltroEstado(e.target.value)
+          }
+        >
+          <option value="Todas">Todas</option>
+
+          {estadosDisponibles.map(estadoSolicitud => (
+            <option
+              key={estadoSolicitud}
+              value={estadoSolicitud}
+            >
+              {estadoSolicitud}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      <label>
         Solicitud de cotización
 
         <select
@@ -108,7 +148,7 @@ export default function SelectorProveedores({
             Seleccionar solicitud
           </option>
 
-          {estado.solicitudes.map(s => (
+          {solicitudesFiltradas.map(s => (
             <option
               key={s.idSolicitud}
               value={s.idSolicitud}
@@ -129,6 +169,14 @@ export default function SelectorProveedores({
           Genera una desde una requisición aprobada.
         </p>
       )}
+
+      {estado.solicitudes.length > 0 &&
+        solicitudesFiltradas.length === 0 && (
+          <p className="selector-proveedores-vacio">
+            No hay solicitudes de cotización con el estado
+            seleccionado.
+          </p>
+        )}
 
       {solicitud && requisicion && (
         <>
@@ -179,10 +227,13 @@ export default function SelectorProveedores({
 
           {solicitudEnviada && (
             <div className="selector-proveedores-confirmacion">
-              <strong>Proveedores asociados correctamente</strong>
+              <strong>
+                Proveedores asociados correctamente
+              </strong>
 
               <p>
-                Los siguientes proveedores quedaron asociados a esta solicitud de cotización.
+                Los siguientes proveedores quedaron asociados
+                a esta solicitud de cotización.
               </p>
 
               <ul>
@@ -233,6 +284,7 @@ export default function SelectorProveedores({
               dispatch={dispatch}
             />
           )}
+
           <ListaOfertasProveedor
             ofertas={ofertas}
             solicitudEnviada={solicitudEnviada}
