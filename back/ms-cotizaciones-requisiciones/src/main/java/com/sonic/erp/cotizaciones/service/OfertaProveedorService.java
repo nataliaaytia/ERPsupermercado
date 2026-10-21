@@ -3,6 +3,7 @@ package com.sonic.erp.cotizaciones.service;
 
 import com.sonic.erp.cotizaciones.dto.request.DetalleOfertaRequest;
 import com.sonic.erp.cotizaciones.dto.request.RegistrarOfertaRequest;
+import com.sonic.erp.cotizaciones.dto.request.ActualizarOfertaRequest;
 import com.sonic.erp.cotizaciones.entity.DetalleOferta;
 import com.sonic.erp.cotizaciones.entity.OfertaProveedor;
 import com.sonic.erp.cotizaciones.entity.SolicitudCotizacion;
@@ -176,4 +177,96 @@ public class OfertaProveedorService {
                 .save(oferta)
                 .getIdOferta();
     }
+
+
+    @Transactional
+    public Long actualizar(Long idOferta, ActualizarOfertaRequest datos) {
+
+        OfertaProveedor oferta = ofertaRepository.findById(idOferta)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "La oferta no existe"
+                ));
+
+        SolicitudCotizacion solicitud = oferta.getSolicitud();
+        String estado = solicitud.getEstado();
+
+        if (!"GENERADA".equalsIgnoreCase(estado)
+                && !"ENVIADA".equalsIgnoreCase(estado)) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "No se puede actualizar una oferta de una solicitud cerrada"
+            );
+        }
+
+        fechaLimiteService.validarVigencia(solicitud);
+
+        List<Long> productosRequeridos;
+
+        if (solicitud.getRequisicion() != null) {
+            productosRequeridos = solicitud.getRequisicion()
+                    .getDetalles()
+                    .stream()
+                    .map(detalle -> detalle.getProductoId())
+                    .toList();
+        } else if (solicitud.getConsolidacion() != null) {
+            productosRequeridos = solicitud.getConsolidacion()
+                    .getDetalles()
+                    .stream()
+                    .map(detalle -> detalle.getProductoId())
+                    .toList();
+        } else {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "La solicitud no tiene productos asociados"
+            );
+        }
+
+        for (DetalleOfertaRequest item : datos.detalles()) {
+            if (!productosRequeridos.contains(item.productoId())) {
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "El producto " + item.productoId()
+                                + " no pertenece a la solicitud"
+                );
+            }
+        }
+
+        oferta.setValidez(datos.validez());
+        oferta.getDetalles().clear();
+
+        for (DetalleOfertaRequest item : datos.detalles()) {
+            DetalleOferta detalle = DetalleOferta.builder()
+                    .productoId(item.productoId())
+                    .cantidad(item.cantidad())
+                    .precio(item.precio())
+                    .plazoEntrega(item.plazoEntrega())
+                    .oferta(oferta)
+                    .build();
+
+            oferta.getDetalles().add(detalle);
+        }
+
+        List<String> errores = ofertaValidacionService.validar(oferta);
+
+        if (!errores.isEmpty()) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    String.join("; ", errores)
+            );
+        }
+
+        for (DetalleOferta detalle : oferta.getDetalles()) {
+            if (detalle.getCantidad() == null
+                    || detalle.getCantidad() <= 0) {
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "La cantidad debe ser mayor que cero"
+                );
+            }
+        }
+
+        return ofertaRepository.save(oferta).getIdOferta();
+    }
+
 }
