@@ -48,9 +48,7 @@ export type AccionCompras =
     | {
         tipo: "limpiarMensaje";
     }
-    | {
-        tipo: "limpiarMensaje";
-    }
+
     | {
         tipo: "crear";
         datos: DatosRequisicion;
@@ -463,7 +461,7 @@ export function reducirCompras(
         return {
             ...e,
             solicitudes: [...e.solicitudes, solicitud],
-            mensaje: "Solicitud generada.",
+            mensaje: "Solicitud de cotización generada correctamente.",
             tipoMensaje: "exito",
         };
     }
@@ -508,7 +506,7 @@ export function reducirCompras(
                     : s,
             ),
             mensaje:
-                "Solicitud marcada como enviada (demostración local).",
+                "Proveedores asociados correctamente a la solicitud de cotización.",
             tipoMensaje: "exito",
         };
     }
@@ -667,7 +665,7 @@ export function reducirCompras(
         return {
             ...e,
             ofertas: [...e.ofertas, oferta],
-            mensaje: "Oferta registrada.",
+            mensaje: "Oferta del proveedor registrada correctamente.",
             tipoMensaje: "exito",
         };
     }
@@ -722,7 +720,10 @@ export function reducirCompras(
                         ? { ...o, estado: "Rechazada" }
                         : o,
             ),
-            mensaje: "Estado de la oferta actualizado.",
+            mensaje:
+                a.tipo === "seleccionar"
+                    ? "Oferta seleccionada correctamente."
+                    : "Oferta rechazada correctamente.",
             tipoMensaje: "exito",
         };
     }

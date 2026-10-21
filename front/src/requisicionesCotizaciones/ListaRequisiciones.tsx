@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 
 import type {
@@ -7,19 +8,14 @@ import type {
 } from "./tipos";
 
 import EtiquetaEstado from "./EtiquetaEstado";
-
 import ModalCancelarRequisicion from "./ModalCancelarRequisicion";
-
-import {
-  codigoRequisicion,
-} from "./formatoRequisicion";
+import { codigoRequisicion } from "./formatoRequisicion";
 
 import "./ListaRequisiciones.css";
 
 interface Props {
   requisiciones: Requisicion[];
   solicitudes: SolicitudCotizacion[];
-  onGenerarCotizacion: (id: number) => void;
   onEditar: (id: number) => void;
   onCancelar: (id: number) => void;
   onCambiarPrioridad: (
@@ -32,7 +28,6 @@ interface Props {
 export default function ListaRequisiciones({
   requisiciones,
   solicitudes,
-  onGenerarCotizacion,
   onEditar,
   onCancelar,
   onCambiarPrioridad,
@@ -44,8 +39,7 @@ export default function ListaRequisiciones({
   const requisicionACancelar =
     requisiciones.find(
       requisicion =>
-        requisicion.idRequisicion ===
-        idCancelar,
+        requisicion.idRequisicion === idCancelar,
     );
 
   const cancelacionBloqueada =
@@ -109,10 +103,6 @@ export default function ListaRequisiciones({
                     requisicion.idRequisicion,
                 );
 
-              const puedeGenerar =
-                requisicion.estado === "Aprobada" &&
-                !tieneSolicitud;
-
               const puedeEditar =
                 requisicion.estado === "Pendiente" &&
                 !tieneSolicitud;
@@ -126,9 +116,7 @@ export default function ListaRequisiciones({
                 !formularioAbierto;
 
               return (
-                <tr
-                  key={requisicion.idRequisicion}
-                >
+                <tr key={requisicion.idRequisicion}>
                   <td>
                     {codigoRequisicion(
                       requisicion.idRequisicion,
@@ -168,28 +156,17 @@ export default function ListaRequisiciones({
                         )
                       }
                     >
-                      <option value="Alta">
-                        Alta
-                      </option>
-
-                      <option value="Media">
-                        Media
-                      </option>
-
-                      <option value="Baja">
-                        Baja
-                      </option>
+                      <option value="Alta">Alta</option>
+                      <option value="Media">Media</option>
+                      <option value="Baja">Baja</option>
                     </select>
                   </td>
 
                   <td>
                     {requisicion.detalles.map(
                       detalle => (
-                        <div
-                          key={detalle.idDetalle}
-                        >
-                          {detalle.producto
-                            .descripcion ||
+                        <div key={detalle.idDetalle}>
+                          {detalle.producto.descripcion ||
                             "(sin nombre)"}
                           {" × "}
                           {detalle.cantidad}
@@ -247,26 +224,6 @@ export default function ListaRequisiciones({
                       >
                         Cancelar
                       </button>
-
-                      {puedeGenerar ? (
-                        <button
-                          type="button"
-                          className="lista-requisiciones__accion"
-                          onClick={() =>
-                            onGenerarCotizacion(
-                              requisicion.idRequisicion,
-                            )
-                          }
-                        >
-                          Generar cotización
-                        </button>
-                      ) : tieneSolicitud ? (
-                        <span>
-                          Solicitud generada
-                        </span>
-                      ) : (
-                        <span>—</span>
-                      )}
                     </div>
                   </td>
                 </tr>
