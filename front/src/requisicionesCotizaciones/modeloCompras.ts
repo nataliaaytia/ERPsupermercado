@@ -101,6 +101,7 @@ export type AccionCompras =
       descuento: number;
       detalles: DetalleOferta[];
       hoy: string;
+      condicionesEntrega: string;
     }
   | {
       tipo: "seleccionar" | "rechazar";
@@ -234,14 +235,14 @@ export function reducirCompras(
     };
   }
   if (a.tipo === "limpiarAlertasInventario") {
-  return {
-    ...e,
-    alertasInventario: [],
-    historialProcesamientos: [],
-    mensaje: "Se limpiaron los historiales de alertas y procesamientos.",
-    tipoMensaje: "exito",
-  };
-}
+    return {
+      ...e,
+      alertasInventario: [],
+      historialProcesamientos: [],
+      mensaje: "Se limpiaron los historiales de alertas y procesamientos.",
+      tipoMensaje: "exito",
+    };
+  }
 
   if (a.tipo === "cambiarPrioridad") {
     const requisicion = e.requisiciones.find((r) => r.idRequisicion === a.id);
@@ -647,6 +648,15 @@ export function reducirCompras(
     if (!Number.isFinite(a.descuento) || a.descuento < 0 || a.descuento > 100) {
       return fallo("El descuento debe estar entre 0 y 100 por ciento.");
     }
+    if (
+      typeof a.condicionesEntrega !== "string" ||
+      !a.condicionesEntrega.trim() ||
+      a.condicionesEntrega.trim().length > 500
+    ) {
+      return fallo(
+        "Las condiciones de entrega son obligatorias y no deben superar los 500 caracteres.",
+      );
+    }
 
     const ids = a.detalles.map((d) => d.producto.idProducto);
 
@@ -675,6 +685,7 @@ export function reducirCompras(
       validez: a.validez,
       estado: "Registrada",
       descuento: a.descuento,
+      condicionesEntrega: a.condicionesEntrega.trim(),
       detalles: a.detalles.map((d, i) => ({
         ...d,
         idDetalle: i + 1,

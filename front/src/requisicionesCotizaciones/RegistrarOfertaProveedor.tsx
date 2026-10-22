@@ -24,6 +24,7 @@ export default function RegistrarOfertaProveedor({
   const [proveedorId, setProveedorId] = useState("");
   const [validez, setValidez] = useState("");
   const [descuento, setDescuento] = useState("0");
+  const [condicionesEntrega, setCondicionesEntrega] = useState("");
 
   const [precios, setPrecios] = useState<Record<number, string>>({});
 
@@ -52,6 +53,7 @@ export default function RegistrarOfertaProveedor({
     setProveedorId("");
     setValidez("");
     setDescuento("0");
+    setCondicionesEntrega("");
     setPrecios({});
     setPlazos({});
   }, [ofertas]);
@@ -73,6 +75,7 @@ export default function RegistrarOfertaProveedor({
       solicitud: solicitud.idSolicitud,
       proveedor,
       validez,
+      condicionesEntrega: condicionesEntrega.trim(),
       descuento: Number(descuento),
       hoy,
       detalles: requisicion.detalles.map((detalle, i) => ({
@@ -126,6 +129,18 @@ export default function RegistrarOfertaProveedor({
           onChange={(e) => setDescuento(e.target.value)}
         />
       </label>
+      <label>
+        Condiciones de entrega
+        <textarea
+          className="formulario-requisicion__input"
+          value={condicionesEntrega}
+          onChange={(e) => setCondicionesEntrega(e.target.value)}
+          placeholder="Ej.: entrega en almacén, embalaje incluido y transporte a cargo del proveedor"
+          rows={3}
+          maxLength={500}
+          required
+        />
+      </label>
 
       {requisicion.detalles.map((detalle) => (
         <fieldset key={detalle.idDetalle}>
@@ -174,7 +189,7 @@ export default function RegistrarOfertaProveedor({
       <button
         type="button"
         className="selector-proveedores-boton"
-        disabled={!proveedorId || !validez}
+        disabled={!proveedorId || !validez || !condicionesEntrega.trim()}
         onClick={registrarOferta}
       >
         Registrar oferta

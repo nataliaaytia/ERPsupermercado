@@ -82,6 +82,7 @@ export interface OfertaProveedor {
   validez: string;
   estado: "Registrada" | "Seleccionada" | "Rechazada";
   descuento: number;
+  condicionesEntrega: string;
   detalles: DetalleOferta[];
 }
 
