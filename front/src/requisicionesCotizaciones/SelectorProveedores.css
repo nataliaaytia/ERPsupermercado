@@ -54,6 +54,35 @@
   color: var(--text-primary);
 }
 
+.selector-proveedores-oferta {
+  transition:
+    background-color 0.3s ease,
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.selector-proveedores-oferta--ganadora {
+  border-color: #35c78a;
+  background-color: rgba(53, 199, 138, 0.08);
+  box-shadow: 0 0 0 2px rgba(53, 199, 138, 0.18);
+}
+
+.selector-proveedores-oferta__ganadora {
+  align-self: flex-start;
+  padding: 0.35rem 0.75rem;
+  border: 1px solid #35c78a;
+  border-radius: 20px;
+  color: #35c78a;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .selector-proveedores-oferta {
+    transition: none;
+  }
+}
+
 .selector-proveedores-encabezado {
   display: flex;
   justify-content: space-between;
@@ -155,6 +184,9 @@
   font: inherit;
   font-weight: 600;
   cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .selector-proveedores-boton:hover:not(:disabled) {
@@ -178,6 +210,30 @@
 
 .selector-proveedores-confirmacion strong {
   color: #35c78a;
+}
+
+.selector-proveedores-adjudicacion {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 1px solid var(--accent, #38b6e8);
+  border-radius: 8px;
+  background: var(--bg-card);
+}
+
+.selector-proveedores-adjudicacion h3,
+.selector-proveedores-adjudicacion p {
+  margin: 0;
+}
+
+.selector-proveedores-adjudicacion ul {
+  margin: 0;
+  padding-left: 1.5rem;
+}
+
+.selector-proveedores-adjudicacion li {
+  margin-bottom: 0.35rem;
 }
 
 .selector-proveedores-mensaje {
@@ -234,5 +290,199 @@
   .selector-proveedores button:not(.selector-proveedores-boton) {
     width: 100%;
     box-sizing: border-box;
+  }
+}
+
+.comparacion-ofertas {
+    margin: 1.5rem 0;
+    padding: 1.25rem;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    background: var(--background-secondary);
+}
+
+.comparacion-ofertas h2 {
+    margin-top: 0;
+}
+
+.comparacion-ofertas-tabla-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.comparacion-ofertas-tabla {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+.comparacion-ofertas-tabla th,
+.comparacion-ofertas-tabla td {
+    padding: 0.85rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.comparacion-ofertas-tabla th {
+    font-weight: 700;
+}
+
+.comparacion-costo {
+    font-weight: 800;
+    color: var(--accent);
+    white-space: nowrap;
+}
+
+.comparacion-mejor-oferta {
+    display: inline-block;
+    padding: 0.3rem 0.65rem;
+    border-radius: 999px;
+    background: #dcfce7;
+    color: #166534;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.comparacion-otra-oferta {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+.comparacion-ofertas {
+  margin: 20px 0;
+  padding: 18px;
+  border: 1px solid var(--border, #475569);
+  border-radius: 10px;
+}
+
+.comparacion-ofertas h3 {
+  margin-top: 0;
+  margin-bottom: 16px;
+}
+
+.comparacion-ofertas__contenedor {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.comparacion-ofertas__tabla {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.comparacion-ofertas__tabla th,
+.comparacion-ofertas__tabla td {
+  padding: 12px;
+  border-bottom: 1px solid var(--border, #475569);
+  vertical-align: top;
+}
+
+.comparacion-ofertas__tabla th {
+  font-weight: 700;
+}
+
+.comparacion-ofertas__tabla ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.comparacion-ofertas__tabla li {
+  margin-bottom: 5px;
+}
+
+.comparacion-ofertas__tabla tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* SCRUM-408: cierre de solicitudes de cotización */
+
+.selector-proveedores-acciones-solicitud {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+/* Botón para cerrar la solicitud */
+.selector-proveedores .selector-proveedores-cerrar:not(:disabled) {
+  background: transparent;
+  color: #e7aa4b;
+  border-color: #d99837;
+}
+
+.selector-proveedores .selector-proveedores-cerrar:hover:not(:disabled) {
+  background: rgba(217, 152, 55, 0.12);
+  border-color: #e7aa4b;
+}
+
+/* Mensaje cuando el plazo ha vencido */
+.selector-proveedores-plazo-vencido {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding: 1rem 1.25rem;
+  background: var(--bg-card);
+  border: 1px solid #d99837;
+  border-radius: 10px;
+}
+
+.selector-proveedores-plazo-vencido strong {
+  color: #e7aa4b;
+}
+
+/* Confirmación antes de cerrar */
+.selector-proveedores-confirmar-cierre {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding: 1rem 1.25rem;
+  background: var(--bg-card);
+  border: 1px solid var(--accent, #38b6e8);
+  border-radius: 10px;
+}
+
+/* Mensaje de integración pendiente */
+.selector-proveedores-integracion-pendiente {
+  color: #e7aa4b !important;
+}
+
+/* Confirmación visual de cierre exitoso */
+.selector-proveedores-cierre-exitoso {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding: 1rem 1.25rem;
+  background: rgba(53, 199, 138, 0.07);
+  border: 1px solid #35c78a;
+  border-radius: 10px;
+  animation: aparecer-cierre 0.35s ease-out;
+}
+
+.selector-proveedores-cierre-exitoso strong {
+  color: #35c78a;
+}
+
+@keyframes aparecer-cierre {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .selector-proveedores-cierre-exitoso {
+    animation: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .selector-proveedores-acciones-solicitud {
+    flex-direction: column;
+    align-items: stretch;
   }
 }

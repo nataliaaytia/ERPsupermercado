@@ -1,14 +1,15 @@
 import { useState } from "react";
 import type { Dispatch } from "react";
 
-import type {
-  AccionCompras,
-  EstadoCompras,
-} from "./modeloCompras";
+import type { AccionCompras, EstadoCompras } from "./modeloCompras";
 import type { ProveedorReferencia } from "./tipos";
 
 import { codigoRequisicion } from "./formatoRequisicion";
 import { fechaHoy } from "./useRequisiciones";
+import ListaOfertasProveedor from "./ListaOfertasProveedor";
+import GenerarSolicitudCotizacion from "./GenerarSolicitudCotizacion";
+import AsociarProveedores from "./AsociarProveedores";
+import RegistrarOfertaProveedor from "./RegistrarOfertaProveedor";
 
 import "./SelectorProveedores.css";
 
@@ -28,72 +29,76 @@ export default function SelectorProveedores({
   dispatch,
   solicitudInicialId = null,
 }: Props) {
-  const [requisicionId, setRequisicionId] = useState("");
-  const [fechaLimite, setFechaLimite] = useState("");
   const [solicitudId, setSolicitudId] = useState(
-    solicitudInicialId === null
-      ? ""
-      : String(solicitudInicialId),
+    solicitudInicialId === null ? "" : String(solicitudInicialId),
   );
 
-  const [seleccionados, setSeleccionados] =
-    useState<number[]>([]);
-
-  const [proveedorId, setProveedorId] = useState("");
-  const [validez, setValidez] = useState("");
-
-  const [precios, setPrecios] =
-    useState<Record<number, string>>({});
-
-  const [plazos, setPlazos] =
-    useState<Record<number, string>>({});
-
-  const [busqueda, setBusqueda] = useState("");
+  const [filtroEstado, setFiltroEstado] = useState("Todas");
+  const [confirmarCierreId, setConfirmarCierreId] = useState<number | null>(null);
 
   const hoy = fechaHoy();
 
-  const aprobadas = estado.requisiciones.filter(
-    r => r.estado === "Aprobada",
+  const solicitudesFiltradas = estado.solicitudes.filter(
+    (s) => filtroEstado === "Todas" || s.estado === filtroEstado,
   );
 
+  const estadosDisponibles = [
+    ...new Set(estado.solicitudes.map((s) => s.estado)),
+  ];
+
   const solicitud = estado.solicitudes.find(
-    s => s.idSolicitud === Number(solicitudId),
+    (s) => s.idSolicitud === Number(solicitudId),
   );
 
   const requisicion = estado.requisiciones.find(
-    r => r.idRequisicion === solicitud?.requisicion,
+    (r) => r.idRequisicion === solicitud?.requisicion,
   );
 
-  const activos = proveedores.filter(
-    p => p.estado === "Activo",
-  );
+  const activos = proveedores.filter((p) => p.estado === "Activo");
 
-  const proveedoresVisibles = activos.filter(p => {
-    const texto = busqueda.trim().toLowerCase();
-
-    return (
-      p.razonSocial.toLowerCase().includes(texto) ||
-      p.nitRuc.includes(texto)
-    );
-  });
-
-  const invitados = activos.filter(
-    p =>
-      solicitud?.proveedoresIds.includes(
-        p.idProveedor,
-      ),
+  const invitados = activos.filter((p) =>
+    solicitud?.proveedoresIds.includes(p.idProveedor),
   );
 
   const ofertas = estado.ofertas.filter(
-    o => o.solicitud === solicitud?.idSolicitud,
+    (o) => o.solicitud === solicitud?.idSolicitud,
+  );
+  const ofertasValidas = ofertas.filter(
+    (oferta) =>
+      oferta.estado === "Registrada" &&
+      oferta.validez >= hoy &&
+      (solicitud?.estado === "Enviada" || solicitud?.estado === "Cerrada") &&
+      oferta.detalles.length === requisicion?.detalles.length &&
+      requisicion.detalles.every((detalle) =>
+        oferta.detalles.some(
+          (item) => item.producto.idProducto === detalle.producto.idProducto,
+        ),
+      ),
   );
 
-  const adjudicada = ofertas.some(
-    o => o.estado === "Seleccionada",
-  );
+  const calcularCostoTotal = (oferta: (typeof ofertas)[number]) => {
+    if (!requisicion) return 0;
 
-  const solicitudEnviada =
-    solicitud?.estado === "Enviada";
+    return requisicion.detalles.reduce((total, detalle) => {
+      const detalleOferta = oferta.detalles.find(
+        (item) => item.producto.idProducto === detalle.producto.idProducto,
+      );
+
+      return total + detalle.cantidad * (detalleOferta?.precio ?? 0);
+    }, 0);
+  };
+
+  const menorCosto = ofertasValidas.length
+    ? Math.min(...ofertasValidas.map(calcularCostoTotal))
+    : null;
+
+  const adjudicada = ofertas.some((o) => o.estado === "Seleccionada");
+
+  const solicitudEnviada = solicitud?.estado === "Enviada";
+  const solicitudCerrada = solicitud?.estado === "Cerrada";
+  const plazoFinalizado = Boolean(solicitud && solicitud.fechaLimite < hoy);
+  const puedeCerrar = solicitudEnviada && plazoFinalizado && !adjudicada;
+  const confirmacionCierreVisible = confirmarCierreId === solicitud?.idSolicitud;
 
   const puedeOfertar =
     solicitudEnviada &&
@@ -102,175 +107,135 @@ export default function SelectorProveedores({
     !adjudicada;
 
   const cambiarSolicitud = (id: string) => {
+    setConfirmarCierreId(null);
     setSolicitudId(id);
-    setSeleccionados([]);
-    setProveedorId("");
-    setValidez("");
-    setPrecios({});
-    setPlazos({});
-    setBusqueda("");
   };
 
-  const cambiarSeleccion = (idProveedor: number) => {
-    if (solicitud?.estado !== "Generada") return;
-
-    setSeleccionados(actuales =>
-      actuales.includes(idProveedor)
-        ? actuales.filter(id => id !== idProveedor)
-        : [...actuales, idProveedor],
-    );
-  };
-
-  const asociarProveedores = () => {
-    if (
-      solicitud?.estado !== "Generada" ||
-      seleccionados.length === 0
-    ) {
-      return;
-    }
-
-    // Si algún proveedor dejó de estar activo,
-    // el reductor rechazará la operación completa.
-    const seleccion = proveedores.filter(p =>
-      seleccionados.includes(p.idProveedor),
-    );
-
-    if (seleccion.length !== seleccionados.length) {
-      return;
-    }
-
-    dispatch({
-      tipo: "enviar",
-      id: solicitud.idSolicitud,
-      proveedores: seleccion,
-      hoy,
-    });
-  };
-
-  const registrarOferta = () => {
-    const proveedor = invitados.find(
-      p => p.idProveedor === Number(proveedorId),
-    );
-
-    if (
-      !puedeOfertar ||
-      !solicitud ||
-      !requisicion ||
-      !proveedor
-    ) {
-      return;
-    }
-
-    dispatch({
-      tipo: "registrarOferta",
-      solicitud: solicitud.idSolicitud,
-      proveedor,
-      validez,
-      hoy,
-      detalles: requisicion.detalles.map((detalle, i) => ({
-        idDetalle: i + 1,
-        producto: detalle.producto,
-        precio: Number(
-          precios[detalle.producto.idProducto] ?? "",
-        ),
-        plazoEntrega: Number(
-          plazos[detalle.producto.idProducto] ?? "",
-        ),
-      })),
-    });
+  const cambiarFiltroEstado = (nuevoEstado: string) => {
+    setConfirmarCierreId(null);
+    setFiltroEstado(nuevoEstado);
+    setSolicitudId("");
   };
 
   return (
     <div className="selector-proveedores">
-      <h2>Generar solicitud de cotización</h2>
+      <GenerarSolicitudCotizacion
+        requisiciones={estado.requisiciones}
+        hoy={hoy}
+        dispatch={dispatch}
+      />
 
-      {aprobadas.length === 0 && (
-        <p className="selector-proveedores-vacio">
-          Primero debes aprobar una requisición.
+      <h2>Solicitudes de cotización</h2>
+      <section className="comparacion-ofertas">
+        <h2>Comparación económica de ofertas</h2>
+
+        <p>
+          Compara el costo total de las propuestas recibidas para identificar la
+          alternativa económicamente más conveniente.
         </p>
-      )}
+
+        {!solicitud && (
+          <p className="selector-proveedores-vacio">
+            Selecciona una solicitud de cotización para comparar sus ofertas.
+          </p>
+        )}
+
+        {solicitud && ofertasValidas.length === 0 && (
+          <p className="selector-proveedores-vacio">
+            Todavía no hay ofertas válidas para comparar. Las ofertas deben
+            estar registradas, vigentes y contener todos los productos
+            solicitados.
+          </p>
+        )}
+
+        {ofertasValidas.length > 0 && (
+          <div className="comparacion-ofertas-tabla-wrapper">
+            <table className="comparacion-ofertas-tabla">
+              <thead>
+                <tr>
+                  <th>Oferta</th>
+                  <th>Proveedor</th>
+                  <th>Válida hasta</th>
+                  <th>Costo total</th>
+                  <th>Evaluación económica</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {ofertasValidas
+                  .slice()
+                  .sort((a, b) => calcularCostoTotal(a) - calcularCostoTotal(b))
+                  .map((oferta) => {
+                    const costoTotal = calcularCostoTotal(oferta);
+                    const esMenorCosto = costoTotal === menorCosto;
+
+                    return (
+                      <tr key={oferta.idOferta}>
+                        <td>OF-{String(oferta.idOferta).padStart(4, "0")}</td>
+
+                        <td>{oferta.proveedor.razonSocial}</td>
+
+                        <td>{oferta.validez}</td>
+
+                        <td className="comparacion-costo">
+                          {costoTotal.toLocaleString("es-BO", {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}{" "}
+                          Bs.
+                        </td>
+
+                        <td>
+                          {esMenorCosto ? (
+                            <span className="comparacion-mejor-oferta">
+                              Menor costo
+                            </span>
+                          ) : (
+                            <span className="comparacion-otra-oferta">
+                              Alternativa
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      <p>
+        Selecciona una solicitud para consultar sus productos, asociar
+        proveedores y registrar sus ofertas.
+      </p>
 
       <label>
-        Requisición aprobada
-
+        Filtrar por estado
         <select
-          value={requisicionId}
-          onChange={e =>
-            setRequisicionId(e.target.value)
-          }
+          value={filtroEstado}
+          onChange={(e) => cambiarFiltroEstado(e.target.value)}
         >
-          <option value="">
-            Seleccionar requisición
-          </option>
+          <option value="Todas">Todas</option>
 
-          {aprobadas.map(r => (
-            <option
-              key={r.idRequisicion}
-              value={r.idRequisicion}
-            >
-              {codigoRequisicion(r.idRequisicion)}
-              {" · "}
-              {r.observacion}
+          {estadosDisponibles.map((estadoSolicitud) => (
+            <option key={estadoSolicitud} value={estadoSolicitud}>
+              {estadoSolicitud}
             </option>
           ))}
         </select>
       </label>
 
       <label>
-        Fecha límite
-
-        <input
-          className="formulario-requisicion__input"
-          type="date"
-          min={hoy}
-          value={fechaLimite}
-          onChange={e =>
-            setFechaLimite(e.target.value)
-          }
-        />
-      </label>
-
-      <button
-        type="button"
-        className="selector-proveedores-boton"
-        disabled={!requisicionId || !fechaLimite}
-        onClick={() =>
-          dispatch({
-            tipo: "generar",
-            requisicion: Number(requisicionId),
-            fechaLimite,
-            hoy,
-          })
-        }
-      >
-        Generar solicitud
-      </button>
-
-      <h2>Solicitudes de cotización</h2>
-
-      <p>
-        Selecciona una solicitud para consultar sus productos,
-        asociar proveedores y registrar sus ofertas.
-      </p>
-
-      <label>
         Solicitud de cotización
-
         <select
           value={solicitudId}
-          onChange={e =>
-            cambiarSolicitud(e.target.value)
-          }
+          onChange={(e) => cambiarSolicitud(e.target.value)}
         >
-          <option value="">
-            Seleccionar solicitud
-          </option>
+          <option value="">Seleccionar solicitud</option>
 
-          {estado.solicitudes.map(s => (
-            <option
-              key={s.idSolicitud}
-              value={s.idSolicitud}
-            >
+          {solicitudesFiltradas.map((s) => (
+            <option key={s.idSolicitud} value={s.idSolicitud}>
               {codigoCotizacion(s.idSolicitud)}
               {" · "}
               {codigoRequisicion(s.requisicion)}
@@ -283,8 +248,14 @@ export default function SelectorProveedores({
 
       {estado.solicitudes.length === 0 && (
         <p className="selector-proveedores-vacio">
-          Todavía no hay solicitudes de cotización.
-          Genera una desde una requisición aprobada.
+          Todavía no hay solicitudes de cotización. Genera una desde una
+          requisición aprobada.
+        </p>
+      )}
+
+      {estado.solicitudes.length > 0 && solicitudesFiltradas.length === 0 && (
+        <p className="selector-proveedores-vacio">
+          No hay solicitudes de cotización con el estado seleccionado.
         </p>
       )}
 
@@ -293,43 +264,31 @@ export default function SelectorProveedores({
           <div className="selector-proveedores-resumen">
             <div className="selector-proveedores-encabezado">
               <div>
-                <strong>
-                  {codigoCotizacion(solicitud.idSolicitud)}
-                </strong>
+                <strong>{codigoCotizacion(solicitud.idSolicitud)}</strong>
 
                 <p>
                   Requisición vinculada:{" "}
-                  {codigoRequisicion(
-                    requisicion.idRequisicion,
-                  )}
+                  {codigoRequisicion(requisicion.idRequisicion)}
                 </p>
               </div>
 
               <span
-                className={
-                  solicitudEnviada
-                    ? "selector-proveedores-estado enviado"
-                    : "selector-proveedores-estado"
-                }
+                className={`selector-proveedores-estado selector-proveedores-estado--${solicitud.estado.toLowerCase()}`}
               >
                 {solicitud.estado}
               </span>
             </div>
 
-            <p>
-              Solicitante: {requisicion.solicitante}
-            </p>
+            <p>Solicitante: {requisicion.solicitante}</p>
 
             <p>Fecha: {solicitud.fecha}</p>
 
-            <p>
-              Fecha límite: {solicitud.fechaLimite}
-            </p>
+            <p>Fecha límite: {solicitud.fechaLimite}</p>
 
             <strong>Productos solicitados</strong>
 
             <ul>
-              {requisicion.detalles.map(detalle => (
+              {requisicion.detalles.map((detalle) => (
                 <li key={detalle.idDetalle}>
                   {detalle.producto.descripcion}
                   {" × "}
@@ -341,18 +300,18 @@ export default function SelectorProveedores({
 
           {solicitudEnviada && (
             <div className="selector-proveedores-confirmacion">
-              <strong>Proveedores asociados</strong>
+              <strong>Proveedores asociados correctamente</strong>
 
               <p>
-                Esta solicitud fue marcada como enviada.
+                Los siguientes proveedores quedaron asociados a esta solicitud
+                de cotización.
               </p>
 
               <ul>
-                {solicitud.proveedoresIds.map(id => (
+                {solicitud.proveedoresIds.map((id) => (
                   <li key={id}>
-                    {proveedores.find(
-                      p => p.idProveedor === id,
-                    )?.razonSocial ?? `Proveedor ${id}`}
+                    {proveedores.find((p) => p.idProveedor === id)
+                      ?.razonSocial ?? `Proveedor ${id}`}
                   </li>
                 ))}
               </ul>
@@ -360,280 +319,95 @@ export default function SelectorProveedores({
           )}
 
           {solicitud.estado === "Generada" && (
-            <>
-              <h3>Proveedores disponibles</h3>
-
-              <input
-                type="search"
-                placeholder="Buscar por razón social o NIT"
-                aria-label="Buscar proveedores"
-                value={busqueda}
-                onChange={e =>
-                  setBusqueda(e.target.value)
-                }
-              />
-
-              <div className="selector-proveedores-lista">
-                {proveedoresVisibles.length === 0 ? (
-                  <p>
-                    No se encontraron proveedores disponibles.
-                  </p>
-                ) : (
-                  proveedoresVisibles.map(proveedor => (
-                    <label
-                      key={proveedor.idProveedor}
-                      className="selector-proveedor"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={seleccionados.includes(
-                          proveedor.idProveedor,
-                        )}
-                        onChange={() =>
-                          cambiarSeleccion(
-                            proveedor.idProveedor,
-                          )
-                        }
-                      />
-
-                      <span>
-                        <strong>
-                          {proveedor.razonSocial}
-                        </strong>
-
-                        <small>
-                          NIT/RUC: {proveedor.nitRuc}
-                        </small>
-                      </span>
-                    </label>
-                  ))
-                )}
-              </div>
-
-              <div className="selector-proveedores-acciones">
-                <p>
-                  Proveedores seleccionados:{" "}
-                  {seleccionados.length}
-                </p>
-
-                <button
-                  type="button"
-                  className="selector-proveedores-boton"
-                  disabled={
-                    seleccionados.length === 0 ||
-                    solicitud.fechaLimite < hoy
-                  }
-                  onClick={asociarProveedores}
-                >
-                  Asociar proveedores y marcar como enviada
-                </button>
-              </div>
-
-              {solicitud.fechaLimite < hoy && (
-                <p role="alert">
-                  La fecha límite de esta solicitud ya venció.
-                </p>
-              )}
-            </>
+            <AsociarProveedores
+              key={solicitud.idSolicitud}
+              proveedores={proveedores}
+              solicitud={solicitud}
+              hoy={hoy}
+              dispatch={dispatch}
+            />
           )}
 
-          {solicitud.estado !== "Cancelada" &&
-            !adjudicada && (
+          {solicitudCerrada && (
+            <div className="selector-proveedores-cierre-exitoso" role="status">
+              <strong>Solicitud cerrada</strong>
+              <p>El periodo de cotización ha finalizado. No se admiten nuevas ofertas y la solicitud está lista para su evaluación.</p>
+            </div>
+          )}
+
+          {solicitudEnviada && plazoFinalizado && !solicitudCerrada && (
+            <div className="selector-proveedores-plazo-vencido" role="status">
+              <strong>Periodo de cotización finalizado</strong>
+              <p>El plazo venció el {solicitud.fechaLimite.split("-").reverse().join("/")}. Ya no se pueden registrar nuevas ofertas. Puedes cerrar la solicitud para continuar con la evaluación.</p>
+            </div>
+          )}
+
+          {solicitud.estado !== "Cancelada" && !solicitudCerrada && !adjudicada && (
+            <div className="selector-proveedores-acciones-solicitud">
+              {solicitudEnviada && (
+                <button
+                  type="button"
+                  className="selector-proveedores-cerrar"
+                  disabled={!puedeCerrar}
+                  title={!plazoFinalizado ? "Disponible cuando termine el periodo de cotización" : undefined}
+                  onClick={() => setConfirmarCierreId(solicitud.idSolicitud)}
+                >
+                  Cerrar solicitud
+                </button>
+              )}
               <button
                 type="button"
-                onClick={() =>
-                  dispatch({
-                    tipo: "cancelar",
-                    id: solicitud.idSolicitud,
-                  })
-                }
+                onClick={() => dispatch({ tipo: "cancelar", id: solicitud.idSolicitud })}
               >
                 Cancelar solicitud
               </button>
-            )}
+            </div>
+          )}
+
+          {confirmacionCierreVisible && puedeCerrar && (
+            <div className="selector-proveedores-confirmar-cierre" role="group" aria-label="Confirmar cierre de solicitud">
+              <strong>¿Cerrar {codigoCotizacion(solicitud.idSolicitud)}?</strong>
+              <p>Esta acción finalizará la recepción de ofertas e iniciará la etapa de evaluación.</p>
+              <div className="selector-proveedores-acciones-solicitud">
+                <button
+                  type="button"
+                  className="selector-proveedores-cerrar"
+                  onClick={() => {
+                    dispatch({ tipo: "cerrar", id: solicitud.idSolicitud, hoy });
+                    setConfirmarCierreId(null);
+                  }}
+                >
+                  Confirmar cierre
+                </button>
+                <button type="button" onClick={() => setConfirmarCierreId(null)}>
+                  Volver
+                </button>
+              </div>
+            </div>
+          )}
 
           {puedeOfertar && (
-            <>
-              <h2>Registrar oferta del proveedor</h2>
-
-              <label>
-                Proveedor invitado
-
-                <select
-                  value={proveedorId}
-                  onChange={e =>
-                    setProveedorId(e.target.value)
-                  }
-                >
-                  <option value="">
-                    Seleccionar proveedor
-                  </option>
-
-                  {invitados.map(proveedor => (
-                    <option
-                      key={proveedor.idProveedor}
-                      value={proveedor.idProveedor}
-                    >
-                      {proveedor.razonSocial}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <label>
-                Oferta válida hasta
-
-                <input
-                  className="formulario-requisicion__input"
-                  type="date"
-                  min={hoy}
-                  value={validez}
-                  onChange={e =>
-                    setValidez(e.target.value)
-                  }
-                />
-              </label>
-
-              {requisicion.detalles.map(detalle => (
-                <fieldset key={detalle.idDetalle}>
-                  <legend>
-                    {detalle.producto.descripcion}
-                    {" · "}
-                    Cantidad: {detalle.cantidad}
-                  </legend>
-
-                  <label>
-                    Precio unitario (Bs)
-
-                    <input
-                      className="formulario-requisicion__input"
-                      type="number"
-                      min="0.01"
-                      step="0.01"
-                      value={
-                        precios[
-                        detalle.producto.idProducto
-                        ] ?? ""
-                      }
-                      onChange={e =>
-                        setPrecios(actuales => ({
-                          ...actuales,
-                          [detalle.producto.idProducto]:
-                            e.target.value,
-                        }))
-                      }
-                    />
-                  </label>
-
-                  <label>
-                    Plazo de entrega (días)
-
-                    <input
-                      className="formulario-requisicion__input"
-                      type="number"
-                      min="1"
-                      step="1"
-                      value={
-                        plazos[
-                        detalle.producto.idProducto
-                        ] ?? ""
-                      }
-                      onChange={e =>
-                        setPlazos(actuales => ({
-                          ...actuales,
-                          [detalle.producto.idProducto]:
-                            e.target.value,
-                        }))
-                      }
-                    />
-                  </label>
-                </fieldset>
-              ))}
-
-              <button
-                type="button"
-                className="selector-proveedores-boton"
-                disabled={!proveedorId || !validez}
-                onClick={registrarOferta}
-              >
-                Registrar oferta
-              </button>
-            </>
+            <RegistrarOfertaProveedor
+              key={solicitud.idSolicitud}
+              solicitud={solicitud}
+              requisicion={requisicion}
+              invitados={invitados}
+              ofertas={ofertas}
+              hoy={hoy}
+              dispatch={dispatch}
+            />
           )}
 
-          <h2>Ofertas recibidas</h2>
-
-          {ofertas.length === 0 && (
-            <p>Todavía no hay ofertas.</p>
-          )}
-
-          {ofertas.map(oferta => (
-            <article
-              key={oferta.idOferta}
-              className="selector-proveedores-resumen"
-            >
-              <strong>
-                OF-{String(oferta.idOferta).padStart(4, "0")}
-                {" · "}
-                {oferta.proveedor.razonSocial}
-                {" · "}
-                {oferta.estado}
-              </strong>
-
-              <p>
-                Fecha: {oferta.fecha}
-                {" · "}
-                Válida hasta: {oferta.validez}
-              </p>
-
-              <ul>
-                {oferta.detalles.map(detalle => (
-                  <li key={detalle.idDetalle}>
-                    {detalle.producto.descripcion}
-                    {": Bs "}
-                    {detalle.precio.toFixed(2)}
-                    {" · "}
-                    {detalle.plazoEntrega} días
-                  </li>
-                ))}
-              </ul>
-
-              {oferta.estado === "Registrada" &&
-                solicitudEnviada && (
-                  <div className="selector-proveedores-acciones">
-                    <button
-                      type="button"
-                      disabled={
-                        adjudicada ||
-                        oferta.validez < hoy
-                      }
-                      onClick={() =>
-                        dispatch({
-                          tipo: "seleccionar",
-                          id: oferta.idOferta,
-                          hoy,
-                        })
-                      }
-                    >
-                      Seleccionar oferta
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() =>
-                        dispatch({
-                          tipo: "rechazar",
-                          id: oferta.idOferta,
-                          hoy,
-                        })
-                      }
-                    >
-                      Rechazar oferta
-                    </button>
-                  </div>
-                )}
-            </article>
-          ))}
+          <ListaOfertasProveedor
+            ofertas={ofertas}
+            ofertasValidas={ofertasValidas}
+            fechaLimite={solicitud.fechaLimite}
+            solicitudEnviada={solicitudEnviada}
+            solicitudCerrada={solicitudCerrada}
+            adjudicada={adjudicada}
+            hoy={hoy}
+            dispatch={dispatch}
+          />
         </>
       )}
     </div>

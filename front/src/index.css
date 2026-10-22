@@ -1,4 +1,7 @@
+
 :root {
+  color-scheme: light;
+
   --bg-primary: #f7f5f0;
   --bg-secondary: #f0eae1;
   --bg-card: #ffffff;
@@ -12,6 +15,8 @@
 }
 
 [data-theme='dark'] {
+  color-scheme: dark;
+
   --bg-primary: #0a1120;
   --bg-secondary: #131f37;
   --bg-card: #131f37;
