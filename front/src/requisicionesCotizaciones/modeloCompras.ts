@@ -16,6 +16,7 @@ import type {
 import type {
   AlertaReposicion,
   RegistroRecepcionAlerta,
+  RegistroProcesamientoCompra,
 } from "./tiposAlertasInventario";
 
 import { revisarRequisicion } from "./revisionRequisicion";
@@ -25,6 +26,7 @@ export interface EstadoCompras {
   solicitudes: SolicitudCotizacion[];
   ofertas: OfertaProveedor[];
   alertasInventario: RegistroRecepcionAlerta[];
+  historialProcesamientos: RegistroProcesamientoCompra[];
   mensaje: string;
   tipoMensaje: "exito" | "error" | "neutro";
 }
@@ -34,6 +36,7 @@ export const estadoInicial: EstadoCompras = {
   solicitudes: [],
   ofertas: [],
   alertasInventario: [],
+  historialProcesamientos: [],
   mensaje: "",
   tipoMensaje: "neutro",
 };
@@ -140,10 +143,11 @@ export function reducirCompras(
   }
   if (a.tipo === "recibirAlertaInventario") {
     const alerta = a.alerta;
+    const idEvento =
+      typeof alerta.idEvento === "string" ? alerta.idEvento.trim() : "";
 
     const alertaValida =
-      typeof alerta.idEvento === "string" &&
-      alerta.idEvento.trim().length > 0 &&
+      idEvento.length > 0 &&
       Number.isSafeInteger(alerta.idProducto) &&
       alerta.idProducto > 0 &&
       typeof alerta.nombreProducto === "string" &&
@@ -156,48 +160,88 @@ export function reducirCompras(
       alerta.cantidadSugerida > 0 &&
       typeof alerta.fechaPublicacion === "string" &&
       Number.isFinite(Date.parse(alerta.fechaPublicacion)) &&
+      typeof a.fechaRecepcion === "string" &&
       Number.isFinite(Date.parse(a.fechaRecepcion));
 
     if (!alertaValida) {
       return fallo("La alerta de Inventarios contiene datos inválidos.");
     }
 
-    if (
+    const yaProcesada =
       e.alertasInventario.some(
-        (registro) => registro.idEvento === alerta.idEvento,
-      )
-    ) {
-      return fallo("Esta alerta de Inventarios ya fue recibida.");
+        (registro) => registro.idEvento.trim() === idEvento,
+      ) ||
+      e.historialProcesamientos.some(
+        (registro) =>
+          registro.idEvento.trim() === idEvento &&
+          registro.resultado === "Procesado",
+      );
+
+    const fechaIntento = a.fechaRecepcion;
+
+    if (yaProcesada) {
+      const registroDuplicado: RegistroProcesamientoCompra = {
+        idEvento,
+        idProducto: alerta.idProducto,
+        nombreProducto: alerta.nombreProducto.trim(),
+        fechaIntento,
+        resultado: "Duplicado",
+        mensaje: "Evento duplicado: ya fue procesado anteriormente.",
+      };
+
+      return {
+        ...e,
+        historialProcesamientos: [
+          ...e.historialProcesamientos,
+          registroDuplicado,
+        ],
+        mensaje: registroDuplicado.mensaje,
+        tipoMensaje: "error",
+      };
     }
 
     const registro: RegistroRecepcionAlerta = {
-      idEvento: alerta.idEvento.trim(),
+      idEvento,
       idProducto: alerta.idProducto,
       nombreProducto: alerta.nombreProducto.trim(),
       cantidadActual: alerta.cantidadActual,
       stockMinimo: alerta.stockMinimo,
       cantidadSugerida: alerta.cantidadSugerida,
       fechaPublicacion: alerta.fechaPublicacion,
-      fechaRecepcion: a.fechaRecepcion,
+      fechaRecepcion: fechaIntento,
       estado: "Recibida",
       mensaje: "Alerta de reposición recibida y registrada correctamente.",
+    };
+
+    const registroProcesamiento: RegistroProcesamientoCompra = {
+      idEvento,
+      idProducto: alerta.idProducto,
+      nombreProducto: alerta.nombreProducto.trim(),
+      fechaIntento,
+      resultado: "Procesado",
+      mensaje: "Evento procesado y registrado correctamente.",
     };
 
     return {
       ...e,
       alertasInventario: [...e.alertasInventario, registro],
-      mensaje: registro.mensaje,
+      historialProcesamientos: [
+        ...e.historialProcesamientos,
+        registroProcesamiento,
+      ],
+      mensaje: registroProcesamiento.mensaje,
       tipoMensaje: "exito",
     };
   }
   if (a.tipo === "limpiarAlertasInventario") {
-    return {
-      ...e,
-      alertasInventario: [],
-      mensaje: "Se limpió el historial de alertas de Inventarios.",
-      tipoMensaje: "exito",
-    };
-  }
+  return {
+    ...e,
+    alertasInventario: [],
+    historialProcesamientos: [],
+    mensaje: "Se limpiaron los historiales de alertas y procesamientos.",
+    tipoMensaje: "exito",
+  };
+}
 
   if (a.tipo === "cambiarPrioridad") {
     const requisicion = e.requisiciones.find((r) => r.idRequisicion === a.id);

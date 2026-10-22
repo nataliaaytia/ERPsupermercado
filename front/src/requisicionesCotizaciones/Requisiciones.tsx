@@ -198,6 +198,7 @@ export const Requisiciones = () => {
           <div className="requisiciones-tarjeta">
             <AlertasInventario
               alertasInventario={compras.alertasInventario}
+              historialProcesamientos={compras.historialProcesamientos}
               dispatch={dispatch}
             />
           </div>

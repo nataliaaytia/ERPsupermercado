@@ -1,3 +1,4 @@
+﻿
 export interface AlertaReposicion {
 idEvento: string;
 idProducto: number;
@@ -19,4 +20,13 @@ fechaPublicacion: string;
 fechaRecepcion: string;
 estado: "Recibida" | "Rechazada";
 mensaje: string;
+}
+export interface RegistroProcesamientoCompra {
+  idEvento: string;
+  idProducto: number;
+  nombreProducto: string;
+  fechaIntento: string;
+  resultado: "Procesado" | "Duplicado" | "Rechazado";
+  mensaje: string;
+
 }

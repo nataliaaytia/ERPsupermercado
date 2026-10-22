@@ -37,6 +37,11 @@ const cargarEstado = (inicial: EstadoCompras): EstadoCompras => {
     const alertasInventarioGuardadas = Array.isArray(estado.alertasInventario)
       ? estado.alertasInventario
       : [];
+    const historialProcesamientosGuardado = Array.isArray(
+      estado.historialProcesamientos,
+    )
+      ? estado.historialProcesamientos
+      : [];
 
     return {
       ...inicial,
@@ -44,6 +49,7 @@ const cargarEstado = (inicial: EstadoCompras): EstadoCompras => {
       solicitudes: estado.solicitudes,
       ofertas: estado.ofertas,
       alertasInventario: alertasInventarioGuardadas,
+      historialProcesamientos: historialProcesamientosGuardado,
       mensaje: "",
     };
   } catch (error) {
@@ -98,6 +104,7 @@ export function useRequisiciones() {
         solicitudes: estado.solicitudes,
         ofertas: estado.ofertas,
         alertasInventario: estado.alertasInventario,
+        historialProcesamientos: estado.historialProcesamientos,
       };
 
       localStorage.setItem(CLAVE_COMPRAS, JSON.stringify(datos));
@@ -109,6 +116,7 @@ export function useRequisiciones() {
     estado.solicitudes,
     estado.ofertas,
     estado.alertasInventario,
+    estado.historialProcesamientos,
   ]);
 
   return {

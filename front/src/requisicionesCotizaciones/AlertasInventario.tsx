@@ -5,17 +5,20 @@ import type { AccionCompras } from "./modeloCompras";
 import type {
   AlertaReposicion,
   RegistroRecepcionAlerta,
+  RegistroProcesamientoCompra,
 } from "./tiposAlertasInventario";
 
 import { recibirAlertaAsincronamente } from "./recepcionAlertasInventario";
 
 interface Props {
   alertasInventario: RegistroRecepcionAlerta[];
+  historialProcesamientos: RegistroProcesamientoCompra[];
   dispatch: (accion: AccionCompras) => void;
 }
 
 export default function AlertasInventario({
   alertasInventario,
+  historialProcesamientos,
   dispatch,
 }: Props) {
   const [procesando, setProcesando] = useState(false);
@@ -117,6 +120,44 @@ export default function AlertasInventario({
               <p>{alerta.mensaje}</p>
             </article>
           ))}
+        </div>
+      )}
+            <hr />
+
+      <h3>Historial de procesamientos</h3>
+
+      {historialProcesamientos.length === 0 ? (
+        <p>No hay procesamientos registrados.</p>
+      ) : (
+        <div>
+          {[...historialProcesamientos]
+            .reverse()
+            .map((registro, indice) => (
+              <article
+                key={`${registro.idEvento}-${registro.fechaIntento}-${indice}`}
+              >
+                <h4>{registro.nombreProducto}</h4>
+
+                <p>
+                  <strong>ID del evento:</strong> {registro.idEvento}
+                </p>
+
+                <p>
+                  <strong>ID del producto:</strong> {registro.idProducto}
+                </p>
+
+                <p>
+                  <strong>Fecha del intento:</strong>{" "}
+                  {new Date(registro.fechaIntento).toLocaleString()}
+                </p>
+
+                <p>
+                  <strong>Resultado:</strong> {registro.resultado}
+                </p>
+
+                <p>{registro.mensaje}</p>
+              </article>
+            ))}
         </div>
       )}
     </section>
