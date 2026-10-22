@@ -1,0 +1,130 @@
+.alertas-inventario {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  color: var(--text-primary);
+}
+
+.alertas-inventario h2,
+.alertas-inventario h3,
+.alertas-inventario h4,
+.alertas-inventario p {
+  margin: 0;
+}
+
+.alertas-inventario > p {
+  color: var(--text-secondary);
+}
+
+.alertas-inventario__boton {
+  align-self: flex-start;
+  padding: 0.7rem 1.1rem;
+  border: 1px solid var(--accent, #38b6e8);
+  border-radius: 8px;
+  background: var(--accent, #38b6e8);
+  color: #071522;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.alertas-inventario__boton:hover:not(:disabled) {
+  background: #249dcc;
+}
+
+.alertas-inventario__boton:focus-visible {
+  outline: 2px solid var(--text-primary);
+  outline-offset: 2px;
+}
+
+.alertas-inventario__boton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.alertas-inventario__boton--secundario {
+  background: transparent;
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+.alertas-inventario__lista {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.alertas-inventario__tarjeta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding: 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-card);
+}
+
+.alertas-inventario__tarjeta p {
+  color: var(--text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.alertas-inventario__tarjeta strong {
+  color: var(--text-primary);
+}
+
+.alertas-inventario__encabezado {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.alertas-inventario__estado {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.65rem;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.alertas-inventario__estado--procesada,
+.alertas-inventario__estado--procesado {
+  color: #35c78a;
+}
+
+.alertas-inventario__estado--recibida {
+  color: #0284c7;
+}
+
+.alertas-inventario__estado--duplicado {
+  color: #ca8a04;
+}
+
+.alertas-inventario__estado--rechazada {
+  color: #dc2626;
+}
+
+.alertas-inventario__vacio {
+  color: var(--text-secondary);
+}
+
+.alertas-inventario hr {
+  width: 100%;
+  border: 0;
+  border-top: 1px solid var(--border-color);
+}
+
+@media (max-width: 600px) {
+  .alertas-inventario__encabezado {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .alertas-inventario__boton {
+    width: 100%;
+  }
+}

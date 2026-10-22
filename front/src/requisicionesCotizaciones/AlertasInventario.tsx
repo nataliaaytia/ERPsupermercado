@@ -9,6 +9,9 @@ import type {
 } from "./tiposAlertasInventario";
 
 import { recibirAlertaAsincronamente } from "./recepcionAlertasInventario";
+import { codigoRequisicion } from "./formatoRequisicion";
+
+import "./AlertasInventario.css";
 
 interface Props {
   alertasInventario: RegistroRecepcionAlerta[];
@@ -22,6 +25,11 @@ export default function AlertasInventario({
   dispatch,
 }: Props) {
   const [procesando, setProcesando] = useState(false);
+
+  const ultimoProcesamiento = (idEvento: string) =>
+    [...historialProcesamientos]
+      .reverse()
+      .find((registro) => registro.idEvento === idEvento);
 
   const simularRecepcion = async () => {
     if (procesando) return;
@@ -52,7 +60,7 @@ export default function AlertasInventario({
   };
 
   return (
-    <section>
+    <section className="alertas-inventario">
       <h2>Alertas de reposición de Inventarios</h2>
 
       <p>
@@ -60,12 +68,18 @@ export default function AlertasInventario({
         Inventarios está pendiente.
       </p>
 
-      <button type="button" onClick={simularRecepcion} disabled={procesando}>
+      <button
+        className="alertas-inventario__boton"
+        type="button"
+        onClick={simularRecepcion}
+        disabled={procesando}
+      >
         {procesando ? "Recibiendo alerta..." : "Simular recepción de alerta"}
       </button>
 
       <h3>Historial de alertas recibidas</h3>
-            <button
+      <button
+        className="alertas-inventario__boton alertas-inventario__boton--secundario"
         type="button"
         onClick={() =>
           dispatch({ tipo: "limpiarAlertasInventario" })
@@ -76,64 +90,87 @@ export default function AlertasInventario({
       </button>
 
       {alertasInventario.length === 0 ? (
-        <p>No hay alertas registradas.</p>
+        <p className="alertas-inventario__vacio">
+          No hay alertas registradas.
+        </p>
       ) : (
-        <div>
-          {alertasInventario.map((alerta) => (
-            <article key={alerta.idEvento}>
-              <h4>{alerta.nombreProducto}</h4>
+        <div className="alertas-inventario__lista">
+          {alertasInventario.map((alerta) => {
+            const procesamiento = ultimoProcesamiento(alerta.idEvento);
 
-              <p>
-                <strong>ID del evento:</strong> {alerta.idEvento}
-              </p>
+            return (
+              <article
+                className="alertas-inventario__tarjeta"
+                key={alerta.idEvento}
+              >
+                <div className="alertas-inventario__encabezado">
+                  <h4>{alerta.nombreProducto}</h4>
+                  <span
+                    className={`alertas-inventario__estado alertas-inventario__estado--${alerta.estado.toLowerCase()}`}
+                  >
+                    {alerta.estado}
+                  </span>
+                </div>
 
-              <p>
-                <strong>ID del producto:</strong> {alerta.idProducto}
-              </p>
+                <p>
+                  <strong>ID del evento:</strong> {alerta.idEvento}
+                </p>
 
-              <p>
-                <strong>Stock actual:</strong> {alerta.cantidadActual}
-              </p>
+                <p>
+                  <strong>ID del producto:</strong> {alerta.idProducto}
+                </p>
 
-              <p>
-                <strong>Stock mínimo:</strong> {alerta.stockMinimo}
-              </p>
+                <p>
+                  <strong>Stock actual:</strong> {alerta.cantidadActual}
+                </p>
 
-              <p>
-                <strong>Cantidad sugerida:</strong> {alerta.cantidadSugerida}
-              </p>
+                <p>
+                  <strong>Stock mínimo:</strong> {alerta.stockMinimo}
+                </p>
 
-              <p>
-                <strong>Fecha de publicación:</strong>{" "}
-                {new Date(alerta.fechaPublicacion).toLocaleString()}
-              </p>
+                <p>
+                  <strong>Cantidad sugerida:</strong> {alerta.cantidadSugerida}
+                </p>
 
-              <p>
-                <strong>Fecha de recepción:</strong>{" "}
-                {new Date(alerta.fechaRecepcion).toLocaleString()}
-              </p>
+                <p>
+                  <strong>Fecha de publicación:</strong>{" "}
+                  {new Date(alerta.fechaPublicacion).toLocaleString()}
+                </p>
 
-              <p>
-                <strong>Estado:</strong> {alerta.estado}
-              </p>
+                <p>
+                  <strong>Fecha de recepción:</strong>{" "}
+                  {new Date(alerta.fechaRecepcion).toLocaleString()}
+                </p>
 
-              <p>{alerta.mensaje}</p>
-            </article>
-          ))}
+                <p>{alerta.mensaje}</p>
+
+                {procesamiento && (
+                  <p>
+                    <strong>Último resultado:</strong> {procesamiento.resultado}
+                    {procesamiento.idRequisicion !== undefined &&
+                      ` · Requisición ${codigoRequisicion(procesamiento.idRequisicion)}`}
+                  </p>
+                )}
+              </article>
+            );
+          })}
         </div>
       )}
-            <hr />
+      <hr />
 
       <h3>Historial de procesamientos</h3>
 
       {historialProcesamientos.length === 0 ? (
-        <p>No hay procesamientos registrados.</p>
+        <p className="alertas-inventario__vacio">
+          No hay procesamientos registrados.
+        </p>
       ) : (
-        <div>
+        <div className="alertas-inventario__lista">
           {[...historialProcesamientos]
             .reverse()
             .map((registro, indice) => (
               <article
+                className="alertas-inventario__tarjeta"
                 key={`${registro.idEvento}-${registro.fechaIntento}-${indice}`}
               >
                 <h4>{registro.nombreProducto}</h4>
@@ -152,10 +189,22 @@ export default function AlertasInventario({
                 </p>
 
                 <p>
-                  <strong>Resultado:</strong> {registro.resultado}
+                  <strong>Resultado:</strong>{" "}
+                  <span
+                    className={`alertas-inventario__estado alertas-inventario__estado--${registro.resultado.toLowerCase()}`}
+                  >
+                    {registro.resultado}
+                  </span>
                 </p>
 
                 <p>{registro.mensaje}</p>
+
+                {registro.idRequisicion !== undefined && (
+                  <p>
+                    <strong>Requisición asociada:</strong>{" "}
+                    {codigoRequisicion(registro.idRequisicion)}
+                  </p>
+                )}
               </article>
             ))}
         </div>

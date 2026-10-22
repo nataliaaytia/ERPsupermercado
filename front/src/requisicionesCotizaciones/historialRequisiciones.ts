@@ -32,6 +32,7 @@ const nombres: Partial<
     enviar: "Envío de cotización",
     cancelar: "Cancelación de cotización",
     cancelarRequisicion: "Cancelación de requisición",
+    recibirAlertaInventario: "Generación desde alerta de Inventarios",
 };
 
 function compararRequisiciones(

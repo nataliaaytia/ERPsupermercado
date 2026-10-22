@@ -152,13 +152,14 @@ export function reducirCompras(
       Number.isSafeInteger(alerta.idProducto) &&
       alerta.idProducto > 0 &&
       typeof alerta.nombreProducto === "string" &&
-      alerta.nombreProducto.trim().length > 0 &&
+      alerta.nombreProducto.trim().length >= 3 &&
       Number.isFinite(alerta.cantidadActual) &&
       alerta.cantidadActual >= 0 &&
       Number.isFinite(alerta.stockMinimo) &&
       alerta.stockMinimo >= 0 &&
-      Number.isFinite(alerta.cantidadSugerida) &&
-      alerta.cantidadSugerida > 0 &&
+      Number.isSafeInteger(alerta.cantidadSugerida) &&
+      alerta.cantidadSugerida >= 1 &&
+      alerta.cantidadSugerida <= 10000 &&
       typeof alerta.fechaPublicacion === "string" &&
       Number.isFinite(Date.parse(alerta.fechaPublicacion)) &&
       typeof a.fechaRecepcion === "string" &&
@@ -168,15 +169,15 @@ export function reducirCompras(
       return fallo("La alerta de Inventarios contiene datos inválidos.");
     }
 
+    const procesamientoPrevio = e.historialProcesamientos.find(
+      (registro) =>
+        registro.idEvento.trim() === idEvento &&
+        registro.resultado === "Procesado",
+    );
     const yaProcesada =
       e.alertasInventario.some(
         (registro) => registro.idEvento.trim() === idEvento,
-      ) ||
-      e.historialProcesamientos.some(
-        (registro) =>
-          registro.idEvento.trim() === idEvento &&
-          registro.resultado === "Procesado",
-      );
+      ) || procesamientoPrevio !== undefined;
 
     const fechaIntento = a.fechaRecepcion;
 
@@ -188,6 +189,7 @@ export function reducirCompras(
         fechaIntento,
         resultado: "Duplicado",
         mensaje: "Evento duplicado: ya fue procesado anteriormente.",
+        idRequisicion: procesamientoPrevio?.idRequisicion,
       };
 
       return {
@@ -201,6 +203,36 @@ export function reducirCompras(
       };
     }
 
+    const idRequisicion = siguiente(
+      e.requisiciones.map((requisicion) => requisicion.idRequisicion),
+    );
+    const requisicion: Requisicion = {
+      idRequisicion,
+      fecha: new Date(fechaIntento).toISOString().slice(0, 10),
+      solicitante: "Sistema de Inventarios",
+      prioridad: "Media",
+      estado: "Pendiente",
+      observacion: `Reposición generada automáticamente desde la alerta de Inventarios ${idEvento}.`,
+      detalles: [
+        {
+          idDetalle: 1,
+          producto: {
+            idProducto: alerta.idProducto,
+            descripcion: alerta.nombreProducto.trim(),
+          },
+          cantidad: alerta.cantidadSugerida,
+          observacion: `Alerta de Inventarios ${idEvento}.`,
+        },
+      ],
+    };
+    const revisionRequisicion = revisarRequisicion(requisicion);
+
+    if (revisionRequisicion.errores.length > 0) {
+      return fallo(
+        `No se pudo generar la requisición desde la alerta: ${revisionRequisicion.errores.join(" ")}`,
+      );
+    }
+
     const registro: RegistroRecepcionAlerta = {
       idEvento,
       idProducto: alerta.idProducto,
@@ -210,8 +242,8 @@ export function reducirCompras(
       cantidadSugerida: alerta.cantidadSugerida,
       fechaPublicacion: alerta.fechaPublicacion,
       fechaRecepcion: fechaIntento,
-      estado: "Recibida",
-      mensaje: "Alerta de reposición recibida y registrada correctamente.",
+      estado: "Procesada",
+      mensaje: `Alerta procesada y vinculada a la requisición REQ-${String(idRequisicion).padStart(4, "0")}.`,
     };
 
     const registroProcesamiento: RegistroProcesamientoCompra = {
@@ -220,11 +252,13 @@ export function reducirCompras(
       nombreProducto: alerta.nombreProducto.trim(),
       fechaIntento,
       resultado: "Procesado",
-      mensaje: "Evento procesado y registrado correctamente.",
+      mensaje: `Evento procesado; se generó la requisición REQ-${String(idRequisicion).padStart(4, "0")}.`,
+      idRequisicion,
     };
 
     return {
       ...e,
+      requisiciones: [...e.requisiciones, requisicion],
       alertasInventario: [...e.alertasInventario, registro],
       historialProcesamientos: [
         ...e.historialProcesamientos,
