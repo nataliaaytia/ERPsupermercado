@@ -5,11 +5,14 @@ import type { AccionCompras } from "./modeloCompras";
 import type { OfertaProveedor, ResultadoValidacion } from "./tipos";
 
 import ResultadoValidacionOferta from "./ResultadoValidacionOferta";
+import EditarOfertaProveedor from "./EditarOfertaProveedor";
+import type { DatosActualizacionOferta } from "./EditarOfertaProveedor";
 
 interface Props {
   ofertas: OfertaProveedor[];
   ofertasValidas: OfertaProveedor[];
   solicitudEnviada: boolean;
+  fechaLimite: string;
   adjudicada: boolean;
   hoy: string;
   dispatch: Dispatch<AccionCompras>;
@@ -20,6 +23,7 @@ export default function ListaOfertasProveedor({
   ofertas,
   ofertasValidas,
   solicitudEnviada,
+  fechaLimite,
   adjudicada,
   hoy,
   dispatch,
@@ -28,6 +32,20 @@ export default function ListaOfertasProveedor({
   const [ofertaEnConfirmacion, setOfertaEnConfirmacion] = useState<
     number | null
   >(null);
+  const [ofertaEnEdicion, setOfertaEnEdicion] = useState<number | null>(null);
+
+  const guardarEdicion = (
+    id: number,
+    datos: DatosActualizacionOferta,
+  ) => {
+    dispatch({
+      tipo: "modificarOferta",
+      id,
+      ...datos,
+      hoy,
+    });
+    setOfertaEnEdicion(null);
+  };
 
   return (
     <>
@@ -89,6 +107,11 @@ export default function ListaOfertasProveedor({
           ofertasValidas.some(
             (ofertaValida) => ofertaValida.idOferta === oferta.idOferta,
           );
+        const puedeEditar =
+          oferta.estado === "Registrada" &&
+          solicitudEnviada &&
+          fechaLimite >= hoy &&
+          !adjudicada;
 
         return (
           <article
@@ -125,6 +148,9 @@ export default function ListaOfertasProveedor({
               Válida hasta: {oferta.validez}
             </p>
 
+            <p>Descuento ofrecido: {oferta.descuento}%</p>
+            <p>Condiciones de entrega: {oferta.condicionesEntrega}</p>
+
             <ul>
               {oferta.detalles.map((detalle) => (
                 <li key={detalle.idDetalle}>
@@ -141,10 +167,31 @@ export default function ListaOfertasProveedor({
 
             {oferta.estado === "Registrada" && solicitudEnviada && (
               <div className="selector-proveedores-acciones">
+                {puedeEditar && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOfertaEnConfirmacion(null);
+                      setOfertaEnEdicion(
+                        ofertaEnEdicion === oferta.idOferta
+                          ? null
+                          : oferta.idOferta,
+                      );
+                    }}
+                  >
+                    {ofertaEnEdicion === oferta.idOferta
+                      ? "Cerrar edición"
+                      : "Editar oferta"}
+                  </button>
+                )}
+
                 {puedeSeleccionar && (
                   <button
                     type="button"
-                    onClick={() => setOfertaEnConfirmacion(oferta.idOferta)}
+                    onClick={() => {
+                      setOfertaEnEdicion(null);
+                      setOfertaEnConfirmacion(oferta.idOferta);
+                    }}
                   >
                     Seleccionar oferta
                   </button>
@@ -152,17 +199,31 @@ export default function ListaOfertasProveedor({
 
                 <button
                   type="button"
-                  onClick={() =>
+                  onClick={() => {
+                    setOfertaEnEdicion(null);
+                    setOfertaEnConfirmacion(null);
                     dispatch({
                       tipo: "rechazar",
                       id: oferta.idOferta,
                       hoy,
-                    })
-                  }
+                    });
+                  }}
                 >
                   Rechazar oferta
                 </button>
               </div>
+            )}
+
+            {ofertaEnEdicion === oferta.idOferta && puedeEditar && (
+              <EditarOfertaProveedor
+                key={oferta.idOferta}
+                oferta={oferta}
+                hoy={hoy}
+                onGuardar={(datos) =>
+                  guardarEdicion(oferta.idOferta, datos)
+                }
+                onCancelar={() => setOfertaEnEdicion(null)}
+              />
             )}
 
             {ofertaEnConfirmacion === oferta.idOferta &&

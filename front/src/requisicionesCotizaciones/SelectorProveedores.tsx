@@ -350,6 +350,7 @@ export default function SelectorProveedores({
           <ListaOfertasProveedor
             ofertas={ofertas}
             ofertasValidas={ofertasValidas}
+            fechaLimite={solicitud.fechaLimite}
             solicitudEnviada={solicitudEnviada}
             adjudicada={adjudicada}
             hoy={hoy}

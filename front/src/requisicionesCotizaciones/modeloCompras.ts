@@ -104,6 +104,15 @@ export type AccionCompras =
       condicionesEntrega: string;
     }
   | {
+      tipo: "modificarOferta";
+      id: number;
+      validez: string;
+      descuento: number;
+      condicionesEntrega: string;
+      detalles: DetalleOferta[];
+      hoy: string;
+    }
+  | {
       tipo: "seleccionar" | "rechazar";
       id: number;
       hoy: string;
@@ -120,6 +129,16 @@ const fechaValida = (fecha: string) => {
     d.toISOString().slice(0, 10) === fecha
   );
 };
+
+// Limite tecnico de captura (9 digitos enteros y 2 decimales).
+// No representa un precio maximo comercial aprobado por el negocio.
+const PRECIO_MAXIMO_TECNICO = 999999999.99;
+
+const importeValido = (valor: number, permiteCero = false) =>
+  Number.isFinite(valor) &&
+  (permiteCero ? valor >= 0 : valor > 0) &&
+  valor <= (permiteCero ? 100 : PRECIO_MAXIMO_TECNICO) &&
+  Number(valor.toFixed(2)) === valor;
 
 export function reducirCompras(
   e: EstadoCompras,
@@ -735,6 +754,102 @@ export function reducirCompras(
       ...e,
       ofertas: [...e.ofertas, oferta],
       mensaje: "Oferta del proveedor registrada correctamente.",
+      tipoMensaje: "exito",
+    };
+  }
+
+  if (a.tipo === "modificarOferta") {
+    const oferta = e.ofertas.find((o) => o.idOferta === a.id);
+
+    if (!oferta) {
+      return fallo("La oferta no existe.");
+    }
+
+    const solicitud = e.solicitudes.find(
+      (s) => s.idSolicitud === oferta.solicitud,
+    );
+
+    if (
+      oferta.estado !== "Registrada" ||
+      solicitud?.estado !== "Enviada" ||
+      solicitud.fechaLimite < a.hoy ||
+      e.ofertas.some(
+        (o) =>
+          o.solicitud === oferta.solicitud &&
+          o.estado === "Seleccionada",
+      )
+    ) {
+      return fallo("Esta oferta ya no se puede editar.");
+    }
+
+    if (!fechaValida(a.validez) || a.validez < a.hoy) {
+      return fallo("La fecha de validez de la oferta es inválida.");
+    }
+
+    if (
+      !importeValido(a.descuento, true)
+    ) {
+      return fallo("El descuento debe estar entre 0 y 100 y tener máximo dos decimales.");
+    }
+
+    if (
+      typeof a.condicionesEntrega !== "string" ||
+      !a.condicionesEntrega.trim() ||
+      a.condicionesEntrega.trim().length > 500
+    ) {
+      return fallo(
+        "Las condiciones de entrega son obligatorias y no deben superar los 500 caracteres.",
+      );
+    }
+
+    const productosOriginales = oferta.detalles.map(
+      (d) => d.producto.idProducto,
+    );
+    const productosNuevos = a.detalles.map(
+      (d) => d.producto.idProducto,
+    );
+
+    if (
+      productosNuevos.length !== productosOriginales.length ||
+      new Set(productosNuevos).size !== productosNuevos.length ||
+      productosOriginales.some((id) => !productosNuevos.includes(id)) ||
+      a.detalles.some(
+        (d) =>
+          !importeValido(d.precio) ||
+          !Number.isSafeInteger(d.plazoEntrega) ||
+          d.plazoEntrega < 1,
+      )
+    ) {
+      return fallo(
+        "Cada precio debe ser mayor a cero, tener máximo dos decimales y no superar Bs 999.999.999,99. El plazo debe ser un entero mayor a cero.",
+      );
+    }
+
+    return {
+      ...e,
+      ofertas: e.ofertas.map((actual) =>
+        actual.idOferta === oferta.idOferta
+          ? {
+              ...actual,
+              validez: a.validez,
+              descuento: a.descuento,
+              condicionesEntrega: a.condicionesEntrega.trim(),
+              detalles: actual.detalles.map((detalle) => {
+                const modificado = a.detalles.find(
+                  (d) =>
+                    d.producto.idProducto === detalle.producto.idProducto,
+                );
+
+                return {
+                  ...detalle,
+                  precio: modificado!.precio,
+                  plazoEntrega: modificado!.plazoEntrega,
+                };
+              }),
+            }
+          : actual,
+      ),
+      mensaje: `Oferta OF-${String(oferta.idOferta).padStart(4, "0")} actualizada correctamente.`,
       tipoMensaje: "exito",
     };
   }
