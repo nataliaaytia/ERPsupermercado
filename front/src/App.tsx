@@ -55,6 +55,7 @@ export const App = () => {
           {currentPage === 'home' && (
             <Home
               onNavigateToCatalogo={() => navegar('catalogo')}
+              onNavigateToRequisiciones={() => navegar('requisiciones')}
             />
           )}
 
