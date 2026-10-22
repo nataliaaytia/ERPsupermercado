@@ -68,14 +68,31 @@ export default function ListaRequisiciones({
 
   if (requisiciones.length === 0) {
     return (
-      <p className="lista-requisiciones__vacio">
-        Todavía no hay requisiciones.
-      </p>
+      <section
+        className="lista-requisiciones"
+        aria-label="Requisiciones registradas"
+      >
+        <p className="lista-requisiciones__total" aria-live="polite">
+          0 requisiciones registradas
+        </p>
+        <p className="lista-requisiciones__vacio">
+          Todavía no hay requisiciones.
+        </p>
+      </section>
     );
   }
 
   return (
-    <>
+    <section
+      className="lista-requisiciones"
+      aria-label="Requisiciones registradas"
+    >
+      <p className="lista-requisiciones__total" aria-live="polite">
+        {requisiciones.length}{" "}
+        {requisiciones.length === 1
+          ? "requisición registrada"
+          : "requisiciones registradas"}
+      </p>
       <div className="lista-requisiciones__contenedor">
         <p className="lista-requisiciones__ayuda">
           La prioridad se guarda automáticamente al cambiarla.
@@ -244,6 +261,6 @@ export default function ListaRequisiciones({
           onConfirmar={confirmarCancelacion}
         />
       )}
-    </>
+    </section>
   );
 }
