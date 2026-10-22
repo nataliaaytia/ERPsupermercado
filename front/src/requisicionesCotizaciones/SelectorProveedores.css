@@ -54,6 +54,35 @@
   color: var(--text-primary);
 }
 
+.selector-proveedores-oferta {
+  transition:
+    background-color 0.3s ease,
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.selector-proveedores-oferta--ganadora {
+  border-color: #35c78a;
+  background-color: rgba(53, 199, 138, 0.08);
+  box-shadow: 0 0 0 2px rgba(53, 199, 138, 0.18);
+}
+
+.selector-proveedores-oferta__ganadora {
+  align-self: flex-start;
+  padding: 0.35rem 0.75rem;
+  border: 1px solid #35c78a;
+  border-radius: 20px;
+  color: #35c78a;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .selector-proveedores-oferta {
+    transition: none;
+  }
+}
+
 .selector-proveedores-encabezado {
   display: flex;
   justify-content: space-between;

@@ -82,7 +82,11 @@ export default function ListaOfertasProveedor({
         return (
           <article
             key={oferta.idOferta}
-            className="selector-proveedores-resumen selector-proveedores-oferta"
+            className={`selector-proveedores-resumen selector-proveedores-oferta${
+              oferta.estado === "Seleccionada"
+                ? " selector-proveedores-oferta--ganadora"
+                : ""
+            }`}
           >
             <div className="selector-proveedores-oferta__encabezado">
               <strong>
@@ -90,6 +94,12 @@ export default function ListaOfertasProveedor({
                 {" · "}
                 {oferta.proveedor.razonSocial}
               </strong>
+
+              {oferta.estado === "Seleccionada" && (
+                <span className="selector-proveedores-oferta__ganadora">
+                  Oferta ganadora
+                </span>
+              )}
 
               <span
                 className={`selector-proveedores-estado selector-proveedores-estado--${oferta.estado.toLowerCase()}`}
