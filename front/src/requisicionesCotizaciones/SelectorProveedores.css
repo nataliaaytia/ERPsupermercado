@@ -212,6 +212,30 @@
   color: #35c78a;
 }
 
+.selector-proveedores-adjudicacion {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  border: 1px solid var(--accent, #38b6e8);
+  border-radius: 8px;
+  background: var(--bg-card);
+}
+
+.selector-proveedores-adjudicacion h3,
+.selector-proveedores-adjudicacion p {
+  margin: 0;
+}
+
+.selector-proveedores-adjudicacion ul {
+  margin: 0;
+  padding-left: 1.5rem;
+}
+
+.selector-proveedores-adjudicacion li {
+  margin-bottom: 0.35rem;
+}
+
 .selector-proveedores-mensaje {
   padding: 0.85rem 1rem;
   border: 1px solid var(--border-color);

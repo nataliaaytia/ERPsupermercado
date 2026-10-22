@@ -747,7 +747,7 @@ export function reducirCompras(
       ),
       mensaje:
         a.tipo === "seleccionar"
-          ? "Oferta seleccionada correctamente."
+          ? `La oferta OF-${String(oferta.idOferta).padStart(4, "0")} fue seleccionada como ganadora para ${oferta.proveedor.razonSocial} en la solicitud COT-${String(oferta.solicitud).padStart(4, "0")}.`
           : "Oferta rechazada correctamente.",
       tipoMensaje: "exito",
     };

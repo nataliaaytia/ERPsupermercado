@@ -349,6 +349,7 @@ export default function SelectorProveedores({
 
           <ListaOfertasProveedor
             ofertas={ofertas}
+            ofertasValidas={ofertasValidas}
             solicitudEnviada={solicitudEnviada}
             adjudicada={adjudicada}
             hoy={hoy}

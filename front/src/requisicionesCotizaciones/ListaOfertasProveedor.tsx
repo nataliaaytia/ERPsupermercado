@@ -1,4 +1,4 @@
-import type { Dispatch } from "react";
+import { useState, type Dispatch } from "react";
 
 import type { AccionCompras } from "./modeloCompras";
 
@@ -8,6 +8,7 @@ import ResultadoValidacionOferta from "./ResultadoValidacionOferta";
 
 interface Props {
   ofertas: OfertaProveedor[];
+  ofertasValidas: OfertaProveedor[];
   solicitudEnviada: boolean;
   adjudicada: boolean;
   hoy: string;
@@ -17,12 +18,17 @@ interface Props {
 
 export default function ListaOfertasProveedor({
   ofertas,
+  ofertasValidas,
   solicitudEnviada,
   adjudicada,
   hoy,
   dispatch,
   resultadosValidacion = {},
 }: Props) {
+  const [ofertaEnConfirmacion, setOfertaEnConfirmacion] = useState<
+    number | null
+  >(null);
+
   return (
     <>
       <h2>Ofertas recibidas</h2>
@@ -78,6 +84,11 @@ export default function ListaOfertasProveedor({
 
       {ofertas.map((oferta) => {
         const resultado = resultadosValidacion[oferta.idOferta];
+        const puedeSeleccionar =
+          !adjudicada &&
+          ofertasValidas.some(
+            (ofertaValida) => ofertaValida.idOferta === oferta.idOferta,
+          );
 
         return (
           <article
@@ -130,19 +141,14 @@ export default function ListaOfertasProveedor({
 
             {oferta.estado === "Registrada" && solicitudEnviada && (
               <div className="selector-proveedores-acciones">
-                <button
-                  type="button"
-                  disabled={adjudicada || oferta.validez < hoy}
-                  onClick={() =>
-                    dispatch({
-                      tipo: "seleccionar",
-                      id: oferta.idOferta,
-                      hoy,
-                    })
-                  }
-                >
-                  Seleccionar oferta
-                </button>
+                {puedeSeleccionar && (
+                  <button
+                    type="button"
+                    onClick={() => setOfertaEnConfirmacion(oferta.idOferta)}
+                  >
+                    Seleccionar oferta
+                  </button>
+                )}
 
                 <button
                   type="button"
@@ -158,6 +164,54 @@ export default function ListaOfertasProveedor({
                 </button>
               </div>
             )}
+
+            {ofertaEnConfirmacion === oferta.idOferta &&
+              puedeSeleccionar &&
+              solicitudEnviada && (
+                <section
+                  className="selector-proveedores-adjudicacion"
+                  role="group"
+                  aria-labelledby={`confirmar-adjudicacion-${oferta.idOferta}`}
+                >
+                  <h3 id={`confirmar-adjudicacion-${oferta.idOferta}`}>
+                    Confirma la adjudicación
+                  </h3>
+                  <p>
+                    Esta acción seleccionará esta oferta como ganadora:
+                  </p>
+                  <ul>
+                    <li>Proveedor: {oferta.proveedor.razonSocial}</li>
+                    <li>
+                      Oferta: OF-{String(oferta.idOferta).padStart(4, "0")}
+                    </li>
+                    <li>
+                      Solicitud: COT-{String(oferta.solicitud).padStart(4, "0")}
+                    </li>
+                  </ul>
+                  <div className="selector-proveedores-acciones">
+                    <button
+                      type="button"
+                      disabled={!puedeSeleccionar}
+                      onClick={() => {
+                        dispatch({
+                          tipo: "seleccionar",
+                          id: oferta.idOferta,
+                          hoy,
+                        });
+                        setOfertaEnConfirmacion(null);
+                      }}
+                    >
+                      Confirmar adjudicación
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setOfertaEnConfirmacion(null)}
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                </section>
+              )}
           </article>
         );
       })}
