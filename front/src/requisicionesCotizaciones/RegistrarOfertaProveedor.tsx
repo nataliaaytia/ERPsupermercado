@@ -1,8 +1,12 @@
+
 import { useEffect, useRef, useState } from "react";
 import type { Dispatch } from "react";
 
 import type { AccionCompras, EstadoCompras } from "./modeloCompras";
 import type { ProveedorReferencia } from "./tipos";
+
+import EstadoPlazoCotizacion from "./EstadoPlazoCotizacion";
+import { calcularPlazoCotizacion } from "./plazoCotizacion";
 
 interface Props {
   solicitud: EstadoCompras["solicitudes"][number];
@@ -27,13 +31,16 @@ export default function RegistrarOfertaProveedor({
   const [condicionesEntrega, setCondicionesEntrega] = useState("");
 
   const [precios, setPrecios] = useState<Record<number, string>>({});
-
   const [plazos, setPlazos] = useState<Record<number, string>>({});
 
   const registroPendiente = useRef<{
     cantidadOfertas: number;
     proveedorId: number;
   } | null>(null);
+
+  // SCRUM-407: calcular el plazo de recepción de ofertas.
+  const plazo = calcularPlazoCotizacion(solicitud.fechaLimite, hoy);
+  const plazoVencido = !plazo.puedeRegistrar;
 
   useEffect(() => {
     const pendiente = registroPendiente.current;
@@ -43,7 +50,8 @@ export default function RegistrarOfertaProveedor({
     const ofertaRegistrada =
       ofertas.length > pendiente.cantidadOfertas &&
       ofertas.some(
-        (oferta) => oferta.proveedor.idProveedor === pendiente.proveedorId,
+        (oferta) =>
+          oferta.proveedor.idProveedor === pendiente.proveedorId,
       );
 
     if (!ofertaRegistrada) return;
@@ -59,6 +67,9 @@ export default function RegistrarOfertaProveedor({
   }, [ofertas]);
 
   const registrarOferta = () => {
+    // SCRUM-407: impedir el registro después del vencimiento.
+    if (plazoVencido) return;
+
     const proveedor = invitados.find(
       (p) => p.idProveedor === Number(proveedorId),
     );
@@ -91,16 +102,27 @@ export default function RegistrarOfertaProveedor({
     <>
       <h2>Registrar oferta del proveedor</h2>
 
+      {/* SCRUM-407: estado visual y fechas de la cotización. */}
+      <EstadoPlazoCotizacion
+        fechaInicio={solicitud.fecha}
+        fechaLimite={solicitud.fechaLimite}
+        hoy={hoy}
+      />
+
       <label>
         Proveedor{" "}
         <select
           value={proveedorId}
           onChange={(e) => setProveedorId(e.target.value)}
+          disabled={plazoVencido}
         >
           <option value="">Seleccionar proveedor</option>
 
           {invitados.map((proveedor) => (
-            <option key={proveedor.idProveedor} value={proveedor.idProveedor}>
+            <option
+              key={proveedor.idProveedor}
+              value={proveedor.idProveedor}
+            >
               {proveedor.razonSocial}
             </option>
           ))}
@@ -115,8 +137,10 @@ export default function RegistrarOfertaProveedor({
           min={hoy}
           value={validez}
           onChange={(e) => setValidez(e.target.value)}
+          disabled={plazoVencido}
         />
       </label>
+
       <label>
         Descuento ofrecido (%)
         <input
@@ -127,8 +151,10 @@ export default function RegistrarOfertaProveedor({
           step="0.01"
           value={descuento}
           onChange={(e) => setDescuento(e.target.value)}
+          disabled={plazoVencido}
         />
       </label>
+
       <label>
         Condiciones de entrega
         <textarea
@@ -139,11 +165,15 @@ export default function RegistrarOfertaProveedor({
           rows={3}
           maxLength={500}
           required
+          disabled={plazoVencido}
         />
       </label>
 
       {requisicion.detalles.map((detalle) => (
-        <fieldset key={detalle.idDetalle}>
+        <fieldset
+          key={detalle.idDetalle}
+          disabled={plazoVencido}
+        >
           <legend>
             {detalle.producto.descripcion}
             {" · "}
@@ -189,10 +219,17 @@ export default function RegistrarOfertaProveedor({
       <button
         type="button"
         className="selector-proveedores-boton"
-        disabled={!proveedorId || !validez || !condicionesEntrega.trim()}
+        disabled={
+          plazoVencido ||
+          !proveedorId ||
+          !validez ||
+          !condicionesEntrega.trim()
+        }
         onClick={registrarOferta}
       >
-        Registrar oferta
+        {plazoVencido
+          ? "Registro de ofertas deshabilitado"
+          : "Registrar oferta"}
       </button>
     </>
   );
