@@ -94,6 +94,11 @@ export type AccionCompras =
       id: number;
     }
   | {
+      tipo: "cerrar";
+      id: number;
+      hoy: string;
+    }
+  | {
       tipo: "registrarOferta";
       solicitud: number;
       proveedor: ProveedorReferencia;
@@ -623,6 +628,36 @@ export function reducirCompras(
     };
   }
 
+  if (a.tipo === "cerrar") {
+    const solicitud = e.solicitudes.find((s) => s.idSolicitud === a.id);
+
+    if (!solicitud || solicitud.estado !== "Enviada") {
+      return fallo("Solo se pueden cerrar solicitudes enviadas.");
+    }
+
+    if (!fechaValida(a.hoy) || solicitud.fechaLimite >= a.hoy) {
+      return fallo("La solicitud solo se puede cerrar después de su fecha límite.");
+    }
+
+    if (
+      e.ofertas.some(
+        (oferta) =>
+          oferta.solicitud === a.id && oferta.estado === "Seleccionada",
+      )
+    ) {
+      return fallo("No se puede cerrar una solicitud con una oferta ya seleccionada.");
+    }
+
+    return {
+      ...e,
+      solicitudes: e.solicitudes.map((s) =>
+        s.idSolicitud === a.id ? { ...s, estado: "Cerrada" } : s,
+      ),
+      mensaje: `Solicitud COT-${String(a.id).padStart(4, "0")} cerrada correctamente. Las ofertas se conservaron para evaluación.`,
+      tipoMensaje: "exito",
+    };
+  }
+
   if (a.tipo === "cancelar") {
     const solicitud = e.solicitudes.find((s) => s.idSolicitud === a.id);
 
@@ -864,9 +899,9 @@ export function reducirCompras(
     if (
       !oferta ||
       oferta.estado !== "Registrada" ||
-      solicitud?.estado !== "Enviada"
+      solicitud?.estado !== "Cerrada"
     ) {
-      return fallo("La oferta no está disponible.");
+      return fallo("La oferta no está disponible para evaluación.");
     }
 
     if (

@@ -393,3 +393,96 @@
 .comparacion-ofertas__tabla tbody tr:last-child td {
   border-bottom: none;
 }
+
+/* SCRUM-408: cierre de solicitudes de cotización */
+
+.selector-proveedores-acciones-solicitud {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+/* Botón para cerrar la solicitud */
+.selector-proveedores .selector-proveedores-cerrar:not(:disabled) {
+  background: transparent;
+  color: #e7aa4b;
+  border-color: #d99837;
+}
+
+.selector-proveedores .selector-proveedores-cerrar:hover:not(:disabled) {
+  background: rgba(217, 152, 55, 0.12);
+  border-color: #e7aa4b;
+}
+
+/* Mensaje cuando el plazo ha vencido */
+.selector-proveedores-plazo-vencido {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding: 1rem 1.25rem;
+  background: var(--bg-card);
+  border: 1px solid #d99837;
+  border-radius: 10px;
+}
+
+.selector-proveedores-plazo-vencido strong {
+  color: #e7aa4b;
+}
+
+/* Confirmación antes de cerrar */
+.selector-proveedores-confirmar-cierre {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding: 1rem 1.25rem;
+  background: var(--bg-card);
+  border: 1px solid var(--accent, #38b6e8);
+  border-radius: 10px;
+}
+
+/* Mensaje de integración pendiente */
+.selector-proveedores-integracion-pendiente {
+  color: #e7aa4b !important;
+}
+
+/* Confirmación visual de cierre exitoso */
+.selector-proveedores-cierre-exitoso {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding: 1rem 1.25rem;
+  background: rgba(53, 199, 138, 0.07);
+  border: 1px solid #35c78a;
+  border-radius: 10px;
+  animation: aparecer-cierre 0.35s ease-out;
+}
+
+.selector-proveedores-cierre-exitoso strong {
+  color: #35c78a;
+}
+
+@keyframes aparecer-cierre {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .selector-proveedores-cierre-exitoso {
+    animation: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .selector-proveedores-acciones-solicitud {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

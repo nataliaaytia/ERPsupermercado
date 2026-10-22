@@ -34,6 +34,7 @@ export default function SelectorProveedores({
   );
 
   const [filtroEstado, setFiltroEstado] = useState("Todas");
+  const [confirmarCierreId, setConfirmarCierreId] = useState<number | null>(null);
 
   const hoy = fechaHoy();
 
@@ -66,7 +67,7 @@ export default function SelectorProveedores({
     (oferta) =>
       oferta.estado === "Registrada" &&
       oferta.validez >= hoy &&
-      solicitud?.estado === "Enviada" &&
+      (solicitud?.estado === "Enviada" || solicitud?.estado === "Cerrada") &&
       oferta.detalles.length === requisicion?.detalles.length &&
       requisicion.detalles.every((detalle) =>
         oferta.detalles.some(
@@ -94,6 +95,10 @@ export default function SelectorProveedores({
   const adjudicada = ofertas.some((o) => o.estado === "Seleccionada");
 
   const solicitudEnviada = solicitud?.estado === "Enviada";
+  const solicitudCerrada = solicitud?.estado === "Cerrada";
+  const plazoFinalizado = Boolean(solicitud && solicitud.fechaLimite < hoy);
+  const puedeCerrar = solicitudEnviada && plazoFinalizado && !adjudicada;
+  const confirmacionCierreVisible = confirmarCierreId === solicitud?.idSolicitud;
 
   const puedeOfertar =
     solicitudEnviada &&
@@ -102,10 +107,12 @@ export default function SelectorProveedores({
     !adjudicada;
 
   const cambiarSolicitud = (id: string) => {
+    setConfirmarCierreId(null);
     setSolicitudId(id);
   };
 
   const cambiarFiltroEstado = (nuevoEstado: string) => {
+    setConfirmarCierreId(null);
     setFiltroEstado(nuevoEstado);
     setSolicitudId("");
   };
@@ -321,18 +328,62 @@ export default function SelectorProveedores({
             />
           )}
 
-          {solicitud.estado !== "Cancelada" && !adjudicada && (
-            <button
-              type="button"
-              onClick={() =>
-                dispatch({
-                  tipo: "cancelar",
-                  id: solicitud.idSolicitud,
-                })
-              }
-            >
-              Cancelar solicitud
-            </button>
+          {solicitudCerrada && (
+            <div className="selector-proveedores-cierre-exitoso" role="status">
+              <strong>Solicitud cerrada</strong>
+              <p>El periodo de cotización ha finalizado. No se admiten nuevas ofertas y la solicitud está lista para su evaluación.</p>
+            </div>
+          )}
+
+          {solicitudEnviada && plazoFinalizado && !solicitudCerrada && (
+            <div className="selector-proveedores-plazo-vencido" role="status">
+              <strong>Periodo de cotización finalizado</strong>
+              <p>El plazo venció el {solicitud.fechaLimite.split("-").reverse().join("/")}. Ya no se pueden registrar nuevas ofertas. Puedes cerrar la solicitud para continuar con la evaluación.</p>
+            </div>
+          )}
+
+          {solicitud.estado !== "Cancelada" && !solicitudCerrada && !adjudicada && (
+            <div className="selector-proveedores-acciones-solicitud">
+              {solicitudEnviada && (
+                <button
+                  type="button"
+                  className="selector-proveedores-cerrar"
+                  disabled={!puedeCerrar}
+                  title={!plazoFinalizado ? "Disponible cuando termine el periodo de cotización" : undefined}
+                  onClick={() => setConfirmarCierreId(solicitud.idSolicitud)}
+                >
+                  Cerrar solicitud
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => dispatch({ tipo: "cancelar", id: solicitud.idSolicitud })}
+              >
+                Cancelar solicitud
+              </button>
+            </div>
+          )}
+
+          {confirmacionCierreVisible && puedeCerrar && (
+            <div className="selector-proveedores-confirmar-cierre" role="group" aria-label="Confirmar cierre de solicitud">
+              <strong>¿Cerrar {codigoCotizacion(solicitud.idSolicitud)}?</strong>
+              <p>Esta acción finalizará la recepción de ofertas e iniciará la etapa de evaluación.</p>
+              <div className="selector-proveedores-acciones-solicitud">
+                <button
+                  type="button"
+                  className="selector-proveedores-cerrar"
+                  onClick={() => {
+                    dispatch({ tipo: "cerrar", id: solicitud.idSolicitud, hoy });
+                    setConfirmarCierreId(null);
+                  }}
+                >
+                  Confirmar cierre
+                </button>
+                <button type="button" onClick={() => setConfirmarCierreId(null)}>
+                  Volver
+                </button>
+              </div>
+            </div>
           )}
 
           {puedeOfertar && (
@@ -352,6 +403,7 @@ export default function SelectorProveedores({
             ofertasValidas={ofertasValidas}
             fechaLimite={solicitud.fechaLimite}
             solicitudEnviada={solicitudEnviada}
+            solicitudCerrada={solicitudCerrada}
             adjudicada={adjudicada}
             hoy={hoy}
             dispatch={dispatch}

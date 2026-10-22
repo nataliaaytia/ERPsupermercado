@@ -1,3 +1,4 @@
+
 export interface ProductoFormulario {
   id: number;
   nombre: string;
@@ -6,7 +7,6 @@ export interface ProductoFormulario {
 }
 
 export type Prioridad = "Baja" | "Media" | "Alta";
-
 
 export interface ProductoReferencia {
   idProducto: number;
@@ -55,8 +55,7 @@ export interface SolicitudCotizacion {
   requisicion: number;
   fecha: string;
   fechaLimite: string;
-  estado: "Generada" | "Enviada" | "Cancelada";
-
+  estado: "Generada" | "Enviada" | "Cerrada" | "Cancelada";
   proveedoresIds: number[];
 }
 
@@ -85,8 +84,6 @@ export interface OfertaProveedor {
   condicionesEntrega: string;
   detalles: DetalleOferta[];
 }
-
-
 
 export interface CambioHistorialRequisicion {
   campo: string;

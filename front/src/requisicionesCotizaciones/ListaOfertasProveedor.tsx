@@ -1,7 +1,7 @@
+
 import { useState, type Dispatch } from "react";
 
 import type { AccionCompras } from "./modeloCompras";
-
 import type { OfertaProveedor, ResultadoValidacion } from "./tipos";
 
 import ResultadoValidacionOferta from "./ResultadoValidacionOferta";
@@ -12,6 +12,7 @@ interface Props {
   ofertas: OfertaProveedor[];
   ofertasValidas: OfertaProveedor[];
   solicitudEnviada: boolean;
+  solicitudCerrada: boolean;
   fechaLimite: string;
   adjudicada: boolean;
   hoy: string;
@@ -23,6 +24,7 @@ export default function ListaOfertasProveedor({
   ofertas,
   ofertasValidas,
   solicitudEnviada,
+  solicitudCerrada,
   fechaLimite,
   adjudicada,
   hoy,
@@ -32,7 +34,10 @@ export default function ListaOfertasProveedor({
   const [ofertaEnConfirmacion, setOfertaEnConfirmacion] = useState<
     number | null
   >(null);
-  const [ofertaEnEdicion, setOfertaEnEdicion] = useState<number | null>(null);
+
+  const [ofertaEnEdicion, setOfertaEnEdicion] = useState<number | null>(
+    null,
+  );
 
   const guardarEdicion = (
     id: number,
@@ -44,12 +49,14 @@ export default function ListaOfertasProveedor({
       ...datos,
       hoy,
     });
+
     setOfertaEnEdicion(null);
   };
 
   return (
     <>
       <h2>Ofertas recibidas</h2>
+
       {ofertas.length > 0 && (
         <section className="comparacion-ofertas">
           <h3>Comparación de tiempos y condiciones de entrega</h3>
@@ -77,7 +84,9 @@ export default function ListaOfertasProveedor({
                             {detalle.producto.descripcion}:{" "}
                             <strong>
                               {detalle.plazoEntrega}{" "}
-                              {detalle.plazoEntrega === 1 ? "día" : "días"}
+                              {detalle.plazoEntrega === 1
+                                ? "día"
+                                : "días"}
                             </strong>
                           </li>
                         ))}
@@ -98,19 +107,32 @@ export default function ListaOfertasProveedor({
         </section>
       )}
 
-      {ofertas.length === 0 && <p>Todavía no hay ofertas.</p>}
+      {ofertas.length === 0 && (
+        <p>Todavía no hay ofertas.</p>
+      )}
 
       {ofertas.map((oferta) => {
-        const resultado = resultadosValidacion[oferta.idOferta];
-        const puedeSeleccionar =
-          !adjudicada &&
-          ofertasValidas.some(
-            (ofertaValida) => ofertaValida.idOferta === oferta.idOferta,
-          );
+        const resultado =
+          resultadosValidacion[oferta.idOferta];
+
         const puedeEditar =
           oferta.estado === "Registrada" &&
           solicitudEnviada &&
           fechaLimite >= hoy &&
+          !adjudicada;
+
+        const puedeSeleccionar =
+          oferta.estado === "Registrada" &&
+          (solicitudEnviada || solicitudCerrada) &&
+          !adjudicada &&
+          ofertasValidas.some(
+            (valida) =>
+              valida.idOferta === oferta.idOferta,
+          );
+
+        const puedeRechazar =
+          oferta.estado === "Registrada" &&
+          (solicitudEnviada || solicitudCerrada) &&
           !adjudicada;
 
         return (
@@ -148,8 +170,14 @@ export default function ListaOfertasProveedor({
               Válida hasta: {oferta.validez}
             </p>
 
-            <p>Descuento ofrecido: {oferta.descuento}%</p>
-            <p>Condiciones de entrega: {oferta.condicionesEntrega}</p>
+            <p>
+              Descuento ofrecido: {oferta.descuento}%
+            </p>
+
+            <p>
+              Condiciones de entrega:{" "}
+              {oferta.condicionesEntrega}
+            </p>
 
             <ul>
               {oferta.detalles.map((detalle) => (
@@ -163,15 +191,20 @@ export default function ListaOfertasProveedor({
               ))}
             </ul>
 
-            <ResultadoValidacionOferta resultado={resultado} />
+            <ResultadoValidacionOferta
+              resultado={resultado}
+            />
 
-            {oferta.estado === "Registrada" && solicitudEnviada && (
+            {(puedeEditar ||
+              puedeSeleccionar ||
+              puedeRechazar) && (
               <div className="selector-proveedores-acciones">
                 {puedeEditar && (
                   <button
                     type="button"
                     onClick={() => {
                       setOfertaEnConfirmacion(null);
+
                       setOfertaEnEdicion(
                         ofertaEnEdicion === oferta.idOferta
                           ? null
@@ -190,65 +223,94 @@ export default function ListaOfertasProveedor({
                     type="button"
                     onClick={() => {
                       setOfertaEnEdicion(null);
-                      setOfertaEnConfirmacion(oferta.idOferta);
+                      setOfertaEnConfirmacion(
+                        oferta.idOferta,
+                      );
                     }}
                   >
                     Seleccionar oferta
                   </button>
                 )}
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    setOfertaEnEdicion(null);
-                    setOfertaEnConfirmacion(null);
-                    dispatch({
-                      tipo: "rechazar",
-                      id: oferta.idOferta,
-                      hoy,
-                    });
-                  }}
-                >
-                  Rechazar oferta
-                </button>
+                {puedeRechazar && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOfertaEnEdicion(null);
+                      setOfertaEnConfirmacion(null);
+
+                      dispatch({
+                        tipo: "rechazar",
+                        id: oferta.idOferta,
+                        hoy,
+                      });
+                    }}
+                  >
+                    Rechazar oferta
+                  </button>
+                )}
               </div>
             )}
 
-            {ofertaEnEdicion === oferta.idOferta && puedeEditar && (
-              <EditarOfertaProveedor
-                key={oferta.idOferta}
-                oferta={oferta}
-                hoy={hoy}
-                onGuardar={(datos) =>
-                  guardarEdicion(oferta.idOferta, datos)
-                }
-                onCancelar={() => setOfertaEnEdicion(null)}
-              />
-            )}
+            {ofertaEnEdicion === oferta.idOferta &&
+              puedeEditar && (
+                <EditarOfertaProveedor
+                  key={oferta.idOferta}
+                  oferta={oferta}
+                  hoy={hoy}
+                  onGuardar={(datos) =>
+                    guardarEdicion(
+                      oferta.idOferta,
+                      datos,
+                    )
+                  }
+                  onCancelar={() =>
+                    setOfertaEnEdicion(null)
+                  }
+                />
+              )}
 
             {ofertaEnConfirmacion === oferta.idOferta &&
-              puedeSeleccionar &&
-              solicitudEnviada && (
+              puedeSeleccionar && (
                 <section
                   className="selector-proveedores-adjudicacion"
                   role="group"
                   aria-labelledby={`confirmar-adjudicacion-${oferta.idOferta}`}
                 >
-                  <h3 id={`confirmar-adjudicacion-${oferta.idOferta}`}>
+                  <h3
+                    id={`confirmar-adjudicacion-${oferta.idOferta}`}
+                  >
                     Confirma la adjudicación
                   </h3>
+
                   <p>
-                    Esta acción seleccionará esta oferta como ganadora:
+                    Esta acción seleccionará esta oferta
+                    como ganadora:
                   </p>
+
                   <ul>
-                    <li>Proveedor: {oferta.proveedor.razonSocial}</li>
                     <li>
-                      Oferta: OF-{String(oferta.idOferta).padStart(4, "0")}
+                      Proveedor:{" "}
+                      {oferta.proveedor.razonSocial}
                     </li>
+
                     <li>
-                      Solicitud: COT-{String(oferta.solicitud).padStart(4, "0")}
+                      Oferta: OF-
+                      {String(oferta.idOferta).padStart(
+                        4,
+                        "0",
+                      )}
+                    </li>
+
+                    <li>
+                      Solicitud: COT-
+                      {String(oferta.solicitud).padStart(
+                        4,
+                        "0",
+                      )}
                     </li>
                   </ul>
+
                   <div className="selector-proveedores-acciones">
                     <button
                       type="button"
@@ -259,14 +321,18 @@ export default function ListaOfertasProveedor({
                           id: oferta.idOferta,
                           hoy,
                         });
+
                         setOfertaEnConfirmacion(null);
                       }}
                     >
                       Confirmar adjudicación
                     </button>
+
                     <button
                       type="button"
-                      onClick={() => setOfertaEnConfirmacion(null)}
+                      onClick={() =>
+                        setOfertaEnConfirmacion(null)
+                      }
                     >
                       Cancelar
                     </button>
