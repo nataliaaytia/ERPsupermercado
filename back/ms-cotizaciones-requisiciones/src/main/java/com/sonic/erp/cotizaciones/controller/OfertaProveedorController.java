@@ -15,6 +15,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/ofertas")
+@CrossOrigin(origins = "*")
 public class OfertaProveedorController {
 
     private final OfertaProveedorService ofertaProveedorService;
