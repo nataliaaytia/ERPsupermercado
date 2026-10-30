@@ -35,4 +35,12 @@ public class CompromisoEntrega {
 
     @Column(name = "observacion", length = 255)
     private String observacion;
+
+    public DetalleOrdenCompra getDetalleOrden() {
+        return detalleOrden;
+    }
+
+    public void setDetalleOrden(DetalleOrdenCompra detalleOrden) {
+        this.detalleOrden = detalleOrden;
+    }
 }

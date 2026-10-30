@@ -46,4 +46,12 @@ public class DetalleOrdenCompra {
         compromisos.add(compromiso);
         compromiso.setDetalleOrden(this);
     }
+
+    public OrdenCompra getOrdenCompra() {
+        return ordenCompra;
+    }
+
+    public void setOrdenCompra(OrdenCompra ordenCompra) {
+        this.ordenCompra = ordenCompra;
+    }
 }
