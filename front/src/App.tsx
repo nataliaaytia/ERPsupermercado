@@ -7,10 +7,13 @@ import Catalogo from './catalogo/Catalogo';
 import Login from './Login';
 import Requisiciones from './requisicionesCotizaciones/Requisiciones';
 
+import ServicioOrdenesCompra from './servicioOrdenesCompra/ServicioOrdenesCompra';
+
 const paginasValidas = [
   'home',
   'catalogo',
   'requisiciones',
+  'ordenes-compra',
   'login',
 ];
 
@@ -62,6 +65,8 @@ export const App = () => {
           {currentPage === 'catalogo' && <Catalogo />}
 
           {currentPage === 'requisiciones' && <Requisiciones />}
+
+          {currentPage === 'ordenes-compra' && <ServicioOrdenesCompra />}
 
           {currentPage === 'login' && (
             <Login
