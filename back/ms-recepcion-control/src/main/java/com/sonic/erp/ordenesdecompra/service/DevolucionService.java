@@ -2,6 +2,8 @@ package com.sonic.erp.ordenesdecompra.service;
 
 import com.sonic.erp.ordenesdecompra.dto.request.RegistrarDevolucionRequest;
 import com.sonic.erp.ordenesdecompra.dto.response.DevolucionResponse;
+import com.sonic.erp.ordenesdecompra.dto.response.ResolucionDevolucionResponse;
+import com.sonic.erp.ordenesdecompra.dto.request.ResolverDevolucionRequest;
 import com.sonic.erp.ordenesdecompra.entity.DetalleRecepcion;
 import com.sonic.erp.ordenesdecompra.entity.Devolucion;
 import com.sonic.erp.ordenesdecompra.repository.DetalleRecepcionRepository;
@@ -91,5 +93,57 @@ public class DevolucionService {
                     return res;
                 })
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public ResolucionDevolucionResponse resolverDevolucion(ResolverDevolucionRequest request) {
+        Devolucion devolucion = devolucionRepository.findById(request.getIdDevolucion())
+                .orElseThrow(() -> new IllegalArgumentException("No se encontró la devolución con ID: " + request.getIdDevolucion()));
+
+        String estadoActual = devolucion.getEstado();
+
+        if ("RETIRADA".equalsIgnoreCase(estadoActual) || "COMPROMISO_REPOSICION".equalsIgnoreCase(estadoActual)) {
+            throw new IllegalArgumentException(String.format(
+                    "La devolución ya fue resuelta previamente con estado: %s", estadoActual
+            ));
+        }
+
+        String tipoNorm = request.getTipoResolucion().trim().toUpperCase();
+        String nuevoEstado;
+        String mensaje;
+
+        if ("RETIRO".equals(tipoNorm)) {
+            nuevoEstado = "RETIRADA";
+            mensaje = "Mercadería rechazada retirada físicamente por el proveedor. Recepción validada intacta.";
+        } else if ("COMPROMISO_REPOSICION".equals(tipoNorm)) {
+            nuevoEstado = "COMPROMISO_REPOSICION";
+            mensaje = "Compromiso de reposición registrado. La reposición se ingresará como nueva entrega sin modificar la recepción previa.";
+        } else {
+            throw new IllegalArgumentException("Tipo de resolución inválido. Debe ser 'RETIRO' o 'COMPROMISO_REPOSICION'");
+        }
+
+        String motivoActualizado = devolucion.getMotivo();
+        if (request.getEvidencia() != null && !request.getEvidencia().trim().isEmpty()) {
+            motivoActualizado += " | Respaldo: " + request.getEvidencia().trim();
+        }
+        if (request.getObservacion() != null && !request.getObservacion().trim().isEmpty()) {
+            motivoActualizado += " | Obs: " + request.getObservacion().trim();
+        }
+
+        devolucion.setEstado(nuevoEstado);
+        devolucion.setMotivo(motivoActualizado);
+        Devolucion guardada = devolucionRepository.save(devolucion);
+
+        ResolucionDevolucionResponse response = new ResolucionDevolucionResponse();
+        response.setIdDevolucion(guardada.getIdDevolucion());
+        response.setIdDetalle(guardada.getDetalleRecepcion().getIdDetalle());
+        response.setEstadoAnterior(estadoActual);
+        response.setNuevoEstado(guardada.getEstado());
+        response.setTipoResolucion(tipoNorm);
+        response.setEvidencia(request.getEvidencia());
+        response.setMensaje(mensaje);
+        response.setFechaResolucion(LocalDate.now());
+
+        return response;
     }
 }

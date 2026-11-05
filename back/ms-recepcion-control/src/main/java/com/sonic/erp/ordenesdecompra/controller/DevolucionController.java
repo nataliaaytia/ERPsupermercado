@@ -1,7 +1,9 @@
 package com.sonic.erp.ordenesdecompra.controller;
 
 import com.sonic.erp.ordenesdecompra.dto.request.RegistrarDevolucionRequest;
+import com.sonic.erp.ordenesdecompra.dto.request.ResolverDevolucionRequest;
 import com.sonic.erp.ordenesdecompra.dto.response.DevolucionResponse;
+import com.sonic.erp.ordenesdecompra.dto.response.ResolucionDevolucionResponse;
 import com.sonic.erp.ordenesdecompra.service.DevolucionService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -34,5 +36,15 @@ public class DevolucionController {
     @GetMapping("/detalle/{idDetalle}")
     public ResponseEntity<List<DevolucionResponse>> listarPorDetalle(@PathVariable Long idDetalle) {
         return ResponseEntity.ok(devolucionService.listarPorDetalle(idDetalle));
+    }
+
+    @PatchMapping("/resolver")
+    public ResponseEntity<?> resolverDevolucion(@Valid @RequestBody ResolverDevolucionRequest request) {
+        try {
+            ResolucionDevolucionResponse response = devolucionService.resolverDevolucion(request);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 }
