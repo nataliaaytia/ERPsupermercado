@@ -3,6 +3,11 @@
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import type { OrdenCompra } from "./tipos";
+import CondicionesLogisticasOrden from "./CondicionesLogisticasOrden";
+
+import MenuLateral from "../requisicionesCotizaciones/MenuLateral";
+import "../requisicionesCotizaciones/Requisiciones.css";
+
 import {
     cargarOrdenesCompra,
     cantidadComprometida,
@@ -13,6 +18,12 @@ import "./ServicioOrdenesCompra.css";
 
 import { useRequisiciones } from "../requisicionesCotizaciones/useRequisiciones";
 import { CLAVE_ORDENES_COMPRA } from "./compromisosEntrega";
+
+const opcionesOrdenes = [
+    "Crear orden",
+    "Compromisos de entrega",
+    "Condiciones logísticas",
+];
 
 function cargarInicial(): {
     ordenes: OrdenCompra[];
@@ -36,6 +47,10 @@ export default function ServicioOrdenesCompra() {
     const { requisiciones, solicitudes, ofertas } = useRequisiciones();
     const [idOferta, setIdOferta] = useState("");
     const [errorOrden, setErrorOrden] = useState("");
+
+    const [opcionActiva, setOpcionActiva] = useState(0);
+    const [menuAbierto, setMenuAbierto] = useState(true);
+
 
     const ofertasDisponibles = ofertas.filter(oferta =>
         oferta.estado === "Seleccionada" &&
@@ -191,6 +206,7 @@ export default function ServicioOrdenesCompra() {
             setIdOferta("");
             setIdOrden(String(idOrdenNueva));
             setIdDetalle(String(detalles[0].idDetalle));
+            setOpcionActiva(1);
             setFechaEntrega(fechaHoy());
             setCantidad("");
             setObservacion("");
@@ -243,6 +259,12 @@ export default function ServicioOrdenesCompra() {
                 <h1>Servicio de órdenes de compra</h1>
                 <p>Programación de compromisos de entrega</p>
             </header>
+            {!datos.error && (
+                <CondicionesLogisticasOrden
+                    ordenes={datos.ordenes}
+                    onGuardar={ordenes => setDatos({ ordenes, error: "" })}
+                />
+            )}
 
             {!datos.error && (
                 <form

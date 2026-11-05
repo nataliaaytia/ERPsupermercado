@@ -7,6 +7,7 @@ interface Props {
   abierto: boolean;
   onAbrirCerrar: () => void;
   onElegir: (indice: number) => void;
+  titulo?: string;
 }
 
 export const MenuLateral = ({
@@ -19,10 +20,10 @@ export const MenuLateral = ({
   <aside className={`menu-lateral ${abierto ? "" : "menu-lateral--cerrado"}`}>
     <nav
       className="menu-lateral__opciones"
-      aria-label="Secciones de requisiciones"
+      aria-label={`Secciones de ${titulo}`}
       hidden={!abierto}
     >
-      <span className="menu-lateral__titulo">Requisiciones</span>
+      <span className="menu-lateral__titulo">{titulo}</span>
       {opciones.map((opcion, indice) => (
         <button
           type="button"
