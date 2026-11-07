@@ -2,12 +2,18 @@
 
 import {
     cargarOrdenesCompra,
-    CLAVE_ORDENES_COMPRA,
+    guardarOrdenesCompra,
 } from "./compromisosEntrega";
-import type { CondicionesLogisticas, OrdenCompra } from "./tipos";
+import type {
+    CondicionesLogisticas,
+    OrdenCompra,
+} from "./tipos";
 
-export function puedeEditarLogistica(orden: OrdenCompra): boolean {
+export function puedeEditarLogistica(
+    orden: OrdenCompra,
+): boolean {
     const estado = orden.estado.trim().toLowerCase();
+
     return estado !== "cerrada" && estado !== "anulada";
 }
 
@@ -16,7 +22,10 @@ export function guardarCondicionesLogisticas(
     datos: CondicionesLogisticas,
 ): OrdenCompra[] {
     const ordenes = cargarOrdenesCompra();
-    const orden = ordenes.find(item => item.idOrden === idOrden);
+
+    const orden = ordenes.find(
+        item => item.idOrden === idOrden,
+    );
 
     if (!orden) {
         throw new Error("La orden ya no está disponible.");
@@ -50,10 +59,7 @@ export function guardarCondicionesLogisticas(
             : item,
     );
 
-    localStorage.setItem(
-        CLAVE_ORDENES_COMPRA,
-        JSON.stringify(actualizadas),
-    );
+    guardarOrdenesCompra(actualizadas);
 
     return actualizadas;
 }

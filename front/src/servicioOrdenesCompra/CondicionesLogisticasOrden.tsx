@@ -2,7 +2,10 @@
 
 import { useState } from "react";
 import type { FormEvent } from "react";
-import type { CondicionesLogisticas, OrdenCompra } from "./tipos";
+import type {
+  CondicionesLogisticas,
+  OrdenCompra,
+} from "./tipos";
 import {
   guardarCondicionesLogisticas,
   puedeEditarLogistica,
@@ -18,20 +21,32 @@ interface FormularioProps {
   onGuardar: Props["onGuardar"];
 }
 
-function FormularioLogistica({ orden, onGuardar }: FormularioProps) {
-  const [datos, setDatos] = useState<CondicionesLogisticas>(() => ({
-    destino: orden.condicionesLogisticas?.destino ?? "",
-    horario: orden.condicionesLogisticas?.horario ?? "",
-    responsableEntrega:
-      orden.condicionesLogisticas?.responsableEntrega ?? "",
-  }));
+function FormularioLogistica({
+  orden,
+  onGuardar,
+}: FormularioProps) {
+  const [datos, setDatos] = useState<CondicionesLogisticas>(
+    () => ({
+      destino: orden.condicionesLogisticas?.destino ?? "",
+      horario: orden.condicionesLogisticas?.horario ?? "",
+      responsableEntrega:
+        orden.condicionesLogisticas?.responsableEntrega ?? "",
+    }),
+  );
+
   const [error, setError] = useState("");
 
   const editable = puedeEditarLogistica(orden);
   const registradas = orden.condicionesLogisticas;
 
-  function cambiar(campo: keyof CondicionesLogisticas, valor: string) {
-    setDatos(actuales => ({ ...actuales, [campo]: valor }));
+  function cambiar(
+    campo: keyof CondicionesLogisticas,
+    valor: string,
+  ) {
+    setDatos(actuales => ({
+      ...actuales,
+      [campo]: valor,
+    }));
     setError("");
   }
 
@@ -50,6 +65,7 @@ function FormularioLogistica({ orden, onGuardar }: FormularioProps) {
         horario: datos.horario.trim(),
         responsableEntrega: datos.responsableEntrega.trim(),
       });
+
       onGuardar(actualizadas);
     } catch (fallo) {
       setError(
@@ -63,23 +79,30 @@ function FormularioLogistica({ orden, onGuardar }: FormularioProps) {
   return (
     <>
       <p>
-        <strong>{orden.numero}</strong> · {orden.estado}
+        <strong>{orden.numero}</strong>
+        {" · "}
+        {orden.estado}
       </p>
 
       {registradas ? (
         <div>
           <h3>Condiciones registradas</h3>
+
           <dl>
             <dt>Destino</dt>
             <dd>{registradas.destino}</dd>
+
             <dt>Horario</dt>
             <dd>{registradas.horario}</dd>
+
             <dt>Responsable de entrega</dt>
             <dd>{registradas.responsableEntrega}</dd>
           </dl>
         </div>
       ) : (
-        <p>Esta orden todavía no tiene condiciones logísticas.</p>
+        <p>
+          Esta orden todavía no tiene condiciones logísticas.
+        </p>
       )}
 
       {editable ? (
@@ -117,23 +140,33 @@ function FormularioLogistica({ orden, onGuardar }: FormularioProps) {
                 type="text"
                 value={datos.responsableEntrega}
                 onChange={evento =>
-                  cambiar("responsableEntrega", evento.target.value)
+                  cambiar(
+                    "responsableEntrega",
+                    evento.target.value,
+                  )
                 }
                 required
               />
             </label>
 
-            <button type="submit">Guardar condiciones</button>
+            <button type="submit">
+              Guardar condiciones
+            </button>
 
             {error && (
-              <p className="ordenes-compra__error" role="alert">
+              <p
+                className="ordenes-compra__error"
+                role="alert"
+              >
                 {error}
               </p>
             )}
           </fieldset>
         </form>
       ) : (
-        <p>Esta orden está disponible solo para consulta.</p>
+        <p>
+          Esta orden está disponible solo para consulta.
+        </p>
       )}
     </>
   );
@@ -144,25 +177,40 @@ export default function CondicionesLogisticasOrden({
   onGuardar,
 }: Props) {
   const [idOrden, setIdOrden] = useState("");
-  const orden = ordenes.find(item => String(item.idOrden) === idOrden);
+
+  const orden = ordenes.find(
+    item => String(item.idOrden) === idOrden,
+  );
 
   return (
     <section className="ordenes-compra__tarjeta">
       <h2>Condiciones logísticas</h2>
 
       {ordenes.length === 0 ? (
-        <p>Todavía no hay órdenes de compra disponibles.</p>
+        <p>
+          Todavía no hay órdenes de compra disponibles.
+        </p>
       ) : (
         <label className="ordenes-compra__campo">
           Orden de compra
           <select
             value={idOrden}
-            onChange={evento => setIdOrden(evento.target.value)}
+            onChange={evento =>
+              setIdOrden(evento.target.value)
+            }
           >
-            <option value="">Selecciona una orden</option>
+            <option value="">
+              Selecciona una orden
+            </option>
+
             {ordenes.map(item => (
-              <option key={item.idOrden} value={item.idOrden}>
-                {item.numero} · {item.estado}
+              <option
+                key={item.idOrden}
+                value={item.idOrden}
+              >
+                {item.numero}
+                {" · "}
+                {item.estado}
               </option>
             ))}
           </select>
