@@ -13,7 +13,12 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.server.ResponseStatusException;
+import com.sonic.erp.ordenesdecompra.dto.request.EditarOrdenCompraRequest;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -157,6 +162,98 @@ public class OrdenCompraService {
                     "No se pudo guardar la orden; verifica duplicados y datos",
                     e);
         }
+    }
+
+    @Transactional
+    public OrdenCompra editarBorrador(
+            Long idOrden,
+            EditarOrdenCompraRequest request) {
+
+        if (idOrden == null || idOrden <= 0) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "El identificador de la orden no es valido");
+        }
+
+        OrdenCompra orden = ordenRepository.findById(idOrden)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "La orden de compra no existe"));
+
+        if (!"BORRADOR".equalsIgnoreCase(orden.getEstado())) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Solo se pueden editar ordenes en estado BORRADOR");
+        }
+
+        if (request == null ||
+                request.detalles() == null ||
+                request.detalles().isEmpty()) {
+
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "La orden debe contener al menos un producto");
+        }
+
+        Map<Long, Integer> nuevasCantidades = new HashMap<>();
+
+        for (EditarOrdenCompraRequest.Linea linea : request.detalles()) {
+
+            if (linea == null ||
+                    linea.productoId() == null ||
+                    linea.productoId() <= 0 ||
+                    linea.cantidad() == null ||
+                    linea.cantidad() <= 0) {
+
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "Los productos y cantidades deben ser validos");
+            }
+
+            if (nuevasCantidades.putIfAbsent(
+                    linea.productoId(), linea.cantidad()) != null) {
+
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "No se permiten productos duplicados");
+            }
+        }
+
+        Set<Long> productosExistentes = new HashSet<>();
+
+        for (DetalleOrdenCompra detalle : orden.getDetalles()) {
+            productosExistentes.add(detalle.getProductoId());
+        }
+
+        if (!productosExistentes.containsAll(nuevasCantidades.keySet())) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "No se pueden agregar productos ajenos a la orden");
+        }
+
+        orden.getDetalles().removeIf(
+                detalle -> !nuevasCantidades.containsKey(
+                        detalle.getProductoId()));
+
+        BigDecimal nuevoTotal = BigDecimal.ZERO;
+
+        for (DetalleOrdenCompra detalle : orden.getDetalles()) {
+
+            Integer nuevaCantidad = nuevasCantidades.get(
+                    detalle.getProductoId());
+
+            BigDecimal nuevoSubtotal = detalle.getPrecio()
+                    .multiply(BigDecimal.valueOf(nuevaCantidad));
+
+            detalle.setCantidad(nuevaCantidad);
+            detalle.setSubtotal(nuevoSubtotal);
+
+            nuevoTotal = nuevoTotal.add(nuevoSubtotal);
+        }
+
+        orden.setTotal(nuevoTotal);
+
+        return ordenRepository.saveAndFlush(orden);
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
