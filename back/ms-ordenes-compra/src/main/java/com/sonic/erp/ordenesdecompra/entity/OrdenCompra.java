@@ -21,6 +21,12 @@ public class OrdenCompra {
     @Column(name = "id_orden")
     private Long idOrden;
 
+    @Column(name = "id_oferta", nullable = false, unique = true)
+    private Long idOferta;
+
+    @Column(name = "proveedor_id", nullable = false)
+    private Long proveedorId;
+
     @Column(name = "numero", nullable = false, unique = true, length = 50)
     private String numero;
 
