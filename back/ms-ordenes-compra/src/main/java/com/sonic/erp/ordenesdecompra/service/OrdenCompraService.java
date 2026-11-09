@@ -21,7 +21,9 @@ import org.springframework.data.jpa.domain.Specification;
 import com.sonic.erp.ordenesdecompra.dto.response.OrdenCompraDetalleResponse;
 import com.sonic.erp.ordenesdecompra.dto.request.EditarOrdenCompraRequest;
 import com.sonic.erp.ordenesdecompra.dto.response.OrdenCompraResumenResponse;
+import com.sonic.erp.ordenesdecompra.dto.response.AprobacionOrdenCompraResponse;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -380,6 +382,109 @@ public class OrdenCompraService {
                         orden.getEstado(),
                         orden.getTotal()
                 ));
+    }
+
+    @Transactional
+    public OrdenCompra solicitarAprobacion(Long idOrden) {
+
+        if (idOrden == null || idOrden <= 0) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "El identificador de la orden no es valido");
+        }
+
+        OrdenCompra orden = ordenRepository.findById(idOrden)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "La orden de compra no existe"));
+
+        if (!"BORRADOR".equalsIgnoreCase(orden.getEstado())) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Solo las ordenes en BORRADOR pueden solicitar aprobacion");
+        }
+
+        if (orden.getDetalles() == null ||
+                orden.getDetalles().isEmpty() ||
+                orden.getTotal() == null ||
+                orden.getTotal().compareTo(BigDecimal.ZERO) <= 0) {
+
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "La orden no contiene productos o importes validos");
+        }
+
+        orden.setEstado("PENDIENTE_APROBACION");
+
+        return ordenRepository.saveAndFlush(orden);
+    }
+
+    @Transactional
+    public AprobacionOrdenCompraResponse aprobarOrden(
+            Long idOrden,
+            String usuarioAprobador,
+            String rolAprobador,
+            BigDecimal limiteAutorizado) {
+
+        if (idOrden == null || idOrden <= 0) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "El identificador de la orden no es valido");
+        }
+
+        if (usuarioAprobador == null ||
+                usuarioAprobador.isBlank() ||
+                !"JEFE_COMPRAS".equals(rolAprobador)) {
+
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "El usuario no tiene permiso para aprobar ordenes");
+        }
+
+        OrdenCompra orden = ordenRepository.findById(idOrden)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "La orden de compra no existe"));
+
+        if (!"PENDIENTE_APROBACION".equals(orden.getEstado())) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "La orden no esta pendiente de aprobacion");
+        }
+
+        if (orden.getTotal() == null ||
+                orden.getTotal().compareTo(BigDecimal.ZERO) <= 0) {
+
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "El monto de la orden no es valido");
+        }
+
+        if (limiteAutorizado == null ||
+                limiteAutorizado.compareTo(BigDecimal.ZERO) < 0 ||
+                orden.getTotal().compareTo(limiteAutorizado) > 0) {
+
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "El monto supera el limite autorizado");
+        }
+
+        orden.setEstado("APROBADA");
+        orden.setAprobadoPor(usuarioAprobador);
+        orden.setFechaAprobacion(
+                LocalDateTime.now(ZoneId.of("America/La_Paz"))
+        );
+
+        OrdenCompra guardada = ordenRepository.saveAndFlush(orden);
+
+        return new AprobacionOrdenCompraResponse(
+                guardada.getIdOrden(),
+                guardada.getNumero(),
+                guardada.getEstado(),
+                guardada.getAprobadoPor(),
+                guardada.getFechaAprobacion(),
+                guardada.getTotal()
+        );
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

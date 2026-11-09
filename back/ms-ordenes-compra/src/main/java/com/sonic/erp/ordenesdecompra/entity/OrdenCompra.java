@@ -6,6 +6,8 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.time.LocalDateTime;
+
 
 @Entity
 @Table(name = "orden_compra")
@@ -41,6 +43,12 @@ public class OrdenCompra {
 
     @Column(name = "observacion", length = 500)
     private String observacion;
+
+    @Column(name = "aprobado_por", length = 100)
+    private String aprobadoPor;
+
+    @Column(name = "fecha_aprobacion")
+    private LocalDateTime fechaAprobacion;
 
     @OneToMany(mappedBy = "ordenCompra", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
