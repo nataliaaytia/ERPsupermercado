@@ -284,8 +284,7 @@ export default function ListaOfertasProveedor({
                   </h3>
 
                   <p>
-                    Esta acción seleccionará esta oferta
-                    como ganadora:
+                    Esta acción adjudicará esta oferta como ganadora. Si la solicitud todavía está abierta, se cerrará anticipadamente y no se podrán registrar nuevas ofertas:
                   </p>
 
                   <ul>
