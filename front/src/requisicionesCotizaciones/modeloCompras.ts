@@ -891,47 +891,56 @@ export function reducirCompras(
 
   if (a.tipo === "seleccionar" || a.tipo === "rechazar") {
     const oferta = e.ofertas.find((o) => o.idOferta === a.id);
-
     const solicitud = e.solicitudes.find(
       (s) => s.idSolicitud === oferta?.solicitud,
     );
 
-    if (
-      !oferta ||
-      oferta.estado !== "Registrada" ||
-      solicitud?.estado !== "Cerrada"
-    ) {
+    if (!oferta || oferta.estado !== "Registrada" || !solicitud) {
       return fallo("La oferta no está disponible para evaluación.");
     }
 
+    if (solicitud.estado !== "Enviada" && solicitud.estado !== "Cerrada") {
+      return fallo("La solicitud no está disponible para evaluación.");
+    }
+
+    if (!fechaValida(a.hoy)) {
+      return fallo("La fecha de evaluación no es válida.");
+    }
+
     if (
-      a.tipo === "seleccionar" &&
-      (oferta.validez < a.hoy ||
-        e.ofertas.some(
-          (o) =>
-            o.solicitud === oferta.solicitud && o.estado === "Seleccionada",
-        ))
+      e.ofertas.some(
+        (o) =>
+          o.solicitud === oferta.solicitud && o.estado === "Seleccionada",
+      )
     ) {
-      return fallo("La oferta venció o ya existe otra seleccionada.");
+      return fallo("Esta solicitud ya tiene una oferta seleccionada.");
+    }
+
+    if (a.tipo === "seleccionar" && oferta.validez < a.hoy) {
+      return fallo("La oferta ya venció y no puede adjudicarse.");
     }
 
     return {
       ...e,
+      solicitudes:
+        a.tipo === "seleccionar"
+          ? e.solicitudes.map((s) =>
+              s.idSolicitud === solicitud.idSolicitud
+                ? { ...s, estado: "Cerrada" }
+                : s,
+            )
+          : e.solicitudes,
       ofertas: e.ofertas.map((o) =>
         o.idOferta === oferta.idOferta
           ? {
               ...o,
               estado: a.tipo === "seleccionar" ? "Seleccionada" : "Rechazada",
             }
-          : a.tipo === "seleccionar" &&
-              o.solicitud === oferta.solicitud &&
-              o.estado === "Registrada"
-            ? { ...o, estado: "Rechazada" }
-            : o,
+          : o,
       ),
       mensaje:
         a.tipo === "seleccionar"
-          ? `La oferta OF-${String(oferta.idOferta).padStart(4, "0")} fue seleccionada como ganadora para ${oferta.proveedor.razonSocial} en la solicitud COT-${String(oferta.solicitud).padStart(4, "0")}.`
+          ? `La oferta OF-${String(oferta.idOferta).padStart(4, "0")} fue adjudicada a ${oferta.proveedor.razonSocial}. La solicitud COT-${String(oferta.solicitud).padStart(4, "0")} quedó cerrada.`
           : "Oferta rechazada correctamente.",
       tipoMensaje: "exito",
     };
