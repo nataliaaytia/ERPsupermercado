@@ -76,6 +76,22 @@ public class OrdenCompra {
             orphanRemoval = true
     )
     @Builder.Default
+    private List<HistorialEstadoOrdenCompra> historialEstados =
+            new ArrayList<>();
+
+    public void agregarCambioEstado(
+            HistorialEstadoOrdenCompra cambio) {
+
+        historialEstados.add(cambio);
+        cambio.setOrdenCompra(this);
+    }
+
+    @OneToMany(
+            mappedBy = "ordenCompra",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    @Builder.Default
     private List<EnvioOrdenCompra> historialEnvios =
             new ArrayList<>();
 

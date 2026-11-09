@@ -14,6 +14,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.util.Optional;
+import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -41,6 +42,7 @@ class SolicitarAprobacionServiceTest {
                 .numero("OC-PRUEBA-001")
                 .idOferta(11L)
                 .proveedorId(1L)
+                .fecha(LocalDate.now())
                 .estado("BORRADOR")
                 .total(new BigDecimal("387.50"))
                 .build();
@@ -188,5 +190,99 @@ class SolicitarAprobacionServiceTest {
         );
 
         verifyNoInteractions(repository);
+    }
+
+    @Test
+    void debeRechazarCantidadInvalida() {
+        OrdenCompra orden = crearOrdenValida();
+        orden.getDetalles().get(0).setCantidad(0);
+
+        when(repository.findById(1L))
+                .thenReturn(Optional.of(orden));
+
+        ResponseStatusException error = assertThrows(
+                ResponseStatusException.class,
+                () -> service.solicitarAprobacion(1L)
+        );
+
+        assertEquals(HttpStatus.BAD_REQUEST, error.getStatusCode());
+        verify(repository, never()).saveAndFlush(any());
+    }
+
+    @Test
+    void debeRechazarPrecioInvalido() {
+        OrdenCompra orden = crearOrdenValida();
+        orden.getDetalles().get(0).setPrecio(BigDecimal.ZERO);
+
+        when(repository.findById(1L))
+                .thenReturn(Optional.of(orden));
+
+        ResponseStatusException error = assertThrows(
+                ResponseStatusException.class,
+                () -> service.solicitarAprobacion(1L)
+        );
+
+        assertEquals(HttpStatus.BAD_REQUEST, error.getStatusCode());
+        verify(repository, never()).saveAndFlush(any());
+    }
+
+    @Test
+    void debeRechazarSubtotalIncorrecto() {
+        OrdenCompra orden = crearOrdenValida();
+        orden.getDetalles().get(0)
+                .setSubtotal(new BigDecimal("100.00"));
+
+        when(repository.findById(1L))
+                .thenReturn(Optional.of(orden));
+
+        ResponseStatusException error = assertThrows(
+                ResponseStatusException.class,
+                () -> service.solicitarAprobacion(1L)
+        );
+
+        assertEquals(HttpStatus.BAD_REQUEST, error.getStatusCode());
+        verify(repository, never()).saveAndFlush(any());
+    }
+
+    @Test
+    void debeRechazarTotalIncorrecto() {
+        OrdenCompra orden = crearOrdenValida();
+        orden.setTotal(new BigDecimal("999.00"));
+
+        when(repository.findById(1L))
+                .thenReturn(Optional.of(orden));
+
+        ResponseStatusException error = assertThrows(
+                ResponseStatusException.class,
+                () -> service.solicitarAprobacion(1L)
+        );
+
+        assertEquals(HttpStatus.BAD_REQUEST, error.getStatusCode());
+        verify(repository, never()).saveAndFlush(any());
+    }
+
+    @Test
+    void debeRechazarProductosDuplicados() {
+        OrdenCompra orden = crearOrdenValida();
+
+        DetalleOrdenCompra duplicado = DetalleOrdenCompra.builder()
+                .productoId(101L)
+                .cantidad(1)
+                .precio(new BigDecimal("387.50"))
+                .subtotal(new BigDecimal("387.50"))
+                .build();
+
+        orden.agregarDetalle(duplicado);
+
+        when(repository.findById(1L))
+                .thenReturn(Optional.of(orden));
+
+        ResponseStatusException error = assertThrows(
+                ResponseStatusException.class,
+                () -> service.solicitarAprobacion(1L)
+        );
+
+        assertEquals(HttpStatus.BAD_REQUEST, error.getStatusCode());
+        verify(repository, never()).saveAndFlush(any());
     }
 }

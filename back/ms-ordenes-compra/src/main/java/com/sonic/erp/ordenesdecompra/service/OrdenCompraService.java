@@ -23,6 +23,7 @@ import com.sonic.erp.ordenesdecompra.dto.request.EditarOrdenCompraRequest;
 import com.sonic.erp.ordenesdecompra.dto.response.OrdenCompraResumenResponse;
 import com.sonic.erp.ordenesdecompra.dto.response.AprobacionOrdenCompraResponse;
 import com.sonic.erp.ordenesdecompra.entity.HistorialDevolucionOrdenCompra;
+import com.sonic.erp.ordenesdecompra.entity.HistorialEstadoOrdenCompra;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -415,6 +416,77 @@ public class OrdenCompraService {
                     "La orden no contiene productos o importes validos");
         }
 
+        if (orden.getProveedorId() == null
+                || orden.getProveedorId() <= 0
+                || orden.getIdOferta() == null
+                || orden.getNumero() == null
+                || orden.getNumero().isBlank()
+                || orden.getFecha() == null) {
+
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "La orden contiene datos generales incompletos");
+        }
+
+        BigDecimal totalCalculado = BigDecimal.ZERO;
+        Set<Long> productos = new HashSet<>();
+
+        for (DetalleOrdenCompra detalle : orden.getDetalles()) {
+
+            if (detalle == null
+                    || detalle.getProductoId() == null
+                    || detalle.getProductoId() <= 0
+                    || detalle.getCantidad() == null
+                    || detalle.getCantidad() <= 0
+                    || detalle.getPrecio() == null
+                    || detalle.getPrecio().compareTo(BigDecimal.ZERO) <= 0
+                    || detalle.getSubtotal() == null) {
+
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "La orden contiene productos, cantidades o precios invalidos");
+            }
+
+            if (!productos.add(detalle.getProductoId())) {
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "La orden contiene productos duplicados");
+            }
+
+            BigDecimal subtotalCalculado = detalle.getPrecio()
+                    .multiply(BigDecimal.valueOf(detalle.getCantidad()));
+
+            if (subtotalCalculado.compareTo(detalle.getSubtotal()) != 0) {
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "La orden contiene subtotales incorrectos");
+            }
+
+            totalCalculado = totalCalculado.add(subtotalCalculado);
+        }
+
+        if (totalCalculado.compareTo(orden.getTotal()) != 0) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "El total de la orden no coincide con sus productos");
+        }
+
+        String estadoAnterior = orden.getEstado();
+
+        LocalDateTime fechaCambio = LocalDateTime.now(
+                ZoneId.of("America/La_Paz"));
+
+        HistorialEstadoOrdenCompra cambio =
+                HistorialEstadoOrdenCompra.builder()
+                        .estadoAnterior(estadoAnterior)
+                        .estadoNuevo("PENDIENTE_APROBACION")
+                        .responsable("SIN_AUTENTICACION")
+                        .fechaCambio(fechaCambio)
+                        .observacion("Solicitud de aprobacion de la orden")
+                        .build();
+
+        orden.agregarCambioEstado(cambio);
+
         orden.setEstado("PENDIENTE_APROBACION");
 
         return ordenRepository.saveAndFlush(orden);
@@ -534,6 +606,17 @@ public class OrdenCompraService {
                         .build();
 
         orden.agregarDevolucion(devolucion);
+
+        HistorialEstadoOrdenCompra cambio =
+                HistorialEstadoOrdenCompra.builder()
+                        .estadoAnterior(orden.getEstado())
+                        .estadoNuevo("BORRADOR")
+                        .responsable("SIN_AUTENTICACION")
+                        .fechaCambio(devolucion.getFechaDevolucion())
+                        .observacion(motivoLimpio)
+                        .build();
+
+        orden.agregarCambioEstado(cambio);
 
         orden.setObservacion(motivoLimpio);
         orden.setEstado("BORRADOR");
