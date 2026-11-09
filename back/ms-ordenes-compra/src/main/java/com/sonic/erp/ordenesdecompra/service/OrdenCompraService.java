@@ -13,8 +13,14 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import com.sonic.erp.ordenesdecompra.dto.response.OrdenCompraDetalleResponse;
 import com.sonic.erp.ordenesdecompra.dto.request.EditarOrdenCompraRequest;
+import com.sonic.erp.ordenesdecompra.dto.response.OrdenCompraResumenResponse;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -25,6 +31,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.UUID;
+import java.util.Locale;
 
 @Service
 public class OrdenCompraService {
@@ -295,6 +302,84 @@ public class OrdenCompraService {
                 orden.getObservacion(),
                 detalles
         );
+    }
+
+    @Transactional(readOnly = true)
+    public Page<OrdenCompraResumenResponse> buscarOrdenes(
+            String numero,
+            Long proveedorId,
+            String estado,
+            int page,
+            int size) {
+
+        if (page < 0 || size < 1 || size > 100) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "La pagina debe ser mayor o igual a cero y el tamaño debe estar entre 1 y 100");
+        }
+
+        if (proveedorId != null && proveedorId <= 0) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "El identificador del proveedor no es valido");
+        }
+
+        Specification<OrdenCompra> filtros =
+                (root, query, cb) -> cb.conjunction();
+
+        if (numero != null && !numero.isBlank()) {
+            String numeroBuscado =
+                    numero.trim().toLowerCase(Locale.ROOT);
+
+            filtros = filtros.and((root, query, cb) ->
+                    cb.like(
+                            cb.lower(root.get("numero")),
+                            "%" + numeroBuscado + "%"
+                    ));
+        }
+
+        if (proveedorId != null) {
+            filtros = filtros.and((root, query, cb) ->
+                    cb.equal(
+                            root.get("proveedorId"),
+                            proveedorId
+                    ));
+        }
+
+        if (estado != null && !estado.isBlank()) {
+            String estadoBuscado =
+                    estado.trim().toUpperCase(Locale.ROOT);
+
+            filtros = filtros.and((root, query, cb) ->
+                    cb.equal(
+                            cb.upper(root.get("estado")),
+                            estadoBuscado
+                    ));
+        }
+
+        Pageable paginacion = PageRequest.of(
+                page,
+                size,
+                Sort.by(
+                        Sort.Direction.DESC,
+                        "fecha",
+                        "idOrden"
+                )
+        );
+
+        Page<OrdenCompra> resultados =
+                ordenRepository.findAll(filtros, paginacion);
+
+        return resultados.map(orden ->
+                new OrdenCompraResumenResponse(
+                        orden.getIdOrden(),
+                        orden.getNumero(),
+                        orden.getIdOferta(),
+                        orden.getProveedorId(),
+                        orden.getFecha(),
+                        orden.getEstado(),
+                        orden.getTotal()
+                ));
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

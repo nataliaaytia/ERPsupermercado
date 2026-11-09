@@ -5,11 +5,13 @@ import com.sonic.erp.ordenesdecompra.entity.OrdenCompra;
 import com.sonic.erp.ordenesdecompra.service.OrdenCompraService;
 import com.sonic.erp.ordenesdecompra.dto.request.EditarOrdenCompraRequest;
 import com.sonic.erp.ordenesdecompra.dto.response.OrdenCompraDetalleResponse;
+import com.sonic.erp.ordenesdecompra.dto.response.OrdenCompraResumenResponse;
 import jakarta.validation.Valid;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.data.domain.Page;
 
 import java.util.Map;
 
@@ -81,6 +83,26 @@ public class OrdenCompraController {
                 ordenCompraService.consultarDetalle(idOrden);
 
         return ResponseEntity.ok(respuesta);
+    }
+
+    @GetMapping("/buscar")
+    public ResponseEntity<Page<OrdenCompraResumenResponse>> buscarOrdenes(
+            @RequestParam(required = false) String numero,
+            @RequestParam(required = false) Long proveedorId,
+            @RequestParam(required = false) String estado,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Page<OrdenCompraResumenResponse> resultados =
+                ordenCompraService.buscarOrdenes(
+                        numero,
+                        proveedorId,
+                        estado,
+                        page,
+                        size
+                );
+
+        return ResponseEntity.ok(resultados);
     }
 
 }
