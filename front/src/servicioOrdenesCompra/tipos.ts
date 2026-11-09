@@ -19,6 +19,12 @@ export interface DetalleOrdenCompra {
     compromisos?: CompromisoEntrega[];
 }
 
+export interface CondicionesLogisticas {
+    destino: string;
+    horario: string;
+    responsableEntrega: string;
+}
+
 export interface OrdenCompra {
     idOrden: number;
     idOfertaOrigen?: number;
@@ -27,6 +33,7 @@ export interface OrdenCompra {
     estado: string;
     total: number;
     observacion: string;
+    condicionesLogisticas?: CondicionesLogisticas;
     detalles: DetalleOrdenCompra[];
 }
 

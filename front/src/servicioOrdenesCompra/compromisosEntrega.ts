@@ -7,7 +7,10 @@ import type {
     OrdenCompra,
 } from "./tipos";
 
-export const CLAVE_ORDENES_COMPRA = "erp-ordenes-compra";
+import {
+    obtenerCompras,
+    actualizarCompras,
+} from "../requisicionesCotizaciones/almacenCompras";
 
 export function fechaHoy(): string {
     const fecha = new Date();
@@ -106,14 +109,15 @@ function esOrden(valor: unknown): valor is OrdenCompra {
 }
 
 export function cargarOrdenesCompra(): OrdenCompra[] {
-    const guardado = localStorage.getItem(CLAVE_ORDENES_COMPRA);
+    const estado = obtenerCompras();
 
-    if (guardado === null) return [];
+    if (estado.errorCarga) {
+        throw new Error(estado.errorCarga);
+    }
 
-    const datos: unknown = JSON.parse(guardado);
+    const datos = estado.ordenes;
 
     if (
-        !Array.isArray(datos) ||
         !datos.every(esOrden) ||
         new Set(datos.map(orden => orden.idOrden)).size !== datos.length
     ) {
@@ -123,6 +127,25 @@ export function cargarOrdenesCompra(): OrdenCompra[] {
     }
 
     return datos;
+}
+
+export function guardarOrdenesCompra(
+    ordenes: OrdenCompra[],
+): void {
+    if (
+        !ordenes.every(esOrden) ||
+        new Set(ordenes.map(orden => orden.idOrden)).size !== ordenes.length
+    ) {
+        throw new Error(
+            "Los datos de las órdenes de compra no son válidos.",
+        );
+    }
+
+    actualizarCompras(actual =>
+        actual.ordenes === ordenes
+            ? actual
+            : { ...actual, ordenes },
+    );
 }
 
 export function cantidadComprometida(
@@ -250,10 +273,7 @@ export function registrarCompromiso(
         fechaHoy(),
     );
 
-    localStorage.setItem(
-        CLAVE_ORDENES_COMPRA,
-        JSON.stringify(ordenes),
-    );
+    guardarOrdenesCompra(ordenes);
 
     return ordenes;
 }
