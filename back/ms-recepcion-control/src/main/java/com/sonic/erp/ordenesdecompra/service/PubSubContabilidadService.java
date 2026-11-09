@@ -20,7 +20,7 @@ public class PubSubContabilidadService {
     private static final String TOPICO = "projects/project-a96e5fe1-5ba6-4698-a85/topics/ucb-sis323-sub-c";
 
     private static final String CREDENCIALES_JSON = """
- 
+
             """;
 
     private final ObjectMapper objectMapper;
