@@ -17,10 +17,14 @@ import {
 import "../requisicionesCotizaciones/Requisiciones.css";
 import "./ServicioOrdenesCompra.css";
 
+//scrum 525
+import SeguimientoEntregas from "./SeguimientoEntregas";
+
 const opcionesOrdenes = [
     "Crear orden",
     "Compromisos de entrega",
     "Condiciones logísticas",
+    "Pendientes de entrega",
 ];
 
 /*
@@ -327,6 +331,9 @@ export default function ServicioOrdenesCompra() {
                         {opcionesOrdenes[opcionActiva]}
                     </h1>
                 </header>
+                {!datos.error && opcionActiva === 3 && (
+                    <SeguimientoEntregas />
+                )}
 
                 {datos.error ? (
                     <p className="ordenes-compra__error" role="alert">

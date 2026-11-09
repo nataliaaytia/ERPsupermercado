@@ -1,14 +1,16 @@
 import { estadoInicial } from "./modeloCompras";
 import type { AccionCompras, EstadoCompras } from "./modeloCompras";
 import { reducirComprasConHistorial } from "./historialRequisiciones";
-import type { OrdenCompra } from "../servicioOrdenesCompra/tipos";
+import type { OrdenCompra, RecepcionValidada } from "../servicioOrdenesCompra/tipos";
 import { proveedoresIniciales } from "../catalogo/datosProveedores";
 
 const CLAVE = "erp-compras-estado";
 const CLAVE_ANTERIOR_ORDENES = "erp-ordenes-compra";
 
+
 interface EstadoCompartido extends EstadoCompras {
     ordenes: OrdenCompra[];
+    recepcionesValidadas: RecepcionValidada[];
     ejemploInicializado: boolean;
     errorCarga: string;
 }
@@ -164,6 +166,7 @@ export function obtenerCompras(): EstadoCompartido {
     const inicial: EstadoCompartido = {
         ...estadoInicial,
         ordenes: [],
+        recepcionesValidadas: [],
         ejemploInicializado: false,
         errorCarga: "",
     };
@@ -216,11 +219,10 @@ export function obtenerCompras(): EstadoCompartido {
             solicitudes: anterior.solicitudes ?? [],
             ofertas: anterior.ofertas ?? [],
             alertasInventario: anterior.alertasInventario ?? [],
-            historialProcesamientos:
-                anterior.historialProcesamientos ?? [],
+            historialProcesamientos: anterior.historialProcesamientos ?? [],
             ordenes,
-            ejemploInicializado:
-                anterior.ejemploInicializado === true,
+            recepcionesValidadas: anterior.recepcionesValidadas ?? [],
+            ejemploInicializado: anterior.ejemploInicializado === true,
             errorCarga: "",
             mensaje: "",
             tipoMensaje: "neutro",
@@ -272,9 +274,7 @@ export function actualizarCompras(
     oyentes.forEach(oyente => oyente());
 }
 
-export function despacharCompras(
-    accion: AccionCompras,
-): void {
+export function despacharCompras(accion: AccionCompras): void {
     actualizarCompras(actual => ({
         ...actual,
         ...reducirComprasConHistorial(actual, {
@@ -282,6 +282,7 @@ export function despacharCompras(
             fecha: new Date().toISOString(),
         }),
         ordenes: actual.ordenes,
+        recepcionesValidadas: actual.recepcionesValidadas,
         ejemploInicializado: actual.ejemploInicializado,
         errorCarga: actual.errorCarga,
     }));

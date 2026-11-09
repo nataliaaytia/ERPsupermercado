@@ -44,3 +44,19 @@ export interface DatosCompromisoEntrega {
     cantidad: string;
     observacion: string;
 }
+
+//SCRUM 525
+
+export interface LineaRecepcionValidada {
+    idDetalleOrden: number;
+    cantidadRecibida: number;
+    cantidadAceptada: number;
+}
+
+export interface RecepcionValidada {
+    idRecepcion: number;
+    idOrden: number;
+    estado: "Validada";
+    detalles: LineaRecepcionValidada[];
+    esEjemplo?: boolean;
+}
