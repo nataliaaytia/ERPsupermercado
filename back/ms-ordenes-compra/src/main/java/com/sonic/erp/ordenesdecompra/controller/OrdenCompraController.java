@@ -4,6 +4,7 @@ package com.sonic.erp.ordenesdecompra.controller;
 import com.sonic.erp.ordenesdecompra.entity.OrdenCompra;
 import com.sonic.erp.ordenesdecompra.service.OrdenCompraService;
 import com.sonic.erp.ordenesdecompra.dto.request.EditarOrdenCompraRequest;
+import com.sonic.erp.ordenesdecompra.dto.response.OrdenCompraDetalleResponse;
 import jakarta.validation.Valid;
 
 import org.springframework.http.HttpStatus;
@@ -71,4 +72,15 @@ public class OrdenCompraController {
                         .toList()
         ));
     }
+
+    @GetMapping("/{idOrden}")
+    public ResponseEntity<OrdenCompraDetalleResponse> consultarDetalle(
+            @PathVariable Long idOrden) {
+
+        OrdenCompraDetalleResponse respuesta =
+                ordenCompraService.consultarDetalle(idOrden);
+
+        return ResponseEntity.ok(respuesta);
+    }
+
 }
