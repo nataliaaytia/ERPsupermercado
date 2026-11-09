@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.server.ResponseStatusException;
+import com.sonic.erp.ordenesdecompra.dto.response.OrdenCompraDetalleResponse;
 import com.sonic.erp.ordenesdecompra.dto.request.EditarOrdenCompraRequest;
 
 import java.util.HashMap;
@@ -254,6 +255,46 @@ public class OrdenCompraService {
         orden.setTotal(nuevoTotal);
 
         return ordenRepository.saveAndFlush(orden);
+    }
+
+    @Transactional(readOnly = true)
+    public OrdenCompraDetalleResponse consultarDetalle(Long idOrden) {
+
+        if (idOrden == null || idOrden <= 0) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "El identificador de la orden no es valido");
+        }
+
+        OrdenCompra orden = ordenRepository.findById(idOrden)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "La orden de compra no existe"));
+
+        List<OrdenCompraDetalleResponse.DetalleResponse> detalles =
+                orden.getDetalles().stream()
+                        .map(detalle ->
+                                new OrdenCompraDetalleResponse.DetalleResponse(
+                                        detalle.getIdDetalle(),
+                                        detalle.getProductoId(),
+                                        detalle.getCantidad(),
+                                        detalle.getPrecio(),
+                                        detalle.getSubtotal()
+                                )
+                        )
+                        .toList();
+
+        return new OrdenCompraDetalleResponse(
+                orden.getIdOrden(),
+                orden.getNumero(),
+                orden.getIdOferta(),
+                orden.getProveedorId(),
+                orden.getFecha(),
+                orden.getEstado(),
+                orden.getTotal(),
+                orden.getObservacion(),
+                detalles
+        );
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
