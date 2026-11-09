@@ -105,4 +105,19 @@ public class OrdenCompraController {
         return ResponseEntity.ok(resultados);
     }
 
+    @PostMapping("/{idOrden}/solicitar-aprobacion")
+    public ResponseEntity<Map<String, Object>> solicitarAprobacion(
+            @PathVariable Long idOrden) {
+
+        OrdenCompra orden =
+                ordenCompraService.solicitarAprobacion(idOrden);
+
+        return ResponseEntity.ok(Map.of(
+                "mensaje", "Orden enviada a aprobacion correctamente",
+                "idOrden", orden.getIdOrden(),
+                "numero", orden.getNumero(),
+                "estado", orden.getEstado()
+        ));
+    }
+
 }
