@@ -6,6 +6,7 @@ import com.sonic.erp.ordenesdecompra.service.OrdenCompraService;
 import com.sonic.erp.ordenesdecompra.dto.request.EditarOrdenCompraRequest;
 import com.sonic.erp.ordenesdecompra.dto.response.OrdenCompraDetalleResponse;
 import com.sonic.erp.ordenesdecompra.dto.response.OrdenCompraResumenResponse;
+import com.sonic.erp.ordenesdecompra.dto.request.DevolverOrdenCompraRequest;
 import jakarta.validation.Valid;
 
 import org.springframework.http.HttpStatus;
@@ -120,4 +121,25 @@ public class OrdenCompraController {
         ));
     }
 
+    @PostMapping("/{idOrden}/devolver")
+    public ResponseEntity<Map<String, Object>> devolverOrden(
+            @PathVariable Long idOrden,
+            @Valid @RequestBody DevolverOrdenCompraRequest request) {
+
+        OrdenCompra orden =
+                ordenCompraService.devolverParaCorreccion(
+                        idOrden,
+                        request.motivo()
+                );
+
+        return ResponseEntity.ok(Map.of(
+                "mensaje", "Orden devuelta para correccion",
+                "idOrden", orden.getIdOrden(),
+                "numero", orden.getNumero(),
+                "estado", orden.getEstado(),
+                "observacion", orden.getObservacion(),
+                "totalDevoluciones",
+                orden.getHistorialDevoluciones().size()
+        ));
+    }
 }
