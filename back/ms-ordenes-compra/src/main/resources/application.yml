@@ -4,7 +4,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/bd_ordenes
     username: postgres
-    password: ${DB_PASSWORD}
+    password: 2005
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -15,6 +15,16 @@ spring:
         format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
+  mail:
+    host: localhost
+    port: 1025
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+
 server:
   port: 8083
   error:
@@ -23,3 +33,7 @@ server:
 servicios:
   cotizaciones:
     url: http://localhost:8082
+
+app:
+  correo:
+    remitente: compras@erp.local
