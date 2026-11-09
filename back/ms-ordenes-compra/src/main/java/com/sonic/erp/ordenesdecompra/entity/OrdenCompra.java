@@ -50,6 +50,20 @@ public class OrdenCompra {
     @Column(name = "fecha_aprobacion")
     private LocalDateTime fechaAprobacion;
 
+    @OneToMany(
+            mappedBy = "ordenCompra",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    @Builder.Default
+    private List<HistorialDevolucionOrdenCompra> historialDevoluciones =
+            new ArrayList<>();
+
+    public void agregarDevolucion(HistorialDevolucionOrdenCompra devolucion) {
+        historialDevoluciones.add(devolucion);
+        devolucion.setOrdenCompra(this);
+    }
+
     @OneToMany(mappedBy = "ordenCompra", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<DetalleOrdenCompra> detalles = new ArrayList<>();

@@ -22,6 +22,7 @@ import com.sonic.erp.ordenesdecompra.dto.response.OrdenCompraDetalleResponse;
 import com.sonic.erp.ordenesdecompra.dto.request.EditarOrdenCompraRequest;
 import com.sonic.erp.ordenesdecompra.dto.response.OrdenCompraResumenResponse;
 import com.sonic.erp.ordenesdecompra.dto.response.AprobacionOrdenCompraResponse;
+import com.sonic.erp.ordenesdecompra.entity.HistorialDevolucionOrdenCompra;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -485,6 +486,59 @@ public class OrdenCompraService {
                 guardada.getFechaAprobacion(),
                 guardada.getTotal()
         );
+    }
+
+    @Transactional
+    public OrdenCompra devolverParaCorreccion(
+            Long idOrden,
+            String motivo) {
+
+        if (idOrden == null || idOrden <= 0) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "El identificador de la orden no es valido");
+        }
+
+        if (motivo == null || motivo.isBlank()) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Debe indicar el motivo de la devolucion");
+        }
+
+        String motivoLimpio = motivo.trim();
+
+        if (motivoLimpio.length() > 500) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "El motivo no puede superar 500 caracteres");
+        }
+
+        OrdenCompra orden = ordenRepository.findById(idOrden)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "La orden de compra no existe"));
+
+        if (!"PENDIENTE_APROBACION".equals(orden.getEstado())) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Solo se pueden devolver ordenes pendientes de aprobacion");
+        }
+
+        HistorialDevolucionOrdenCompra devolucion =
+                HistorialDevolucionOrdenCompra.builder()
+                        .motivo(motivoLimpio)
+                        .responsable("SIN_AUTENTICACION")
+                        .fechaDevolucion(
+                                LocalDateTime.now(
+                                        ZoneId.of("America/La_Paz")))
+                        .build();
+
+        orden.agregarDevolucion(devolucion);
+
+        orden.setObservacion(motivoLimpio);
+        orden.setEstado("BORRADOR");
+
+        return ordenRepository.saveAndFlush(orden);
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
