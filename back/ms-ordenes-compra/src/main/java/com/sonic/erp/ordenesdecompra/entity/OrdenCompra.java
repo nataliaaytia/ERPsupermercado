@@ -78,6 +78,23 @@ public class OrdenCompra {
         envio.setOrdenCompra(this);
     }
 
+    @OneToOne(
+            mappedBy = "ordenCompra",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private RespuestaProveedorOrdenCompra respuestaProveedor;
+
+    public void registrarRespuesta(
+            RespuestaProveedorOrdenCompra respuesta) {
+
+        this.respuestaProveedor = respuesta;
+
+        if (respuesta != null) {
+            respuesta.setOrdenCompra(this);
+        }
+    }
+
     @OneToMany(mappedBy = "ordenCompra", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<DetalleOrdenCompra> detalles = new ArrayList<>();
