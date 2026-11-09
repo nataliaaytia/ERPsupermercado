@@ -64,6 +64,20 @@ public class OrdenCompra {
         devolucion.setOrdenCompra(this);
     }
 
+    @OneToMany(
+            mappedBy = "ordenCompra",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    @Builder.Default
+    private List<EnvioOrdenCompra> historialEnvios =
+            new ArrayList<>();
+
+    public void agregarEnvio(EnvioOrdenCompra envio) {
+        historialEnvios.add(envio);
+        envio.setOrdenCompra(this);
+    }
+
     @OneToMany(mappedBy = "ordenCompra", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<DetalleOrdenCompra> detalles = new ArrayList<>();
