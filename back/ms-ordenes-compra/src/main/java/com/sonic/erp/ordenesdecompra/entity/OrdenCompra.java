@@ -50,6 +50,12 @@ public class OrdenCompra {
     @Column(name = "fecha_aprobacion")
     private LocalDateTime fechaAprobacion;
 
+    @Column(name = "motivo_anulacion", length = 500)
+    private String motivoAnulacion;
+
+    @Column(name = "fecha_anulacion")
+    private LocalDateTime fechaAnulacion;
+
     @OneToMany(
             mappedBy = "ordenCompra",
             cascade = CascadeType.ALL,

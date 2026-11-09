@@ -20,6 +20,9 @@ public class Recepcion {
     @Column(name = "id_recepcion")
     private Long idRecepcion;
 
+    @Column(name = "id_orden")
+    private Long idOrden;
+
     @Column(name = "fecha", nullable = false)
     private LocalDate fecha;
 
@@ -94,4 +97,13 @@ public class Recepcion {
     public void setDetalles(List<DetalleRecepcion> detalles) {
         this.detalles = detalles;
     }
+
+    public Long getIdOrden() {
+        return idOrden;
+    }
+
+    public void setIdOrden(Long idOrden) {
+        this.idOrden = idOrden;
+    }
+
 }
