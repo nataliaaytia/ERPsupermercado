@@ -6,6 +6,7 @@ import {
     cargarRecepcionDeEjemplo,
     esOrdenDeEjemplo,
 } from "./utilidadesSeguimientoEntregas";
+import { consultarCantidadesAutorizadas } from "../servicioRecepcionControl/servicioConsultaValidaciones";
 
 import CierreOrden, { VistaPreviaCierreOrden } from "./CierreOrden";
 
@@ -27,9 +28,40 @@ export default function SeguimientoEntregas() {
         : [];
 
     const lineas = orden ? calcularSaldosEntrega(orden, recepciones) : [];
+    const cantidadesAutorizadas = orden
+        ? consultarCantidadesAutorizadas(orden.idOrden)
+        : [];
+    const cantidadesPorLinea = new Map<
+        number,
+        {
+            recibidas: number;
+            aceptadas: number;
+            rechazadas: number;
+            autorizadas: number;
+        }
+    >();
+
+    for (const detalle of cantidadesAutorizadas) {
+        const acumuladas = cantidadesPorLinea.get(detalle.idDetalleOrden) ?? {
+            recibidas: 0,
+            aceptadas: 0,
+            rechazadas: 0,
+            autorizadas: 0,
+        };
+        cantidadesPorLinea.set(detalle.idDetalleOrden, {
+            recibidas: acumuladas.recibidas + detalle.cantidadRecibida,
+            aceptadas: acumuladas.aceptadas + detalle.cantidadAceptada,
+            rechazadas: acumuladas.rechazadas + detalle.cantidadRechazada,
+            autorizadas: acumuladas.autorizadas + detalle.cantidadAutorizada,
+        });
+    }
 
     const visibles = soloPendientes
-        ? lineas.filter(linea => linea.pendientes > 0)
+        ? lineas.filter(
+              linea =>
+                  linea.pendientes > 0 ||
+                  cantidadesPorLinea.has(linea.idDetalle),
+          )
         : lineas;
 
     function cargarEjemplo(id: number) {
@@ -46,7 +78,7 @@ export default function SeguimientoEntregas() {
 
     return (
         <section className="ordenes-compra__tarjeta">
-            <h2>Cantidades pendientes por línea</h2>
+            <h2>Seguimiento de entregas y cantidades autorizadas</h2>
 
             {import.meta.env.DEV && <VistaPreviaCierreOrden />}
 
@@ -113,7 +145,9 @@ export default function SeguimientoEntregas() {
                                 setSoloPendientes(evento.target.value === "pendientes")
                             }
                         >
-                            <option value="pendientes">Solo con saldo pendiente</option>
+                            <option value="pendientes">
+                                Pendientes o con recepciones validadas
+                            </option>
                             <option value="todas">Todas las líneas</option>
                         </select>
                     </label>
@@ -128,8 +162,10 @@ export default function SeguimientoEntregas() {
                                         <th scope="col">Línea</th>
                                         <th scope="col">Producto</th>
                                         <th scope="col">Ordenadas</th>
+                                        <th scope="col">Recibidas</th>
                                         <th scope="col">Aceptadas</th>
                                         <th scope="col">Rechazadas</th>
+                                        <th scope="col">Autorizadas</th>
                                         <th scope="col">Pendientes</th>
                                     </tr>
                                 </thead>
@@ -139,8 +175,18 @@ export default function SeguimientoEntregas() {
                                             <td>{linea.idDetalle}</td>
                                             <td>{linea.producto}</td>
                                             <td>{linea.ordenadas}</td>
-                                            <td>{linea.aceptadas}</td>
-                                            <td>{linea.rechazadas}</td>
+                                            <td>
+                                                {cantidadesPorLinea.get(linea.idDetalle)?.recibidas ?? 0}
+                                            </td>
+                                            <td>
+                                                {cantidadesPorLinea.get(linea.idDetalle)?.aceptadas ?? 0}
+                                            </td>
+                                            <td>
+                                                {cantidadesPorLinea.get(linea.idDetalle)?.rechazadas ?? 0}
+                                            </td>
+                                            <td>
+                                                {cantidadesPorLinea.get(linea.idDetalle)?.autorizadas ?? 0}
+                                            </td>
                                             <td><strong>{linea.pendientes}</strong></td>
                                         </tr>
                                     ))}
