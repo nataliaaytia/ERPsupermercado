@@ -6,7 +6,10 @@ import { proveedoresIniciales } from "../catalogo/datosProveedores";
 
 import type { RecepcionRegistrada } from "../servicioRecepcionControl/tiposRecepcion";
 import type { ResolucionDevolucion } from "../servicioRecepcionControl/tiposDevolucion";
-import type { EventoMercaderiaDisponible } from "../servicioRecepcionControl/tiposDisponibilidad";
+import type {
+    ErrorRespuestaDisponibilidad,
+    EventoMercaderiaDisponible,
+} from "../servicioRecepcionControl/tiposDisponibilidad";
 
 const CLAVE = "erp-compras-estado";
 const CLAVE_ANTERIOR_ORDENES = "erp-ordenes-compra";
@@ -18,6 +21,7 @@ interface EstadoCompartido extends EstadoCompras {
     recepcionesRegistradas: RecepcionRegistrada[];
     resolucionesDevoluciones: ResolucionDevolucion[];
     eventosMercaderiaDisponible: EventoMercaderiaDisponible[];
+    erroresRespuestasDisponibilidad: ErrorRespuestaDisponibilidad[];
     ejemploInicializado: boolean;
     errorCarga: string;
 }
@@ -177,6 +181,7 @@ export function obtenerCompras(): EstadoCompartido {
         recepcionesRegistradas: [],
         resolucionesDevoluciones: [],
         eventosMercaderiaDisponible: [],
+        erroresRespuestasDisponibilidad: [],
         ejemploInicializado: false,
         errorCarga: "",
     };
@@ -236,6 +241,13 @@ export function obtenerCompras(): EstadoCompartido {
                 "Los eventos de disponibilidad guardados no son válidos.",
             );
         }
+        const erroresRespuestasDisponibilidad =
+            anterior.erroresRespuestasDisponibilidad ?? [];
+        if (!Array.isArray(erroresRespuestasDisponibilidad)) {
+            throw new Error(
+                "Los errores de respuestas de disponibilidad guardados no son válidos.",
+            );
+        }
 
         const nuevo = agregarEjemplo({
             ...inicial,
@@ -250,6 +262,7 @@ export function obtenerCompras(): EstadoCompartido {
             recepcionesRegistradas: anterior.recepcionesRegistradas ?? [],
             resolucionesDevoluciones,
             eventosMercaderiaDisponible,
+            erroresRespuestasDisponibilidad,
             ejemploInicializado: anterior.ejemploInicializado === true,
             errorCarga: "",
             mensaje: "",

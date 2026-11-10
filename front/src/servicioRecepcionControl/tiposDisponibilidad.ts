@@ -24,12 +24,27 @@ export type EstadoProcesamientoDisponibilidad =
     | "Confirmada"
     | "Rechazada";
 
-export interface ResultadoDisponibilidad {
+export interface ResultadoDisponibilidadEntrante {
     correlationId: string;
     recepcionId: number;
     fechaResultado: string;
     estadoProcesamiento: EstadoProcesamientoDisponibilidad;
     motivoRechazo?: string;
+}
+
+export interface ResultadoDisponibilidad
+    extends ResultadoDisponibilidadEntrante {
+    idEventoOriginal?: string;
+    idMensajePubSub?: string;
+    fechaRecepcion?: string;
+}
+
+export interface ErrorRespuestaDisponibilidad {
+    idMensajePubSub?: string;
+    correlationId?: string;
+    recepcionId?: number;
+    fechaRecepcion: string;
+    error: string;
 }
 
 export interface EventoMercaderiaDisponible {

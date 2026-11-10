@@ -275,6 +275,11 @@ export default function DisponibilidadDespacho() {
                                             {evento.resultadoProcesamiento ? (
                                                 <>
                                                     <p>
+                                                        Evento original:{" "}
+                                                        {evento.resultadoProcesamiento.idEventoOriginal ??
+                                                            evento.idEvento}
+                                                    </p>
+                                                    <p>
                                                         Estado de procesamiento:{" "}
                                                         {evento.resultadoProcesamiento.estadoProcesamiento}
                                                     </p>
@@ -292,6 +297,20 @@ export default function DisponibilidadDespacho() {
                                                             evento.resultadoProcesamiento.fechaResultado,
                                                         ).toLocaleString("es-BO")}
                                                     </p>
+                                                    {evento.resultadoProcesamiento.fechaRecepcion && (
+                                                        <p>
+                                                            Respuesta recibida:{" "}
+                                                            {new Date(
+                                                                evento.resultadoProcesamiento.fechaRecepcion,
+                                                            ).toLocaleString("es-BO")}
+                                                        </p>
+                                                    )}
+                                                    {evento.resultadoProcesamiento.idMensajePubSub && (
+                                                        <p>
+                                                            ID de mensaje Pub/Sub:{" "}
+                                                            {evento.resultadoProcesamiento.idMensajePubSub}
+                                                        </p>
+                                                    )}
                                                     {evento.resultadoProcesamiento.motivoRechazo && (
                                                         <p>
                                                             Motivo del rechazo:{" "}
@@ -394,6 +413,37 @@ export default function DisponibilidadDespacho() {
                             {estadoDisponibilidad(evento)}
                         </li>
                     ))}
+                </ul>
+            )}
+
+            <h3>Errores de respuestas de Entregas/Despachos</h3>
+            {compras.erroresRespuestasDisponibilidad.length === 0 ? (
+                <p>No hay errores de procesamiento registrados.</p>
+            ) : (
+                <ul>
+                    {compras.erroresRespuestasDisponibilidad.map(
+                        (registro, indice) => (
+                            <li
+                                className="ordenes-compra__error"
+                                key={
+                                    registro.idMensajePubSub ??
+                                    `${registro.fechaRecepcion}-${indice}`
+                                }
+                            >
+                                {registro.idMensajePubSub &&
+                                    `Mensaje ${registro.idMensajePubSub} · `}
+                                {registro.correlationId &&
+                                    `correlationId ${registro.correlationId} · `}
+                                {registro.recepcionId &&
+                                    `Recepción ${registro.recepcionId} · `}
+                                {new Date(
+                                    registro.fechaRecepcion,
+                                ).toLocaleString("es-BO")}
+                                {" · "}
+                                {registro.error}
+                            </li>
+                        ),
+                    )}
                 </ul>
             )}
         </section>

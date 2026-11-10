@@ -3,8 +3,9 @@ import {
     obtenerCompras,
 } from "../requisicionesCotizaciones/almacenCompras";
 import type {
+    ErrorRespuestaDisponibilidad,
     EventoMercaderiaDisponible,
-    ResultadoDisponibilidad,
+    ResultadoDisponibilidadEntrante,
 } from "./tiposDisponibilidad";
 
 const publicacionesActivas = new Set<string>();
@@ -150,7 +151,7 @@ function esRegistro(
 
 function validarResultadoDisponibilidad(
     entrada: unknown,
-): ResultadoDisponibilidad {
+): ResultadoDisponibilidadEntrante {
     if (!esRegistro(entrada)) {
         throw new Error("El resultado recibido no tiene un formato válido.");
     }
@@ -204,8 +205,8 @@ function validarResultadoDisponibilidad(
 }
 
 function mismoResultado(
-    primero: ResultadoDisponibilidad,
-    segundo: ResultadoDisponibilidad,
+    primero: ResultadoDisponibilidadEntrante,
+    segundo: ResultadoDisponibilidadEntrante,
 ): boolean {
     return (
         primero.correlationId === segundo.correlationId &&
@@ -216,59 +217,133 @@ function mismoResultado(
     );
 }
 
-export function registrarResultadoDisponibilidad(
+function registrarErrorRespuestaDisponibilidad(
     entrada: unknown,
+    error: unknown,
+    idMensajePubSub?: string,
 ): void {
-    const resultado = validarResultadoDisponibilidad(entrada);
+    const datos = esRegistro(entrada) ? entrada : {};
+    const correlationId =
+        typeof datos.correlationId === "string"
+            ? datos.correlationId
+            : undefined;
+    const recepcionId =
+        Number.isSafeInteger(datos.recepcionId) &&
+        Number(datos.recepcionId) > 0
+            ? Number(datos.recepcionId)
+            : undefined;
+    const registro: ErrorRespuestaDisponibilidad = {
+        ...(idMensajePubSub ? { idMensajePubSub } : {}),
+        ...(correlationId ? { correlationId } : {}),
+        ...(recepcionId ? { recepcionId } : {}),
+        fechaRecepcion: new Date().toISOString(),
+        error:
+            error instanceof Error
+                ? error.message
+                : "No se pudo procesar la respuesta de disponibilidad.",
+    };
 
     actualizarCompras(actual => {
-        const eventos = actual.eventosMercaderiaDisponible.filter(
-            item =>
-                (item.correlationId ?? item.idEvento) ===
-                resultado.correlationId,
-        );
-        if (eventos.length === 0) {
-            throw new Error(
-                "No existe un evento publicado con el correlationId recibido.",
-            );
-        }
-        if (eventos.length !== 1) {
-            throw new Error(
-                "El correlationId corresponde a varios eventos y requiere revisión.",
-            );
-        }
-        const [evento] = eventos;
-        if (evento.estadoPublicacion !== "Publicado") {
-            throw new Error(
-                "No se puede procesar un resultado para un evento no publicado.",
-            );
-        }
-        if (evento.idRecepcion !== resultado.recepcionId) {
-            throw new Error(
-                "El recepcionId recibido no corresponde al evento publicado.",
-            );
-        }
-        if (evento.resultadoProcesamiento) {
-            if (
-                mismoResultado(evento.resultadoProcesamiento, resultado)
-            ) {
-                return actual;
-            }
-            throw new Error(
-                "El evento ya tiene un resultado distinto registrado.",
-            );
+        const errores = actual.erroresRespuestasDisponibilidad ?? [];
+        if (
+            idMensajePubSub &&
+            errores.some(item => item.idMensajePubSub === idMensajePubSub)
+        ) {
+            return actual;
         }
 
         return {
             ...actual,
-            eventosMercaderiaDisponible:
-                actual.eventosMercaderiaDisponible.map(item =>
-                    item.idEvento === evento.idEvento
-                        ? { ...item, resultadoProcesamiento: resultado }
-                        : item,
-                ),
+            erroresRespuestasDisponibilidad: [...errores, registro],
         };
     });
+}
+
+export function registrarResultadoDisponibilidad(
+    entrada: unknown,
+    metadatos: { idMensajePubSub?: string } = {},
+): void {
+    const idMensajePubSub = metadatos.idMensajePubSub?.trim();
+    let resultado: ResultadoDisponibilidadEntrante;
+
+    try {
+        resultado = validarResultadoDisponibilidad(entrada);
+    } catch (fallo) {
+        registrarErrorRespuestaDisponibilidad(
+            entrada,
+            fallo,
+            idMensajePubSub,
+        );
+        throw fallo;
+    }
+
+    try {
+        actualizarCompras(actual => {
+            const eventos = actual.eventosMercaderiaDisponible.filter(
+                item =>
+                    (item.correlationId ?? item.idEvento) ===
+                    resultado.correlationId,
+            );
+            if (eventos.length === 0) {
+                throw new Error(
+                    "No existe un evento publicado con el correlationId recibido.",
+                );
+            }
+            if (eventos.length !== 1) {
+                throw new Error(
+                    "El correlationId corresponde a varios eventos y requiere revisión.",
+                );
+            }
+            const [evento] = eventos;
+            if (evento.estadoPublicacion !== "Publicado") {
+                throw new Error(
+                    "No se puede procesar un resultado para un evento no publicado.",
+                );
+            }
+            if (evento.idRecepcion !== resultado.recepcionId) {
+                throw new Error(
+                    "El recepcionId recibido no corresponde al evento publicado.",
+                );
+            }
+            if (evento.resultadoProcesamiento) {
+                if (
+                    mismoResultado(evento.resultadoProcesamiento, resultado)
+                ) {
+                    return actual;
+                }
+                throw new Error(
+                    "El evento ya tiene un resultado distinto registrado.",
+                );
+            }
+
+            return {
+                ...actual,
+                eventosMercaderiaDisponible:
+                    actual.eventosMercaderiaDisponible.map(item =>
+                        item.idEvento === evento.idEvento
+                            ? {
+                                  ...item,
+                                  resultadoProcesamiento: {
+                                      ...resultado,
+                                      idEventoOriginal: evento.idEvento,
+                                      fechaRecepcion: new Date().toISOString(),
+                                      ...(idMensajePubSub
+                                          ? { idMensajePubSub }
+                                          : {}),
+                                  },
+                              }
+                            : item,
+                    ),
+            };
+        });
+    } catch (fallo) {
+        registrarErrorRespuestaDisponibilidad(
+            entrada,
+            fallo,
+            idMensajePubSub,
+        );
+        throw fallo;
+    }
 }
 
 function actualizarEstadoPublicacion(

@@ -32,13 +32,25 @@ esa clave. Un HTTP exitoso confirma la aceptación del endpoint, no el consumo
 del evento por Gestión de Entregas/Despachos.
 
 La vista distingue la publicación del resultado posterior de Entregas/Despachos.
-El estado queda pendiente hasta que un consumidor real invoque
-`registrarResultadoDisponibilidad` con la respuesta recibida. Ese servicio
-verifica el `correlationId`, el `recepcionId` y que el evento haya sido publicado;
-persiste una sola respuesta por evento e ignora duplicados idénticos. Un rechazo
-no confirma la disponibilidad. El repositorio todavía no contiene una
-suscripción de resultados ni el contrato acordado con SCRUM-540, por lo que no
-se generan respuestas simuladas.
+El estado queda pendiente hasta que el resultado sea entregado a la aplicación.
+El procesador local `registrarResultadoDisponibilidad` verifica el
+`correlationId`, el `recepcionId` y que el evento haya sido publicado; persiste
+una sola respuesta por evento e ignora duplicados idénticos. Un rechazo no
+confirma la disponibilidad. El repositorio todavía no contiene una suscripción
+de resultados ni el contrato acordado con SCRUM-540, por lo que no se generan
+respuestas simuladas.
+
+Al procesar un resultado, el estado compartido conserva el ID del evento
+original, el ID de mensaje Pub/Sub cuando lo entrega el consumidor, la fecha de
+recepción y el resultado. Los mensajes inválidos o no correlacionados se
+registran en la lista de errores visible en la vista; si se provee el mismo ID
+de mensaje, el error no se registra dos veces. Para completar la integración,
+el servicio receptor deberá adaptar el mensaje real, persistirlo en el backend
+y confirmar Pub/Sub solo después de persistirlo. Ese consumidor aún requiere
+definir el servicio receptor, la suscripción y el formato real del mensaje; el
+frontend no puede conectarse directamente a Pub/Sub de forma segura. La
+función local procesa un resultado ya entregado a la aplicación; no es una
+suscripción ni transporta mensajes por sí sola.
 
 ## React Compiler
 
