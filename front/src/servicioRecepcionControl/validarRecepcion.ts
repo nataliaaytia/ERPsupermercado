@@ -24,7 +24,9 @@ export function confirmarRecepcion(
 
         if (
             actual.recepcionesValidadas.some(
-                item => item.idRecepcion === recepcion.idRecepcion,
+                item =>
+                    item.idRecepcion === recepcion.idRecepcion &&
+                    item.idOrden === recepcion.idOrden,
             )
         ) {
             throw new Error("Esta recepción ya fue confirmada.");
