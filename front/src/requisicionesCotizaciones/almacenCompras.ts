@@ -4,6 +4,8 @@ import { reducirComprasConHistorial } from "./historialRequisiciones";
 import type { OrdenCompra, RecepcionValidada } from "../servicioOrdenesCompra/tipos";
 import { proveedoresIniciales } from "../catalogo/datosProveedores";
 
+import type { RecepcionRegistrada } from "../servicioRecepcionControl/tiposRecepcion";
+
 const CLAVE = "erp-compras-estado";
 const CLAVE_ANTERIOR_ORDENES = "erp-ordenes-compra";
 
@@ -11,6 +13,7 @@ const CLAVE_ANTERIOR_ORDENES = "erp-ordenes-compra";
 interface EstadoCompartido extends EstadoCompras {
     ordenes: OrdenCompra[];
     recepcionesValidadas: RecepcionValidada[];
+    recepcionesRegistradas: RecepcionRegistrada[];
     ejemploInicializado: boolean;
     errorCarga: string;
 }
@@ -167,6 +170,7 @@ export function obtenerCompras(): EstadoCompartido {
         ...estadoInicial,
         ordenes: [],
         recepcionesValidadas: [],
+        recepcionesRegistradas: [],
         ejemploInicializado: false,
         errorCarga: "",
     };
@@ -222,6 +226,7 @@ export function obtenerCompras(): EstadoCompartido {
             historialProcesamientos: anterior.historialProcesamientos ?? [],
             ordenes,
             recepcionesValidadas: anterior.recepcionesValidadas ?? [],
+            recepcionesRegistradas: anterior.recepcionesRegistradas ?? [],
             ejemploInicializado: anterior.ejemploInicializado === true,
             errorCarga: "",
             mensaje: "",
@@ -283,6 +288,7 @@ export function despacharCompras(accion: AccionCompras): void {
         }),
         ordenes: actual.ordenes,
         recepcionesValidadas: actual.recepcionesValidadas,
+        recepcionesRegistradas: actual.recepcionesRegistradas,
         ejemploInicializado: actual.ejemploInicializado,
         errorCarga: actual.errorCarga,
     }));

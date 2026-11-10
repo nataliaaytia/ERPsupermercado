@@ -1,3 +1,5 @@
+//natalia: scrum 526
+
 import type { OfertaProveedor } from "../requisicionesCotizaciones/tipos";
 import { calcularSaldosEntrega } from "./utilidadesSeguimientoEntregas";
 import type { OrdenCompra, RecepcionValidada } from "./tipos";

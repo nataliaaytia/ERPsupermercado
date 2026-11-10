@@ -1,3 +1,5 @@
+// natalia: scrum 526
+
 import { useState } from "react";
 import { useRequisiciones } from "../requisicionesCotizaciones/useRequisiciones";
 import { calcularDemoras } from "./calcularDemoras";
