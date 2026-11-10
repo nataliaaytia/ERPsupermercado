@@ -49,6 +49,14 @@ export const Cabecera: React.FC<CabeceraProps> = ({
                     >
                         Órdenes de compra
                     </button>
+
+                    <button
+                        type="button"
+                        className={`cabecera-link ${currentPage === 'recepcion-control' ? 'active' : ''}`}
+                        onClick={() => onNavigate('recepcion-control')}
+                    >
+                        Recepción y Control
+                    </button>
                 </nav>
 
                 <div className="cabecera-actions">
