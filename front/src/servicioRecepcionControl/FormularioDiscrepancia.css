@@ -1,0 +1,103 @@
+.formulario-discrepancia {
+    display: grid;
+    gap: 1rem;
+    padding: 1.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    background: var(--bg-card);
+    color: var(--text-primary);
+}
+
+.formulario-discrepancia h2,
+.formulario-discrepancia p {
+    margin: 0;
+}
+
+.formulario-discrepancia__campo {
+    display: grid;
+    gap: 0.5rem;
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.formulario-discrepancia__campo input,
+.formulario-discrepancia__campo select,
+.formulario-discrepancia__campo textarea {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font: inherit;
+}
+
+.formulario-discrepancia__campo textarea {
+    resize: vertical;
+}
+
+.formulario-discrepancia__campo :focus-visible,
+.formulario-discrepancia__tipos input:focus-visible,
+.formulario-discrepancia button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+.formulario-discrepancia__campo [aria-invalid="true"] {
+    border-color: #b42318;
+}
+
+.formulario-discrepancia__tipos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.formulario-discrepancia__tipos legend {
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.formulario-discrepancia__tipos label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.formulario-discrepancia__errores {
+    padding: 0.875rem 1rem;
+    border: 1px solid #b42318;
+    border-radius: 8px;
+    color: #b42318;
+}
+
+.formulario-discrepancia__errores ul {
+    margin: 0.5rem 0 0;
+    padding-inline-start: 1.25rem;
+}
+
+.formulario-discrepancia button {
+    justify-self: end;
+    padding: 0.75rem 1rem;
+    border: 0;
+    border-radius: 8px;
+    background: var(--accent);
+    color: var(--text-primary);
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+@media (max-width: 600px) {
+    .formulario-discrepancia {
+        padding: 1rem;
+    }
+
+    .formulario-discrepancia button {
+        justify-self: stretch;
+    }
+}

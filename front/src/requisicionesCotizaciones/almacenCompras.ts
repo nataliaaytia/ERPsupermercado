@@ -5,6 +5,11 @@ import type { OrdenCompra, RecepcionValidada } from "../servicioOrdenesCompra/ti
 import { proveedoresIniciales } from "../catalogo/datosProveedores";
 
 import type { RecepcionRegistrada } from "../servicioRecepcionControl/tiposRecepcion";
+import type { ResolucionDevolucion } from "../servicioRecepcionControl/tiposDevolucion";
+import type {
+    ErrorRespuestaDisponibilidad,
+    EventoMercaderiaDisponible,
+} from "../servicioRecepcionControl/tiposDisponibilidad";
 
 const CLAVE = "erp-compras-estado";
 const CLAVE_ANTERIOR_ORDENES = "erp-ordenes-compra";
@@ -14,6 +19,9 @@ interface EstadoCompartido extends EstadoCompras {
     ordenes: OrdenCompra[];
     recepcionesValidadas: RecepcionValidada[];
     recepcionesRegistradas: RecepcionRegistrada[];
+    resolucionesDevoluciones: ResolucionDevolucion[];
+    eventosMercaderiaDisponible: EventoMercaderiaDisponible[];
+    erroresRespuestasDisponibilidad: ErrorRespuestaDisponibilidad[];
     ejemploInicializado: boolean;
     errorCarga: string;
 }
@@ -171,6 +179,9 @@ export function obtenerCompras(): EstadoCompartido {
         ordenes: [],
         recepcionesValidadas: [],
         recepcionesRegistradas: [],
+        resolucionesDevoluciones: [],
+        eventosMercaderiaDisponible: [],
+        erroresRespuestasDisponibilidad: [],
         ejemploInicializado: false,
         errorCarga: "",
     };
@@ -216,6 +227,28 @@ export function obtenerCompras(): EstadoCompartido {
             throw new Error("Las órdenes guardadas no son válidas.");
         }
 
+        const resolucionesDevoluciones =
+            anterior.resolucionesDevoluciones ?? [];
+        if (!Array.isArray(resolucionesDevoluciones)) {
+            throw new Error(
+                "Las resoluciones de devoluciones guardadas no son válidas.",
+            );
+        }
+        const eventosMercaderiaDisponible =
+            anterior.eventosMercaderiaDisponible ?? [];
+        if (!Array.isArray(eventosMercaderiaDisponible)) {
+            throw new Error(
+                "Los eventos de disponibilidad guardados no son válidos.",
+            );
+        }
+        const erroresRespuestasDisponibilidad =
+            anterior.erroresRespuestasDisponibilidad ?? [];
+        if (!Array.isArray(erroresRespuestasDisponibilidad)) {
+            throw new Error(
+                "Los errores de respuestas de disponibilidad guardados no son válidos.",
+            );
+        }
+
         const nuevo = agregarEjemplo({
             ...inicial,
             ...anterior,
@@ -227,6 +260,9 @@ export function obtenerCompras(): EstadoCompartido {
             ordenes,
             recepcionesValidadas: anterior.recepcionesValidadas ?? [],
             recepcionesRegistradas: anterior.recepcionesRegistradas ?? [],
+            resolucionesDevoluciones,
+            eventosMercaderiaDisponible,
+            erroresRespuestasDisponibilidad,
             ejemploInicializado: anterior.ejemploInicializado === true,
             errorCarga: "",
             mensaje: "",
@@ -289,6 +325,8 @@ export function despacharCompras(accion: AccionCompras): void {
         ordenes: actual.ordenes,
         recepcionesValidadas: actual.recepcionesValidadas,
         recepcionesRegistradas: actual.recepcionesRegistradas,
+        resolucionesDevoluciones: actual.resolucionesDevoluciones,
+        eventosMercaderiaDisponible: actual.eventosMercaderiaDisponible,
         ejemploInicializado: actual.ejemploInicializado,
         errorCarga: actual.errorCarga,
     }));
