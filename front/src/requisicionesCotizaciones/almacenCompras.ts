@@ -5,6 +5,7 @@ import type { OrdenCompra, RecepcionValidada } from "../servicioOrdenesCompra/ti
 import { proveedoresIniciales } from "../catalogo/datosProveedores";
 
 import type { RecepcionRegistrada } from "../servicioRecepcionControl/tiposRecepcion";
+import type { ResolucionDevolucion } from "../servicioRecepcionControl/tiposDevolucion";
 
 const CLAVE = "erp-compras-estado";
 const CLAVE_ANTERIOR_ORDENES = "erp-ordenes-compra";
@@ -14,6 +15,7 @@ interface EstadoCompartido extends EstadoCompras {
     ordenes: OrdenCompra[];
     recepcionesValidadas: RecepcionValidada[];
     recepcionesRegistradas: RecepcionRegistrada[];
+    resolucionesDevoluciones: ResolucionDevolucion[];
     ejemploInicializado: boolean;
     errorCarga: string;
 }
@@ -171,6 +173,7 @@ export function obtenerCompras(): EstadoCompartido {
         ordenes: [],
         recepcionesValidadas: [],
         recepcionesRegistradas: [],
+        resolucionesDevoluciones: [],
         ejemploInicializado: false,
         errorCarga: "",
     };
@@ -216,6 +219,14 @@ export function obtenerCompras(): EstadoCompartido {
             throw new Error("Las órdenes guardadas no son válidas.");
         }
 
+        const resolucionesDevoluciones =
+            anterior.resolucionesDevoluciones ?? [];
+        if (!Array.isArray(resolucionesDevoluciones)) {
+            throw new Error(
+                "Las resoluciones de devoluciones guardadas no son válidas.",
+            );
+        }
+
         const nuevo = agregarEjemplo({
             ...inicial,
             ...anterior,
@@ -227,6 +238,7 @@ export function obtenerCompras(): EstadoCompartido {
             ordenes,
             recepcionesValidadas: anterior.recepcionesValidadas ?? [],
             recepcionesRegistradas: anterior.recepcionesRegistradas ?? [],
+            resolucionesDevoluciones,
             ejemploInicializado: anterior.ejemploInicializado === true,
             errorCarga: "",
             mensaje: "",
@@ -289,6 +301,7 @@ export function despacharCompras(accion: AccionCompras): void {
         ordenes: actual.ordenes,
         recepcionesValidadas: actual.recepcionesValidadas,
         recepcionesRegistradas: actual.recepcionesRegistradas,
+        resolucionesDevoluciones: actual.resolucionesDevoluciones,
         ejemploInicializado: actual.ejemploInicializado,
         errorCarga: actual.errorCarga,
     }));

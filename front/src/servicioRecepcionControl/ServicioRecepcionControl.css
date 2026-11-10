@@ -51,6 +51,54 @@
     accent-color: var(--accent);
 }
 
+.devoluciones-recepcion__lista {
+    display: grid;
+    gap: 1rem;
+}
+
+.devolucion-seguimiento {
+    display: grid;
+    gap: 1rem;
+    min-width: 0;
+    padding: 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    background: var(--bg-primary);
+}
+
+.devolucion-seguimiento h3,
+.devolucion-seguimiento p {
+    margin: 0;
+}
+
+.devolucion-seguimiento__datos {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.875rem;
+    margin: 0;
+}
+
+.devolucion-seguimiento__datos div {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.devolucion-seguimiento__datos dt {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.devolucion-seguimiento__datos dd {
+    margin: 0.25rem 0 0;
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.devolucion-seguimiento__formulario {
+    display: grid;
+    gap: 1rem;
+}
+
 @media (max-width: 600px) {
     .recepcion-control form>button[type="submit"] {
         justify-self: stretch;
