@@ -1,10 +1,11 @@
+
 import { useState } from "react";
 import { useRequisiciones } from "../requisicionesCotizaciones/useRequisiciones";
 import {
     calcularSaldosEntrega,
     cargarRecepcionDeEjemplo,
     esOrdenDeEjemplo,
-} from "./seguimientoEntregas";
+} from "./utilidadesSeguimientoEntregas";
 
 export default function SeguimientoEntregas() {
     const { ordenes, recepcionesValidadas } = useRequisiciones();
