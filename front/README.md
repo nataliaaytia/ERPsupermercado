@@ -22,6 +22,15 @@ incluye el encabezado `x-message-id`, se conserva como referencia. Sin endpoint,
 el evento queda guardado con estado pendiente de configuración. No se debe
 configurar aquí un endpoint de alertas de inventario con otro contrato.
 
+La vista conserva el historial y el resultado de cada intento. Solo se puede
+reintentar un evento pendiente o fallido; los eventos publicados no se vuelven
+a enviar. Si la aplicación se interrumpe durante un envío, su resultado se
+marca como incierto y queda reintentable con la misma clave de idempotencia.
+Para evitar duplicados cuando el servidor recibió el primer intento pero la
+respuesta se perdió, el endpoint configurado debe aplicar idempotencia usando
+esa clave. Un HTTP exitoso confirma la aceptación del endpoint, no el consumo
+del evento por Gestión de Entregas/Despachos.
+
 ## React Compiler
 
 The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).

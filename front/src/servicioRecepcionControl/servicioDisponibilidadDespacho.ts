@@ -4,6 +4,8 @@ import {
 } from "../requisicionesCotizaciones/almacenCompras";
 import type { EventoMercaderiaDisponible } from "./tiposDisponibilidad";
 
+const publicacionesActivas = new Set<string>();
+
 function crearIdEvento(idRecepcion: number): string {
     return `MERCADERIA-DISPONIBLE-${idRecepcion}`;
 }
@@ -141,9 +143,17 @@ function actualizarEstadoPublicacion(
     actualizacion: Partial<
         Pick<
             EventoMercaderiaDisponible,
-            "estadoPublicacion" | "referenciaPublicacion" | "errorPublicacion"
+            | "estadoPublicacion"
+            | "referenciaPublicacion"
+            | "errorPublicacion"
+            | "fechaUltimoIntento"
         >
-    >,
+    > & {
+        numeroIntento?: number;
+        resultadoIntento?: "En curso" | "Publicado" | "Error";
+        mensajeIntento?: string;
+        referenciaIntento?: string;
+    },
 ): void {
     actualizarCompras(actual =>
         actual.eventosMercaderiaDisponible.some(
@@ -152,14 +162,103 @@ function actualizarEstadoPublicacion(
             ? {
                   ...actual,
                   eventosMercaderiaDisponible:
-                      actual.eventosMercaderiaDisponible.map(evento =>
-                          evento.idEvento === idEvento
-                              ? { ...evento, ...actualizacion }
-                              : evento,
-                      ),
+                      actual.eventosMercaderiaDisponible.map(evento => {
+                          if (evento.idEvento !== idEvento) return evento;
+
+                          const {
+                              numeroIntento,
+                              resultadoIntento,
+                              mensajeIntento,
+                              referenciaIntento,
+                              ...cambiosEvento
+                          } = actualizacion;
+                          const intentos = evento.intentosPublicacion ?? [];
+                          let intentosActualizados = intentos;
+                          if (
+                              numeroIntento !== undefined &&
+                              resultadoIntento !== undefined
+                          ) {
+                              const existeIntento = intentos.some(
+                                  intento =>
+                                      intento.numero === numeroIntento,
+                              );
+                              intentosActualizados = existeIntento
+                                  ? intentos.map(intento =>
+                                        intento.numero === numeroIntento
+                                            ? {
+                                                  ...intento,
+                                                  resultado: resultadoIntento,
+                                                  mensaje: mensajeIntento,
+                                                  referenciaPublicacion:
+                                                      referenciaIntento,
+                                              }
+                                            : intento,
+                                    )
+                                  : [
+                                        ...intentos,
+                                        {
+                                            numero: numeroIntento,
+                                            fechaIntento:
+                                                cambiosEvento.fechaUltimoIntento ??
+                                                new Date().toISOString(),
+                                            resultado: resultadoIntento,
+                                            ...(mensajeIntento
+                                                ? { mensaje: mensajeIntento }
+                                                : {}),
+                                            ...(referenciaIntento
+                                                ? {
+                                                      referenciaPublicacion:
+                                                          referenciaIntento,
+                                                  }
+                                                : {}),
+                                        },
+                                    ];
+                          }
+
+                          return {
+                              ...evento,
+                              ...cambiosEvento,
+                              intentosPublicacion: intentosActualizados,
+                          };
+                      }),
               }
             : actual,
     );
+}
+
+export function recuperarPublicacionesInterrumpidas(): void {
+    const eventosInterrumpidos =
+        obtenerCompras().eventosMercaderiaDisponible.filter(
+            evento =>
+                evento.estadoPublicacion === "Publicando" &&
+                !publicacionesActivas.has(evento.idEvento),
+        );
+
+    for (const evento of eventosInterrumpidos) {
+        const ultimoIntento = evento.intentosPublicacion?.reduce<
+            number | undefined
+        >(
+            (ultimo, intento) =>
+                ultimo === undefined || intento.numero > ultimo
+                    ? intento.numero
+                    : ultimo,
+            undefined,
+        );
+        const numeroIntento = ultimoIntento ?? 1;
+        const mensaje =
+            "El envío se interrumpió antes de registrar su resultado. El resultado remoto es incierto; el reintento conserva la clave de idempotencia.";
+
+        actualizarEstadoPublicacion(evento.idEvento, {
+            estadoPublicacion: "Error",
+            errorPublicacion: mensaje,
+            fechaUltimoIntento:
+                evento.fechaUltimoIntento ??
+                evento.fechaConfirmacionDisponibilidad,
+            numeroIntento,
+            resultadoIntento: "Error",
+            mensajeIntento: mensaje,
+        });
+    }
 }
 
 export async function publicarDisponibilidadAsincronamente(
@@ -177,6 +276,13 @@ export async function publicarDisponibilidadAsincronamente(
     if (evento.estadoPublicacion === "Publicando") {
         return;
     }
+    if (
+        evento.estadoPublicacion !== "Pendiente" &&
+        evento.estadoPublicacion !== "Error" &&
+        evento.estadoPublicacion !== "Pendiente de configuración"
+    ) {
+        throw new Error("El estado del evento no permite intentar su envío.");
+    }
 
     const endpoint = import.meta.env.VITE_MERCADERIA_DISPONIBLE_API?.trim();
     if (!endpoint) {
@@ -188,45 +294,70 @@ export async function publicarDisponibilidadAsincronamente(
         return;
     }
 
-    actualizarEstadoPublicacion(idEvento, {
-        estadoPublicacion: "Publicando",
-        errorPublicacion: undefined,
-    });
-
-    let respuesta: Response;
+    const numeroIntento =
+        (evento.intentosPublicacion?.reduce(
+            (maximo, intento) => Math.max(maximo, intento.numero),
+            0,
+        ) ?? 0) + 1;
+    const fechaIntento = new Date().toISOString();
+    publicacionesActivas.add(idEvento);
     try {
-        respuesta = await fetch(endpoint, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Idempotency-Key": evento.idEvento,
-            },
-            body: JSON.stringify(evento),
-        });
-    } catch (fallo) {
-        const mensaje =
-            fallo instanceof Error
-                ? fallo.message
-                : "No se pudo conectar con Entregas/Despachos.";
         actualizarEstadoPublicacion(idEvento, {
-            estadoPublicacion: "Error",
-            errorPublicacion: mensaje,
+            estadoPublicacion: "Publicando",
+            fechaUltimoIntento: fechaIntento,
+            errorPublicacion: undefined,
+            numeroIntento,
+            resultadoIntento: "En curso",
         });
-        return;
-    }
 
-    if (!respuesta.ok) {
+        let respuesta: Response;
+        try {
+            respuesta = await fetch(endpoint, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Idempotency-Key": evento.idEvento,
+                },
+                body: JSON.stringify(evento),
+            });
+        } catch (fallo) {
+            const mensaje =
+                fallo instanceof Error
+                    ? fallo.message
+                    : "No se pudo conectar con Entregas/Despachos.";
+            actualizarEstadoPublicacion(idEvento, {
+                estadoPublicacion: "Error",
+                errorPublicacion: mensaje,
+                numeroIntento,
+                resultadoIntento: "Error",
+                mensajeIntento: mensaje,
+            });
+            return;
+        }
+
+        if (!respuesta.ok) {
+            const mensaje = `El publicador respondió HTTP ${respuesta.status}.`;
+            actualizarEstadoPublicacion(idEvento, {
+                estadoPublicacion: "Error",
+                errorPublicacion: mensaje,
+                numeroIntento,
+                resultadoIntento: "Error",
+                mensajeIntento: mensaje,
+            });
+            return;
+        }
+
+        const referenciaPublicacion =
+            respuesta.headers.get("x-message-id") ?? undefined;
         actualizarEstadoPublicacion(idEvento, {
-            estadoPublicacion: "Error",
-            errorPublicacion: `El publicador respondió HTTP ${respuesta.status}.`,
+            estadoPublicacion: "Publicado",
+            referenciaPublicacion,
+            errorPublicacion: undefined,
+            numeroIntento,
+            resultadoIntento: "Publicado",
+            referenciaIntento: referenciaPublicacion,
         });
-        return;
+    } finally {
+        publicacionesActivas.delete(idEvento);
     }
-
-    actualizarEstadoPublicacion(idEvento, {
-        estadoPublicacion: "Publicado",
-        referenciaPublicacion:
-            respuesta.headers.get("x-message-id") ?? undefined,
-        errorPublicacion: undefined,
-    });
 }

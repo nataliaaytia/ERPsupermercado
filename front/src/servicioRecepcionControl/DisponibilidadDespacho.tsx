@@ -1,13 +1,19 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRequisiciones } from "../requisicionesCotizaciones/useRequisiciones";
 import {
     confirmarDisponibilidad,
     publicarDisponibilidadAsincronamente,
+    recuperarPublicacionesInterrumpidas,
 } from "./servicioDisponibilidadDespacho";
 
 export default function DisponibilidadDespacho() {
     const compras = useRequisiciones();
     const [error, setError] = useState("");
+
+    useEffect(() => {
+        recuperarPublicacionesInterrumpidas();
+    }, []);
+
     const validaciones = compras.recepcionesValidadas.filter(validacion => {
         if (
             validacion.estado !== "Validada" ||
@@ -106,6 +112,14 @@ export default function DisponibilidadDespacho() {
                                     Recepción {validacion.idRecepcion}
                                     {" · "}Orden {orden?.numero ?? validacion.idOrden}
                                 </h4>
+                                {evento && (
+                                    <p>
+                                        Fecha de generación del evento:{" "}
+                                        {new Date(
+                                            evento.fechaConfirmacionDisponibilidad,
+                                        ).toLocaleString("es-BO")}
+                                    </p>
+                                )}
                                 <p>
                                     Fecha de validación:{" "}
                                     {validacion.fechaValidacion
@@ -125,6 +139,40 @@ export default function DisponibilidadDespacho() {
                                     {evento?.estadoPublicacion ??
                                         "No publicado"}
                                 </p>
+                                {evento?.estadoPublicacion === "Publicado" && (
+                                    <p>
+                                        El endpoint de publicación aceptó el
+                                        evento. Este estado no confirma que
+                                        Gestión de Entregas/Despachos lo haya
+                                        procesado.
+                                    </p>
+                                )}
+                                {evento && (
+                                    <>
+                                        <p>
+                                            Intentos realizados:{" "}
+                                            {evento.intentosPublicacion
+                                                ?.length ?? 0}
+                                        </p>
+                                        <p>
+                                            Último intento:{" "}
+                                            {evento.fechaUltimoIntento
+                                                ? new Date(
+                                                      evento.fechaUltimoIntento,
+                                                  ).toLocaleString(
+                                                      "es-BO",
+                                                  )
+                                                : "Sin intentos realizados"}
+                                        </p>
+                                        <p>
+                                            Resultado del último intento:{" "}
+                                            {evento.intentosPublicacion
+                                                ?.at(-1)?.resultado ??
+                                                evento.errorPublicacion ??
+                                                "Todavía no se ha intentado"}
+                                        </p>
+                                    </>
+                                )}
 
                                 <div className="ordenes-compra__tabla">
                                     <table>
@@ -202,19 +250,62 @@ export default function DisponibilidadDespacho() {
                                                 {evento.errorPublicacion}
                                             </p>
                                         )}
+                                        {evento.intentosPublicacion &&
+                                            evento.intentosPublicacion.length >
+                                                0 && (
+                                                <details>
+                                                    <summary>
+                                                        Historial de intentos
+                                                    </summary>
+                                                    <ol>
+                                                        {evento.intentosPublicacion.map(
+                                                            intento => (
+                                                                <li
+                                                                    key={
+                                                                        intento.numero
+                                                                    }
+                                                                >
+                                                                    Intento{" "}
+                                                                    {
+                                                                        intento.numero
+                                                                    }
+                                                                    {" · "}
+                                                                    {new Date(
+                                                                        intento.fechaIntento,
+                                                                    ).toLocaleString(
+                                                                        "es-BO",
+                                                                    )}
+                                                                    {" · "}
+                                                                    {
+                                                                        intento.resultado
+                                                                    }
+                                                                    {intento.mensaje &&
+                                                                        ` · ${intento.mensaje}`}
+                                                                    {intento.referenciaPublicacion &&
+                                                                        ` · Ref: ${intento.referenciaPublicacion}`}
+                                                                </li>
+                                                            ),
+                                                        )}
+                                                    </ol>
+                                                </details>
+                                            )}
                                     </div>
                                 )}
 
                                 {evento ? (
-                                    evento.estadoPublicacion !== "Publicado" &&
-                                    evento.estadoPublicacion !== "Publicando" && (
+                                    (evento.estadoPublicacion === "Pendiente" ||
+                                        evento.estadoPublicacion === "Error" ||
+                                        evento.estadoPublicacion ===
+                                            "Pendiente de configuración") && (
                                         <button
                                             type="button"
                                             onClick={() =>
                                                 reintentar(evento.idEvento)
                                             }
                                         >
-                                            Reintentar publicación
+                                            {evento.intentosPublicacion?.length
+                                                ? "Reintentar publicación"
+                                                : "Intentar publicación"}
                                         </button>
                                     )
                                 ) : (
