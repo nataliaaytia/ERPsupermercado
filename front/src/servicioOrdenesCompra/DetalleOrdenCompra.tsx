@@ -1,10 +1,13 @@
-
 import { useState } from "react";
 import { useRequisiciones } from "../requisicionesCotizaciones/useRequisiciones";
 import type { OrdenCompra } from "./tipos";
 import "./DetalleOrdenCompra.css";
 
 const CLAVE_COMPRAS = "erp-compras-estado";
+
+interface Props {
+  idOrdenInicial?: number | null;
+}
 
 function moneda(valor: number): string {
   return `Bs ${valor.toLocaleString("es-BO", {
@@ -13,12 +16,18 @@ function moneda(valor: number): string {
   })}`;
 }
 
-export default function DetalleOrdenCompra() {
+export default function DetalleOrdenCompra({
+  idOrdenInicial = null,
+}: Props) {
   const { ordenes, ofertas, errorCarga } = useRequisiciones();
 
-  const [idSeleccionado, setIdSeleccionado] = useState("");
+  const [idSeleccionado, setIdSeleccionado] = useState(
+    idOrdenInicial === null ? "" : String(idOrdenInicial)
+  );
+
   const [ordenActualizada, setOrdenActualizada] =
     useState<OrdenCompra | null>(null);
+
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState("");
 
@@ -35,7 +44,8 @@ export default function DetalleOrdenCompra() {
     (item) => item.idOferta === orden?.idOfertaOrigen
   );
 
-  const proveedor = oferta?.proveedor?.razonSocial ?? "No disponible";
+  const proveedor =
+    oferta?.proveedor?.razonSocial ?? "No disponible";
 
   function seleccionarOrden(valor: string) {
     setIdSeleccionado(valor);
@@ -75,7 +85,9 @@ export default function DetalleOrdenCompra() {
 
       if (!encontrada) {
         setOrdenActualizada(null);
-        throw new Error("La orden seleccionada ya no está disponible.");
+        throw new Error(
+          "La orden seleccionada ya no está disponible."
+        );
       }
 
       setOrdenActualizada(encontrada);
@@ -95,7 +107,9 @@ export default function DetalleOrdenCompra() {
       <div className="detalle-orden__encabezado">
         <div>
           <h2>Detalle de orden de compra</h2>
-          <p>Consulta la información de una orden registrada.</p>
+          <p>
+            Consulta la información de una orden registrada.
+          </p>
         </div>
       </div>
 
@@ -108,11 +122,19 @@ export default function DetalleOrdenCompra() {
           <select
             id="detalle-orden-select"
             value={idSeleccionado}
-            onChange={(e) => seleccionarOrden(e.target.value)}
+            onChange={(e) =>
+              seleccionarOrden(e.target.value)
+            }
           >
-            <option value="">Selecciona una orden</option>
+            <option value="">
+              Selecciona una orden
+            </option>
+
             {ordenes.map((item) => (
-              <option key={item.idOrden} value={item.idOrden}>
+              <option
+                key={item.idOrden}
+                value={item.idOrden}
+              >
                 {item.numero}
               </option>
             ))}
@@ -132,23 +154,25 @@ export default function DetalleOrdenCompra() {
       </div>
 
       {(errorCarga || error) && (
-        <p className="detalle-orden__error" role="alert">
+        <p
+          className="detalle-orden__error"
+          role="alert"
+        >
           {errorCarga || error}
         </p>
       )}
 
       {cargando && (
-        <p role="status">Actualizando información...</p>
-      )}
-
-      {!idSeleccionado && !errorCarga && (
-        <p className="detalle-orden__vacio">
-          Selecciona una orden para consultar sus detalles.
+        <p role="status">
+          Actualizando información...
         </p>
       )}
 
       {idSeleccionado && !orden && !errorCarga && (
-        <p className="detalle-orden__error" role="alert">
+        <p
+          className="detalle-orden__error"
+          role="alert"
+        >
           No se encontró la orden solicitada.
         </p>
       )}
@@ -157,6 +181,7 @@ export default function DetalleOrdenCompra() {
         <div className="detalle-orden__contenido">
           <div className="detalle-orden__titulo">
             <h3>{orden.numero}</h3>
+
             <span className="detalle-orden__estado">
               {orden.estado}
             </span>
@@ -179,21 +204,28 @@ export default function DetalleOrdenCompra() {
 
             <div>
               <span>Fecha de creación</span>
-              <strong>{orden.fecha || "No registrada"}</strong>
+              <strong>
+                {orden.fecha || "No registrada"}
+              </strong>
             </div>
 
             <div>
               <span>Productos</span>
-              <strong>{orden.detalles.length}</strong>
+              <strong>
+                {orden.detalles.length}
+              </strong>
             </div>
           </div>
 
           <div className="detalle-orden__seccion">
             <div className="detalle-orden__seccion-titulo">
               <h3>Productos de la orden</h3>
+
               <span>
                 {orden.detalles.length}{" "}
-                {orden.detalles.length === 1 ? "línea" : "líneas"}
+                {orden.detalles.length === 1
+                  ? "línea"
+                  : "líneas"}
               </span>
             </div>
 
@@ -207,13 +239,25 @@ export default function DetalleOrdenCompra() {
                     <th>Subtotal</th>
                   </tr>
                 </thead>
+
                 <tbody>
                   {orden.detalles.map((detalle) => (
                     <tr key={detalle.idDetalle}>
-                      <td>{detalle.producto.descripcion}</td>
-                      <td>{detalle.cantidad}</td>
-                      <td>{moneda(detalle.precio)}</td>
-                      <td>{moneda(detalle.subtotal)}</td>
+                      <td>
+                        {detalle.producto.descripcion}
+                      </td>
+
+                      <td>
+                        {detalle.cantidad}
+                      </td>
+
+                      <td>
+                        {moneda(detalle.precio)}
+                      </td>
+
+                      <td>
+                        {moneda(detalle.subtotal)}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -221,8 +265,13 @@ export default function DetalleOrdenCompra() {
             </div>
 
             <div className="detalle-orden__total">
-              <span>Total de la orden</span>
-              <strong>{moneda(orden.total)}</strong>
+              <span>
+                Total de la orden
+              </span>
+
+              <strong>
+                {moneda(orden.total)}
+              </strong>
             </div>
           </div>
         </div>
