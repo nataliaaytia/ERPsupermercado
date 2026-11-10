@@ -7,6 +7,9 @@ import {
     esOrdenDeEjemplo,
 } from "./utilidadesSeguimientoEntregas";
 
+import CierreOrden, { VistaPreviaCierreOrden } from "./CierreOrden";
+
+
 export default function SeguimientoEntregas() {
     const { ordenes, recepcionesValidadas } = useRequisiciones();
     const [idOrden, setIdOrden] = useState("");
@@ -45,6 +48,8 @@ export default function SeguimientoEntregas() {
         <section className="ordenes-compra__tarjeta">
             <h2>Cantidades pendientes por línea</h2>
 
+            {import.meta.env.DEV && <VistaPreviaCierreOrden />}
+
             {ordenes.length === 0 ? (
                 <p>Todavía no hay órdenes de compra.</p>
             ) : (
@@ -70,6 +75,11 @@ export default function SeguimientoEntregas() {
 
             {orden && (
                 <>
+                    <CierreOrden
+                        key={orden.idOrden}
+                        orden={orden}
+                        saldos={lineas}
+                    />
                     {recepciones.length === 0 && (
                         <p>No hay recepciones validadas cargadas para esta orden.</p>
                     )}

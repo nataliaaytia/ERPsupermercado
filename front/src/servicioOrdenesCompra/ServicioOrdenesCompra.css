@@ -209,4 +209,23 @@
     .ordenes-compra button {
         width: 100%;
     }
+
+}
+
+.ordenes-compra__dialogo-cierre {
+    width: min(440px, calc(100vw - 2rem));
+    padding: 0;
+    border: 0;
+    border-radius: 16px;
+    background: transparent;
+    color: var(--text-primary);
+}
+
+.ordenes-compra__dialogo-cierre::backdrop {
+    background: rgba(0, 0, 0, 0.55);
+}
+
+.ordenes-compra__cierre button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
