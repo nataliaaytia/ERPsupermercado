@@ -38,6 +38,19 @@
     margin-top: 0.375rem;
 }
 
+.revision-recepcion__confirmacion {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.625rem;
+    color: var(--text-primary);
+}
+
+.ordenes-compra .revision-recepcion__confirmacion input {
+    width: auto;
+    margin-top: 0.2rem;
+    accent-color: var(--accent);
+}
+
 @media (max-width: 600px) {
     .recepcion-control form>button[type="submit"] {
         justify-self: stretch;
