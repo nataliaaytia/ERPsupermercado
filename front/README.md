@@ -31,6 +31,15 @@ respuesta se perdió, el endpoint configurado debe aplicar idempotencia usando
 esa clave. Un HTTP exitoso confirma la aceptación del endpoint, no el consumo
 del evento por Gestión de Entregas/Despachos.
 
+La vista distingue la publicación del resultado posterior de Entregas/Despachos.
+El estado queda pendiente hasta que un consumidor real invoque
+`registrarResultadoDisponibilidad` con la respuesta recibida. Ese servicio
+verifica el `correlationId`, el `recepcionId` y que el evento haya sido publicado;
+persiste una sola respuesta por evento e ignora duplicados idénticos. Un rechazo
+no confirma la disponibilidad. El repositorio todavía no contiene una
+suscripción de resultados ni el contrato acordado con SCRUM-540, por lo que no
+se generan respuestas simuladas.
+
 ## React Compiler
 
 The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).

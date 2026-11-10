@@ -20,9 +20,22 @@ export interface IntentoPublicacionDisponibilidad {
     referenciaPublicacion?: string;
 }
 
+export type EstadoProcesamientoDisponibilidad =
+    | "Confirmada"
+    | "Rechazada";
+
+export interface ResultadoDisponibilidad {
+    correlationId: string;
+    recepcionId: number;
+    fechaResultado: string;
+    estadoProcesamiento: EstadoProcesamientoDisponibilidad;
+    motivoRechazo?: string;
+}
+
 export interface EventoMercaderiaDisponible {
     idEvento: string;
     tipoEvento: "MercaderiaDisponible";
+    correlationId?: string;
     idRecepcion: number;
     idOrden: number;
     fechaValidacion: string | null;
@@ -33,4 +46,5 @@ export interface EventoMercaderiaDisponible {
     fechaUltimoIntento?: string;
     referenciaPublicacion?: string;
     errorPublicacion?: string;
+    resultadoProcesamiento?: ResultadoDisponibilidad;
 }

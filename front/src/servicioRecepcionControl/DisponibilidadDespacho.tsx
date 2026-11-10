@@ -5,6 +5,7 @@ import {
     publicarDisponibilidadAsincronamente,
     recuperarPublicacionesInterrumpidas,
 } from "./servicioDisponibilidadDespacho";
+import type { EventoMercaderiaDisponible } from "./tiposDisponibilidad";
 
 export default function DisponibilidadDespacho() {
     const compras = useRequisiciones();
@@ -29,6 +30,21 @@ export default function DisponibilidadDespacho() {
         }
         return true;
     });
+
+    function estadoDisponibilidad(
+        evento: EventoMercaderiaDisponible | undefined,
+    ): string {
+        if (!evento) return "Pendiente de confirmación";
+        if (evento.resultadoProcesamiento?.estadoProcesamiento === "Confirmada") {
+            return "Confirmada por Entregas/Despachos";
+        }
+        if (evento.resultadoProcesamiento?.estadoProcesamiento === "Rechazada") {
+            return "Rechazada por Entregas/Despachos";
+        }
+        return evento.estadoPublicacion === "Publicado"
+            ? "Pendiente de respuesta de Entregas/Despachos"
+            : "Pendiente de publicación";
+    }
 
     function confirmar(idRecepcion: number) {
         setError("");
@@ -130,9 +146,7 @@ export default function DisponibilidadDespacho() {
                                 </p>
                                 <p>
                                     Estado de disponibilidad:{" "}
-                                    {evento
-                                        ? "Confirmada para despacho"
-                                        : "Pendiente de confirmación"}
+                                    {estadoDisponibilidad(evento)}
                                 </p>
                                 <p>
                                     Estado del envío:{" "}
@@ -231,6 +245,10 @@ export default function DisponibilidadDespacho() {
                                             ID del evento: {evento.idEvento}
                                         </p>
                                         <p>
+                                            correlationId:{" "}
+                                            {evento.correlationId ?? evento.idEvento}
+                                        </p>
+                                        <p>
                                             Confirmación:{" "}
                                             {new Date(
                                                 evento.fechaConfirmacionDisponibilidad,
@@ -250,6 +268,46 @@ export default function DisponibilidadDespacho() {
                                                 {evento.errorPublicacion}
                                             </p>
                                         )}
+                                        <section aria-label="Resultado de Entregas y Despachos">
+                                            <h5>
+                                                Resultado de Entregas/Despachos
+                                            </h5>
+                                            {evento.resultadoProcesamiento ? (
+                                                <>
+                                                    <p>
+                                                        Estado de procesamiento:{" "}
+                                                        {evento.resultadoProcesamiento.estadoProcesamiento}
+                                                    </p>
+                                                    <p>
+                                                        Recepción relacionada:{" "}
+                                                        {evento.resultadoProcesamiento.recepcionId}
+                                                    </p>
+                                                    <p>
+                                                        correlationId:{" "}
+                                                        {evento.resultadoProcesamiento.correlationId}
+                                                    </p>
+                                                    <p>
+                                                        Fecha del resultado:{" "}
+                                                        {new Date(
+                                                            evento.resultadoProcesamiento.fechaResultado,
+                                                        ).toLocaleString("es-BO")}
+                                                    </p>
+                                                    {evento.resultadoProcesamiento.motivoRechazo && (
+                                                        <p>
+                                                            Motivo del rechazo:{" "}
+                                                            {evento.resultadoProcesamiento.motivoRechazo}
+                                                        </p>
+                                                    )}
+                                                </>
+                                            ) : (
+                                                <p>
+                                                    {evento.estadoPublicacion ===
+                                                    "Publicado"
+                                                        ? "Pendiente de respuesta; la publicación HTTP no confirma el procesamiento."
+                                                        : "Sin respuesta de Entregas/Despachos."}
+                                                </p>
+                                            )}
+                                        </section>
                                         {evento.intentosPublicacion &&
                                             evento.intentosPublicacion.length >
                                                 0 && (
@@ -332,7 +390,8 @@ export default function DisponibilidadDespacho() {
                     {compras.eventosMercaderiaDisponible.map(evento => (
                         <li key={evento.idEvento}>
                             {evento.tipoEvento} · {evento.idEvento} · Recepción{" "}
-                            {evento.idRecepcion} · {evento.estadoPublicacion}
+                            {evento.idRecepcion} · {evento.estadoPublicacion} ·{" "}
+                            {estadoDisponibilidad(evento)}
                         </li>
                     ))}
                 </ul>
