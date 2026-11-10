@@ -10,6 +10,10 @@ import {
     ordenesDisponiblesParaRecepcion,
     registrarRecepcion,
 } from "./registroRecepcion";
+import RevisionFinalRecepcion from "./RevisionFinalRecepcion";
+import { confirmarRecepcion } from "./validarRecepcion";
+import DevolucionesRecepcion from "./DevolucionesRecepcion";
+import DisponibilidadDespacho from "./DisponibilidadDespacho";
 import "../requisicionesCotizaciones/Requisiciones.css";
 import "../servicioOrdenesCompra/ServicioOrdenesCompra.css";
 
@@ -17,7 +21,13 @@ import EditorRecepcion from "./EditorRecepcion";
 
 type OrdenDisponible = ReturnType<typeof ordenesDisponiblesParaRecepcion>[number];
 
-const opciones = ["Registrar recepción", "Recepciones registradas"];
+const opciones = [
+    "Registrar recepción",
+    "Recepciones registradas",
+    "Validación final",
+    "Devoluciones",
+    "Disponibilidad para despacho",
+];
 
 function FormularioRecepcion({ seleccion }: { seleccion: OrdenDisponible }) {
     const [fecha, setFecha] = useState(fechaHoy);
@@ -182,7 +192,7 @@ export default function ServicioRecepcionControl() {
                             />
                         )}
                     </>
-                ) : (
+                ) : opcionActiva === 1 ? (
                     <section className="ordenes-compra__tarjeta">
                         {compras.recepcionesRegistradas.length === 0 ? (
                             <p>Todavía no hay recepciones registradas.</p>
@@ -191,19 +201,40 @@ export default function ServicioRecepcionControl() {
                                 const orden = compras.ordenes.find(
                                     item => item.idOrden === recepcion.idOrden,
                                 );
+                                const validacion =
+                                    compras.recepcionesValidadas.find(
+                                        item =>
+                                            item.idRecepcion ===
+                                                recepcion.idRecepcion &&
+                                            item.idOrden === recepcion.idOrden &&
+                                            item.estado === "Validada",
+                                    );
 
                                 return (
                                     <details key={recepcion.idRecepcion}>
                                         <summary>
-                                            {recepcion.documento} · {orden?.numero ?? `Orden ${recepcion.idOrden}`} · {recepcion.estado}
+                                            {recepcion.documento} · {orden?.numero ?? `Orden ${recepcion.idOrden}`} · {validacion ? "Validada" : recepcion.estado}
                                         </summary>
                                         <p>Fecha: {recepcion.fecha}</p>
                                         <ul>
-                                            {recepcion.detalles.map(detalle => (
-                                                <li key={detalle.idDetalleOrden}>
-                                                    Línea {detalle.idDetalleOrden} · {detalle.cantidadRecibida} unidades recibidas
-                                                </li>
-                                            ))}
+                                            {recepcion.detalles.map(detalle => {
+                                                const detalleValidado =
+                                                    validacion?.detalles.find(
+                                                        item =>
+                                                            item.idDetalleOrden ===
+                                                            detalle.idDetalleOrden,
+                                                    );
+                                                const aceptadas =
+                                                    detalleValidado?.cantidadAceptada;
+
+                                                return (
+                                                    <li key={detalle.idDetalleOrden}>
+                                                        Línea {detalle.idDetalleOrden} · {detalle.cantidadRecibida} recibidas
+                                                        {aceptadas !== undefined &&
+                                                            ` · ${aceptadas} aceptadas · ${detalle.cantidadRecibida - aceptadas} rechazadas`}
+                                                    </li>
+                                                );
+                                            })}
                                         </ul>
                                         <EditorRecepcion
                                             recepcion={recepcion}
@@ -216,6 +247,17 @@ export default function ServicioRecepcionControl() {
                             })
                         )}
                     </section>
+                ) : opcionActiva === 2 ? (
+                    <RevisionFinalRecepcion
+                        recepciones={compras.recepcionesRegistradas}
+                        ordenes={compras.ordenes}
+                        recepcionesValidadas={compras.recepcionesValidadas}
+                        onConfirmar={confirmarRecepcion}
+                    />
+                ) : opcionActiva === 3 ? (
+                    <DevolucionesRecepcion />
+                ) : (
+                    <DisponibilidadDespacho />
                 )}
             </section>
         </div>
