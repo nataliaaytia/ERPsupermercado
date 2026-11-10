@@ -5,6 +5,7 @@ export interface ResolucionDevolucion {
     tipo: TipoResolucionDevolucion;
     evidencia: string;
     fechaRegistro: string;
+    detalleCompromiso?: string;
 }
 
 export interface DevolucionSeguimiento {

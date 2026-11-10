@@ -8,6 +8,7 @@ export interface DatosResolucionDevolucion {
     idDevolucion: string;
     tipo: TipoResolucionDevolucion;
     evidencia: string;
+    detalleCompromiso?: string;
 }
 
 function idDevolucion(idRecepcion: number, idDetalleOrden: number): string {
@@ -82,6 +83,13 @@ export function registrarResolucionDevolucion(
         throw new Error("Selecciona retiro o compromiso de reposición.");
     }
 
+    const detalleCompromiso = datos.detalleCompromiso?.trim();
+    if (datos.tipo === "reposicion" && !detalleCompromiso) {
+        throw new Error(
+            "Describe el compromiso de reposición, incluyendo la cantidad y la fecha acordada.",
+        );
+    }
+
     actualizarCompras(actual => {
         if (
             actual.resolucionesDevoluciones.some(
@@ -105,6 +113,9 @@ export function registrarResolucionDevolucion(
             tipo: datos.tipo,
             evidencia,
             fechaRegistro: new Date().toISOString(),
+            ...(datos.tipo === "reposicion" && detalleCompromiso
+                ? { detalleCompromiso }
+                : {}),
         };
 
         return {

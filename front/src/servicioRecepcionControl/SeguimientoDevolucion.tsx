@@ -15,6 +15,7 @@ export default function SeguimientoDevolucion({
 }: PropsSeguimientoDevolucion) {
     const [tipo, setTipo] = useState<TipoResolucionDevolucion>("retiro");
     const [evidencia, setEvidencia] = useState("");
+    const [detalleCompromiso, setDetalleCompromiso] = useState("");
     const [error, setError] = useState("");
 
     function guardar(evento: FormEvent<HTMLFormElement>) {
@@ -26,6 +27,7 @@ export default function SeguimientoDevolucion({
                 idDevolucion: devolucion.idDevolucion,
                 tipo,
                 evidencia,
+                ...(tipo === "reposicion" ? { detalleCompromiso } : {}),
             });
         } catch (fallo) {
             setError(
@@ -93,6 +95,13 @@ export default function SeguimientoDevolucion({
                             "es-BO",
                         )}
                     </p>
+                    {resolucion.tipo === "reposicion" && (
+                        <p>
+                            Compromiso:{" "}
+                            {resolucion.detalleCompromiso ??
+                                "Detalle no disponible en el registro guardado"}
+                        </p>
+                    )}
                     <p>Evidencia: {resolucion.evidencia}</p>
                     {resolucion.tipo === "reposicion" && (
                         <p>
@@ -130,6 +139,20 @@ export default function SeguimientoDevolucion({
                             </option>
                         </select>
                     </label>
+
+                    {tipo === "reposicion" && (
+                        <label className="ordenes-compra__campo">
+                            Detalle del compromiso (cantidad y fecha acordada)
+                            <textarea
+                                value={detalleCompromiso}
+                                onChange={evento =>
+                                    setDetalleCompromiso(evento.target.value)
+                                }
+                                rows={3}
+                                required
+                            />
+                        </label>
+                    )}
 
                     <label className="ordenes-compra__campo">
                         Evidencia (referencia, documento o descripción)
