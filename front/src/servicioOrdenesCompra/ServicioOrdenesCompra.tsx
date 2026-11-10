@@ -1,10 +1,10 @@
-
 import { useState } from "react";
 import MenuLateral from "../requisicionesCotizaciones/MenuLateral";
 import { useRequisiciones } from "../requisicionesCotizaciones/useRequisiciones";
 
 import GenerarOrdenCompra from "./GenerarOrdenCompra";
 import GestionOrdenesBorrador from "./GestionOrdenesBorrador";
+import DetalleOrdenCompra from "./DetalleOrdenCompra";
 import CompromisosEntregaOrden from "./CompromisosEntregaOrden";
 import CondicionesLogisticasOrden from "./CondicionesLogisticasOrden";
 import SeguimientoEntregas from "./SeguimientoEntregas";
@@ -17,6 +17,7 @@ import "./ServicioOrdenesCompra.css";
 const opcionesOrdenes = [
   "Crear orden",
   "Editar orden",
+  "Detalle de orden",
   "Compromisos de entrega",
   "Condiciones logísticas",
   "Pendientes de entrega",
@@ -67,19 +68,23 @@ export default function ServicioOrdenesCompra() {
             )}
 
             {opcionActiva === 2 && (
+              <DetalleOrdenCompra />
+            )}
+
+            {opcionActiva === 3 && (
               <CompromisosEntregaOrden
                 ordenes={ordenes}
               />
             )}
 
-            {opcionActiva === 3 && (
+            {opcionActiva === 4 && (
               <CondicionesLogisticasOrden
                 ordenes={ordenes}
                 onGuardar={guardarOrdenesCompra}
               />
             )}
 
-            {opcionActiva === 4 && (
+            {opcionActiva === 5 && (
               <SeguimientoEntregas />
             )}
           </>
