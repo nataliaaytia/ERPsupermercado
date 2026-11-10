@@ -103,6 +103,7 @@ export function confirmarRecepcion(
             idRecepcion: recepcion.idRecepcion,
             idOrden: recepcion.idOrden,
             estado: "Validada",
+            fechaValidacion: new Date().toISOString(),
             detalles,
         };
 

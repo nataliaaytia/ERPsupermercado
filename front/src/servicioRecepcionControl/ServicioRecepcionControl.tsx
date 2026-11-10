@@ -11,6 +11,7 @@ import {
 import RevisionFinalRecepcion from "./RevisionFinalRecepcion";
 import { confirmarRecepcion } from "./validarRecepcion";
 import DevolucionesRecepcion from "./DevolucionesRecepcion";
+import DisponibilidadDespacho from "./DisponibilidadDespacho";
 import "../requisicionesCotizaciones/Requisiciones.css";
 import "../servicioOrdenesCompra/ServicioOrdenesCompra.css";
 
@@ -21,6 +22,7 @@ const opciones = [
     "Recepciones registradas",
     "Validación final",
     "Devoluciones",
+    "Disponibilidad para despacho",
 ];
 
 function FormularioRecepcion({ seleccion }: { seleccion: OrdenDisponible }) {
@@ -242,8 +244,10 @@ export default function ServicioRecepcionControl() {
                         recepcionesValidadas={compras.recepcionesValidadas}
                         onConfirmar={confirmarRecepcion}
                     />
-                ) : (
+                ) : opcionActiva === 3 ? (
                     <DevolucionesRecepcion />
+                ) : (
+                    <DisponibilidadDespacho />
                 )}
             </section>
         </div>

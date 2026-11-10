@@ -99,6 +99,33 @@
     gap: 1rem;
 }
 
+.disponibilidad-despacho__lista {
+    display: grid;
+    gap: 1rem;
+}
+
+.disponibilidad-despacho__tarjeta {
+    display: grid;
+    gap: 1rem;
+    min-width: 0;
+    padding: 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    background: var(--bg-primary);
+}
+
+.disponibilidad-despacho__tarjeta h4,
+.disponibilidad-despacho__tarjeta p {
+    margin: 0;
+}
+
+.disponibilidad-despacho__evento {
+    display: grid;
+    gap: 0.5rem;
+    overflow-wrap: anywhere;
+    color: var(--text-secondary);
+}
+
 @media (max-width: 600px) {
     .recepcion-control form>button[type="submit"] {
         justify-self: stretch;

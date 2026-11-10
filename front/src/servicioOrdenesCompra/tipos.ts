@@ -58,5 +58,6 @@ export interface RecepcionValidada {
     idOrden: number;
     estado: "Validada";
     detalles: LineaRecepcionValidada[];
+    fechaValidacion?: string;
     esEjemplo?: boolean;
 }

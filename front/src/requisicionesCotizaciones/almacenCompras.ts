@@ -6,6 +6,7 @@ import { proveedoresIniciales } from "../catalogo/datosProveedores";
 
 import type { RecepcionRegistrada } from "../servicioRecepcionControl/tiposRecepcion";
 import type { ResolucionDevolucion } from "../servicioRecepcionControl/tiposDevolucion";
+import type { EventoMercaderiaDisponible } from "../servicioRecepcionControl/tiposDisponibilidad";
 
 const CLAVE = "erp-compras-estado";
 const CLAVE_ANTERIOR_ORDENES = "erp-ordenes-compra";
@@ -16,6 +17,7 @@ interface EstadoCompartido extends EstadoCompras {
     recepcionesValidadas: RecepcionValidada[];
     recepcionesRegistradas: RecepcionRegistrada[];
     resolucionesDevoluciones: ResolucionDevolucion[];
+    eventosMercaderiaDisponible: EventoMercaderiaDisponible[];
     ejemploInicializado: boolean;
     errorCarga: string;
 }
@@ -174,6 +176,7 @@ export function obtenerCompras(): EstadoCompartido {
         recepcionesValidadas: [],
         recepcionesRegistradas: [],
         resolucionesDevoluciones: [],
+        eventosMercaderiaDisponible: [],
         ejemploInicializado: false,
         errorCarga: "",
     };
@@ -226,6 +229,13 @@ export function obtenerCompras(): EstadoCompartido {
                 "Las resoluciones de devoluciones guardadas no son válidas.",
             );
         }
+        const eventosMercaderiaDisponible =
+            anterior.eventosMercaderiaDisponible ?? [];
+        if (!Array.isArray(eventosMercaderiaDisponible)) {
+            throw new Error(
+                "Los eventos de disponibilidad guardados no son válidos.",
+            );
+        }
 
         const nuevo = agregarEjemplo({
             ...inicial,
@@ -239,6 +249,7 @@ export function obtenerCompras(): EstadoCompartido {
             recepcionesValidadas: anterior.recepcionesValidadas ?? [],
             recepcionesRegistradas: anterior.recepcionesRegistradas ?? [],
             resolucionesDevoluciones,
+            eventosMercaderiaDisponible,
             ejemploInicializado: anterior.ejemploInicializado === true,
             errorCarga: "",
             mensaje: "",
@@ -302,6 +313,7 @@ export function despacharCompras(accion: AccionCompras): void {
         recepcionesValidadas: actual.recepcionesValidadas,
         recepcionesRegistradas: actual.recepcionesRegistradas,
         resolucionesDevoluciones: actual.resolucionesDevoluciones,
+        eventosMercaderiaDisponible: actual.eventosMercaderiaDisponible,
         ejemploInicializado: actual.ejemploInicializado,
         errorCarga: actual.errorCarga,
     }));

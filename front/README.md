@@ -7,6 +7,21 @@ Currently, two official plugins are available:
 - [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
 - [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
 
+## Disponibilidad de mercadería para despacho
+
+Al confirmar la disponibilidad, Recepción y Control persiste un evento
+`MercaderiaDisponible` en el estado local de compras y trata de enviarlo de
+forma asíncrona al publicador configurado por `VITE_MERCADERIA_DISPONIBLE_API`.
+Ese endpoint debe ser una API de confianza que publique en el tópico Pub/Sub de
+Gestión de Entregas/Despachos; el frontend no accede directamente a credenciales
+ni a Google Pub/Sub.
+
+El publicador recibe el JSON del evento y el encabezado `Idempotency-Key` con el
+ID del evento. Una respuesta HTTP exitosa marca el evento como publicado; si
+incluye el encabezado `x-message-id`, se conserva como referencia. Sin endpoint,
+el evento queda guardado con estado pendiente de configuración. No se debe
+configurar aquí un endpoint de alertas de inventario con otro contrato.
+
 ## React Compiler
 
 The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
