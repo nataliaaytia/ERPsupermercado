@@ -9,6 +9,12 @@ export type EstadoRecepcion =
     | "En inspección"
     | "Validada";
 
+export interface CostoTransporte {
+    importeCentavos: number;
+    concepto: string;
+    comprobante: string;
+}
+
 export interface RecepcionRegistrada {
     idRecepcion: number;
     idOrden: number;
@@ -18,6 +24,7 @@ export interface RecepcionRegistrada {
     detalles: DetalleRecepcion[];
     responsableCorreccion?: string;
     fechaCorreccion?: string;
+    costoTransporte?: CostoTransporte;
 }
 
 export interface DatosRecepcion {
