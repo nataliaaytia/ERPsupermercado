@@ -4,6 +4,7 @@ import { useRequisiciones } from "../requisicionesCotizaciones/useRequisiciones"
 
 import GenerarOrdenCompra from "./GenerarOrdenCompra";
 import GestionOrdenesBorrador from "./GestionOrdenesBorrador";
+import BuscarOrdenesCompra from "./BuscarOrdenesCompra";
 import DetalleOrdenCompra from "./DetalleOrdenCompra";
 import CompromisosEntregaOrden from "./CompromisosEntregaOrden";
 import CondicionesLogisticasOrden from "./CondicionesLogisticasOrden";
@@ -17,6 +18,7 @@ import "./ServicioOrdenesCompra.css";
 const opcionesOrdenes = [
   "Crear orden",
   "Editar orden",
+  "Buscar órdenes",
   "Detalle de orden",
   "Compromisos de entrega",
   "Condiciones logísticas",
@@ -28,6 +30,22 @@ export default function ServicioOrdenesCompra() {
 
   const [opcionActiva, setOpcionActiva] = useState(0);
   const [menuAbierto, setMenuAbierto] = useState(true);
+  const [idOrdenDetalle, setIdOrdenDetalle] = useState<
+    number | null
+  >(null);
+
+  function abrirDetalle(idOrden: number) {
+    setIdOrdenDetalle(idOrden);
+    setOpcionActiva(3);
+  }
+
+  function elegirOpcion(indice: number) {
+    setOpcionActiva(indice);
+
+    if (indice === 3) {
+      setIdOrdenDetalle(null);
+    }
+  }
 
   return (
     <div className="requisiciones-container">
@@ -37,9 +55,9 @@ export default function ServicioOrdenesCompra() {
         opcionActiva={opcionActiva}
         abierto={menuAbierto}
         onAbrirCerrar={() =>
-          setMenuAbierto(actual => !actual)
+          setMenuAbierto((actual) => !actual)
         }
-        onElegir={setOpcionActiva}
+        onElegir={elegirOpcion}
       />
 
       <section className="requisiciones-contenido ordenes-compra">
@@ -68,23 +86,31 @@ export default function ServicioOrdenesCompra() {
             )}
 
             {opcionActiva === 2 && (
-              <DetalleOrdenCompra />
+              <BuscarOrdenesCompra
+                onVerDetalle={abrirDetalle}
+              />
             )}
 
             {opcionActiva === 3 && (
+              <DetalleOrdenCompra
+                idOrdenInicial={idOrdenDetalle}
+              />
+            )}
+
+            {opcionActiva === 4 && (
               <CompromisosEntregaOrden
                 ordenes={ordenes}
               />
             )}
 
-            {opcionActiva === 4 && (
+            {opcionActiva === 5 && (
               <CondicionesLogisticasOrden
                 ordenes={ordenes}
                 onGuardar={guardarOrdenesCompra}
               />
             )}
 
-            {opcionActiva === 5 && (
+            {opcionActiva === 6 && (
               <SeguimientoEntregas />
             )}
           </>

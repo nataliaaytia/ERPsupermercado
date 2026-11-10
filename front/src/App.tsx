@@ -70,7 +70,9 @@ export const App = () => {
           {currentPage === 'requisiciones' && <Requisiciones />}
 
           {currentPage === 'ordenes-compra' && <ServicioOrdenesCompra />}
-          {currentPage === 'recepcion-control' && <ServicioRecepcionControl />}
+          {currentPage === 'recepcion-control' && (
+            <ServicioRecepcionControl puedeConsultar={isLoggedIn} />
+          )}
 
           {currentPage === 'login' && (
             <Login

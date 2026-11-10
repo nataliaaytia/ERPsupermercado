@@ -1,12 +1,11 @@
-//natalia scrum 528
-
 import { useState } from "react";
 import type { FormEvent } from "react";
-import EditorRecepcion from "./EditorRecepcion";
-import ResumenCantidadesRecepcion from "./ResumenCantidadesRecepcion";
-import CostoTransporteRecepcion from "./CostoTransporteRecepcion";
+import HistorialRecepciones from "./HistorialRecepciones";
 import MenuLateral from "../requisicionesCotizaciones/MenuLateral";
-import { fechaHoy, useRequisiciones } from "../requisicionesCotizaciones/useRequisiciones";
+import {
+    fechaHoy,
+    useRequisiciones,
+} from "../requisicionesCotizaciones/useRequisiciones";
 import {
     ordenesDisponiblesParaRecepcion,
     registrarRecepcion,
@@ -43,15 +42,24 @@ function FormularioRecepcion({
                 documento,
                 detalles: seleccion.lineas.flatMap(linea => {
                     const cantidad = cantidades[linea.idDetalle] ?? "";
-                    return cantidad.trim() ? [{ idDetalleOrden: linea.idDetalle, cantidad }] : [];
+
+                    return cantidad.trim()
+                        ? [{ idDetalleOrden: linea.idDetalle, cantidad }]
+                        : [];
                 }),
             });
 
-            onMensaje(`Entrega de ${seleccion.orden.numero} guardada. Quedó pendiente de inspección.`);
+            onMensaje(
+                `Entrega de ${seleccion.orden.numero} guardada. Quedó pendiente de inspección.`,
+            );
             setDocumento("");
             setCantidades({});
         } catch (fallo) {
-            setError(fallo instanceof Error ? fallo.message : "No se pudo registrar la recepción.");
+            setError(
+                fallo instanceof Error
+                    ? fallo.message
+                    : "No se pudo registrar la recepción.",
+            );
         }
     }
 
@@ -99,20 +107,27 @@ function FormularioRecepcion({
                         value={cantidades[linea.idDetalle] ?? ""}
                         onChange={evento => {
                             const valor = evento.target.value;
-                            setCantidades(actuales => ({ ...actuales, [linea.idDetalle]: valor }));
+                            setCantidades(actuales => ({
+                                ...actuales,
+                                [linea.idDetalle]: valor,
+                            }));
                         }}
                     />
                 </label>
             ))}
 
-            {error && <p className="ordenes-compra__error" role="alert">{error}</p>}
+            {error && (
+                <p className="ordenes-compra__error" role="alert">{error}</p>
+            )}
 
             <button type="submit">Registrar recepción</button>
         </form>
     );
 }
 
-export default function ServicioRecepcionControl() {
+export default function ServicioRecepcionControl({
+    puedeConsultar = false,
+}: { puedeConsultar?: boolean }) {
     const compras = useRequisiciones();
     const [opcionActiva, setOpcionActiva] = useState(0);
     const [menuAbierto, setMenuAbierto] = useState(true);
@@ -125,7 +140,9 @@ export default function ServicioRecepcionControl() {
         compras.recepcionesRegistradas,
     );
 
-    const seleccion = disponibles.find(item => String(item.orden.idOrden) === idOrden);
+    const seleccion = disponibles.find(
+        item => String(item.orden.idOrden) === idOrden,
+    );
 
     return (
         <div className="requisiciones-container">
@@ -145,10 +162,14 @@ export default function ServicioRecepcionControl() {
                 </header>
 
                 {compras.errorCarga ? (
-                    <p className="ordenes-compra__error" role="alert">{compras.errorCarga}</p>
+                    <p className="ordenes-compra__error" role="alert">
+                        {compras.errorCarga}
+                    </p>
                 ) : opcionActiva === 0 ? (
                     <>
-                        {mensaje && <p className="ordenes-compra__exito" role="status">{mensaje}</p>}
+                        {mensaje && (
+                            <p className="ordenes-compra__exito" role="status">{mensaje}</p>
+                        )}
 
                         {disponibles.length === 0 ? (
                             <p>No hay órdenes confirmadas con saldo pendiente.</p>
@@ -164,7 +185,9 @@ export default function ServicioRecepcionControl() {
                                 >
                                     <option value="">Selecciona una orden</option>
                                     {disponibles.map(({ orden }) => (
-                                        <option key={orden.idOrden} value={orden.idOrden}>{orden.numero}</option>
+                                        <option key={orden.idOrden} value={orden.idOrden}>
+                                            {orden.numero}
+                                        </option>
                                     ))}
                                 </select>
                             </label>
@@ -179,37 +202,13 @@ export default function ServicioRecepcionControl() {
                         )}
                     </>
                 ) : (
-                    <section className="ordenes-compra__tarjeta">
-                        {compras.recepcionesRegistradas.length === 0 ? (
-                            <p>Todavía no hay recepciones registradas.</p>
-                        ) : (
-                            [...compras.recepcionesRegistradas].reverse().map(recepcion => {
-                                const orden = compras.ordenes.find(item => item.idOrden === recepcion.idOrden);
-
-                                return (
-                                    <details key={recepcion.idRecepcion}>
-                                        <summary>
-                                            {recepcion.documento} · {orden?.numero ?? `Orden ${recepcion.idOrden}`} · {recepcion.estado}
-                                        </summary>
-                                        <p>Fecha: {recepcion.fecha}</p>
-                                        <ResumenCantidadesRecepcion
-                                            recepcion={recepcion}
-                                            validadas={compras.recepcionesValidadas}
-                                        />
-                                        <EditorRecepcion
-                                            recepcion={recepcion}
-                                            orden={orden}
-                                            recepcionesValidadas={compras.recepcionesValidadas}
-                                        />
-                                        <CostoTransporteRecepcion
-                                            recepcion={recepcion}
-                                            recepcionesValidadas={compras.recepcionesValidadas}
-                                        />
-                                    </details>
-                                );
-                            })
-                        )}
-                    </section>
+                    <HistorialRecepciones
+                        puedeConsultar={puedeConsultar}
+                        ordenes={compras.ordenes}
+                        ofertas={compras.ofertas}
+                        recepciones={compras.recepcionesRegistradas}
+                        validadas={compras.recepcionesValidadas}
+                    />
                 )}
             </section>
         </div>
