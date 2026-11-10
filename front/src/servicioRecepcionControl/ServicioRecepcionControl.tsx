@@ -1,3 +1,5 @@
+//natalia scrum 528
+
 import { useState } from "react";
 import type { FormEvent } from "react";
 import MenuLateral from "../requisicionesCotizaciones/MenuLateral";
@@ -10,6 +12,8 @@ import {
 } from "./registroRecepcion";
 import "../requisicionesCotizaciones/Requisiciones.css";
 import "../servicioOrdenesCompra/ServicioOrdenesCompra.css";
+
+import EditorRecepcion from "./EditorRecepcion";
 
 type OrdenDisponible = ReturnType<typeof ordenesDisponiblesParaRecepcion>[number];
 
@@ -201,7 +205,13 @@ export default function ServicioRecepcionControl() {
                                                 </li>
                                             ))}
                                         </ul>
+                                        <EditorRecepcion
+                                            recepcion={recepcion}
+                                            orden={orden}
+                                            recepcionesValidadas={compras.recepcionesValidadas}
+                                        />
                                     </details>
+
                                 );
                             })
                         )}
