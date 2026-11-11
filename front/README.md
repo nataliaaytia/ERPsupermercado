@@ -7,6 +7,51 @@ Currently, two official plugins are available:
 - [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
 - [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
 
+## Disponibilidad de mercadería para despacho
+
+Al confirmar la disponibilidad, Recepción y Control persiste un evento
+`MercaderiaDisponible` en el estado local de compras y trata de enviarlo de
+forma asíncrona al publicador configurado por `VITE_MERCADERIA_DISPONIBLE_API`.
+Ese endpoint debe ser una API de confianza que publique en el tópico Pub/Sub de
+Gestión de Entregas/Despachos; el frontend no accede directamente a credenciales
+ni a Google Pub/Sub.
+
+El publicador recibe el JSON del evento y el encabezado `Idempotency-Key` con el
+ID del evento. Una respuesta HTTP exitosa marca el evento como publicado; si
+incluye el encabezado `x-message-id`, se conserva como referencia. Sin endpoint,
+el evento queda guardado con estado pendiente de configuración. No se debe
+configurar aquí un endpoint de alertas de inventario con otro contrato.
+
+La vista conserva el historial y el resultado de cada intento. Solo se puede
+reintentar un evento pendiente o fallido; los eventos publicados no se vuelven
+a enviar. Si la aplicación se interrumpe durante un envío, su resultado se
+marca como incierto y queda reintentable con la misma clave de idempotencia.
+Para evitar duplicados cuando el servidor recibió el primer intento pero la
+respuesta se perdió, el endpoint configurado debe aplicar idempotencia usando
+esa clave. Un HTTP exitoso confirma la aceptación del endpoint, no el consumo
+del evento por Gestión de Entregas/Despachos.
+
+La vista distingue la publicación del resultado posterior de Entregas/Despachos.
+El estado queda pendiente hasta que el resultado sea entregado a la aplicación.
+El procesador local `registrarResultadoDisponibilidad` verifica el
+`correlationId`, el `recepcionId` y que el evento haya sido publicado; persiste
+una sola respuesta por evento e ignora duplicados idénticos. Un rechazo no
+confirma la disponibilidad. El repositorio todavía no contiene una suscripción
+de resultados ni el contrato acordado con SCRUM-540, por lo que no se generan
+respuestas simuladas.
+
+Al procesar un resultado, el estado compartido conserva el ID del evento
+original, el ID de mensaje Pub/Sub cuando lo entrega el consumidor, la fecha de
+recepción y el resultado. Los mensajes inválidos o no correlacionados se
+registran en la lista de errores visible en la vista; si se provee el mismo ID
+de mensaje, el error no se registra dos veces. Para completar la integración,
+el servicio receptor deberá adaptar el mensaje real, persistirlo en el backend
+y confirmar Pub/Sub solo después de persistirlo. Ese consumidor aún requiere
+definir el servicio receptor, la suscripción y el formato real del mensaje; el
+frontend no puede conectarse directamente a Pub/Sub de forma segura. La
+función local procesa un resultado ya entregado a la aplicación; no es una
+suscripción ni transporta mensajes por sí sola.
+
 ## React Compiler
 
 The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).

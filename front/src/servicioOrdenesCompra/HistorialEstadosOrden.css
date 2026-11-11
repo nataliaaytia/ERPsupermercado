@@ -1,0 +1,92 @@
+
+.historial-estados {
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border-color, rgba(148, 163, 184, 0.2));
+  color: inherit;
+}
+
+.historial-estados__encabezado {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.historial-estados__encabezado h3 {
+  margin: 0 0 6px;
+  font-size: 17px;
+  font-weight: 700;
+  color: inherit;
+}
+
+.historial-estados__encabezado p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-secondary, #94a3b8);
+}
+
+.historial-estados__contador {
+  flex-shrink: 0;
+  font-size: 13px;
+  color: var(--text-secondary, #94a3b8);
+}
+
+.historial-estados__vacio {
+  padding: 18px 0;
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-secondary, #94a3b8);
+}
+
+.historial-estados__tabla-contenedor {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.historial-estados__tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  color: inherit;
+}
+
+.historial-estados__tabla th,
+.historial-estados__tabla td {
+  padding: 14px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color, rgba(148, 163, 184, 0.2));
+  vertical-align: middle;
+}
+
+.historial-estados__tabla th {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary, #94a3b8);
+}
+
+.historial-estados__tabla tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.historial-estados__estado {
+  display: inline-block;
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary, inherit);
+  background: var(--surface-secondary, rgba(148, 163, 184, 0.12));
+}
+
+@media (max-width: 768px) {
+  .historial-estados__encabezado {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .historial-estados__tabla {
+    min-width: 680px;
+  }
+}

@@ -331,7 +331,9 @@ export default function SelectorProveedores({
           {solicitudCerrada && (
             <div className="selector-proveedores-cierre-exitoso" role="status">
               <strong>Solicitud cerrada</strong>
-              <p>El periodo de cotización ha finalizado. No se admiten nuevas ofertas y la solicitud está lista para su evaluación.</p>
+              <p>{adjudicada
+                  ? "Esta solicitud se cerró al adjudicar la oferta ganadora. No se admiten nuevas ofertas y ya puedes generar la orden de compra."
+                  : "Esta solicitud está cerrada. No se admiten nuevas ofertas y las ofertas registradas están disponibles para evaluación."}</p>
             </div>
           )}
 

@@ -42,10 +42,24 @@ export const Cabecera: React.FC<CabeceraProps> = ({
                     >
                         Requisiciones
                     </button>
+
+                    <button
+                        className={`cabecera-link ${currentPage === 'ordenes-compra' ? 'active' : ''}`}
+                        onClick={() => onNavigate('ordenes-compra')}
+                    >
+                        Órdenes de compra
+                    </button>
+
+                    <button
+                        type="button"
+                        className={`cabecera-link ${currentPage === 'recepcion-control' ? 'active' : ''}`}
+                        onClick={() => onNavigate('recepcion-control')}
+                    >
+                        Recepción y Control
+                    </button>
                 </nav>
 
                 <div className="cabecera-actions">
-                    {/* Al hacer clic solo navega a la pantalla de login */}
                     <button
                         className={`cabecera-btn-login ${currentPage === 'login' ? 'active' : ''}`}
                         onClick={() => onNavigate('login')}

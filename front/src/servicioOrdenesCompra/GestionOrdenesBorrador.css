@@ -1,0 +1,188 @@
+.borrador-editor {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  padding: clamp(16px, 2vw, 24px);
+  max-width: 100%;
+  min-width: 0;
+}
+
+.borrador-editor__encabezado {
+  margin-bottom: 18px;
+}
+
+.borrador-editor__encabezado h2 {
+  font-size: 1.2rem;
+  margin: 0 0 4px;
+}
+
+.borrador-editor__encabezado p {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.borrador-editor__campo {
+  display: grid;
+  gap: 8px;
+  font-weight: 600;
+  margin-bottom: 18px;
+}
+
+.borrador-editor select,
+.borrador-editor input {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  background: var(--bg-primary, var(--bg-card));
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 10px;
+  font: inherit;
+}
+
+.borrador-editor select:focus-visible,
+.borrador-editor input:focus-visible,
+.borrador-editor button:focus-visible {
+  outline: 2px solid #38bdf8;
+  outline-offset: 2px;
+}
+
+.borrador-editor__resumen {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 24px;
+  padding: 12px;
+  margin-bottom: 14px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-secondary);
+}
+
+.borrador-editor__resumen strong {
+  color: var(--text-primary);
+}
+
+.borrador-editor__tabla {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.borrador-editor table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 680px;
+}
+
+.borrador-editor th,
+.borrador-editor td {
+  text-align: left;
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--border-color);
+  vertical-align: middle;
+}
+
+.borrador-editor th {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.borrador-editor td:first-child {
+  min-width: 230px;
+}
+
+.borrador-editor td:nth-child(2) {
+  width: 120px;
+}
+
+.borrador-editor td:nth-child(4) {
+  white-space: nowrap;
+}
+
+.borrador-editor__pie {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin: 16px 0;
+}
+
+.borrador-editor__acciones {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.borrador-editor button {
+  border: 0;
+  border-radius: 8px;
+  padding: 10px 15px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  background: #38bdf8;
+  color: #071625;
+}
+
+.borrador-editor button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.borrador-editor .borrador-editor__secundario,
+.borrador-editor .borrador-editor__quitar {
+  background: transparent;
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+
+.borrador-editor__error,
+.borrador-editor__exito,
+.borrador-editor__aviso {
+  padding: 12px;
+  border-radius: 8px;
+  margin: 12px 0;
+  background: var(--bg-primary, var(--bg-card));
+}
+
+.borrador-editor__error {
+  border: 1px solid #ef4444;
+}
+
+.borrador-editor__exito {
+  border: 1px solid #16a34a;
+}
+
+.borrador-editor__aviso {
+  border: 1px solid var(--border-color);
+}
+
+@media (max-width: 768px) {
+  .borrador-editor {
+    padding: 14px;
+  }
+
+  .borrador-editor__pie,
+  .borrador-editor__acciones {
+    align-items: stretch;
+  }
+
+  .borrador-editor__acciones button {
+    flex: 1 1 160px;
+  }
+}
+
+/* Mensajes específicos de validación de cantidades */
+.borrador-editor input.borrador-editor__input-invalido {
+  border: 1px solid #ef4444;
+}
+
+.borrador-editor__mensaje-cantidad {
+  display: block;
+  margin-top: 5px;
+  color: #f87171;
+  font-size: 0.78rem;
+  line-height: 1.35;
+}

@@ -7,10 +7,16 @@ import Catalogo from './catalogo/Catalogo';
 import Login from './Login';
 import Requisiciones from './requisicionesCotizaciones/Requisiciones';
 
+import ServicioOrdenesCompra from './servicioOrdenesCompra/ServicioOrdenesCompra';
+
+import ServicioRecepcionControl from './servicioRecepcionControl/ServicioRecepcionControl';
+
 const paginasValidas = [
   'home',
   'catalogo',
   'requisiciones',
+  'ordenes-compra',
+  'recepcion-control',
   'login',
 ];
 
@@ -62,6 +68,11 @@ export const App = () => {
           {currentPage === 'catalogo' && <Catalogo />}
 
           {currentPage === 'requisiciones' && <Requisiciones />}
+
+          {currentPage === 'ordenes-compra' && <ServicioOrdenesCompra />}
+          {currentPage === 'recepcion-control' && (
+            <ServicioRecepcionControl puedeConsultar={isLoggedIn} />
+          )}
 
           {currentPage === 'login' && (
             <Login

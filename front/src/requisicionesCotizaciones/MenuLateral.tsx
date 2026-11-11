@@ -2,6 +2,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import "./MenuLateral.css";
 
 interface Props {
+  titulo?: string;
   opciones: string[];
   opcionActiva: number;
   abierto: boolean;
@@ -10,6 +11,7 @@ interface Props {
 }
 
 export const MenuLateral = ({
+  titulo = "Requisiciones",
   opciones,
   opcionActiva,
   abierto,
@@ -19,10 +21,11 @@ export const MenuLateral = ({
   <aside className={`menu-lateral ${abierto ? "" : "menu-lateral--cerrado"}`}>
     <nav
       className="menu-lateral__opciones"
-      aria-label="Secciones de requisiciones"
+      aria-label={`Secciones de ${titulo}`}
       hidden={!abierto}
     >
-      <span className="menu-lateral__titulo">Requisiciones</span>
+      <span className="menu-lateral__titulo">{titulo}</span>
+
       {opciones.map((opcion, indice) => (
         <button
           type="button"
@@ -35,6 +38,7 @@ export const MenuLateral = ({
         </button>
       ))}
     </nav>
+
     <button
       type="button"
       className="menu-lateral__boton"
