@@ -2,7 +2,7 @@
 .devolucion-orden {
   display: flex;
   align-items: center;
-  margin-top: 20px;
+  margin-top: 0;
 }
 
 .devolucion-orden__boton {
@@ -265,6 +265,27 @@
   }
 
   .devolucion-orden__boton {
+    width: 100%;
+  }
+}
+
+/* Alineación del botón dentro de la revisión */
+.detalle-orden__acciones-revision .devolucion-orden {
+  margin: 0;
+  align-self: stretch;
+}
+.detalle-orden__acciones-revision .devolucion-orden__boton {
+  height: 100%;
+  min-height: 46px;
+  margin: 0;
+  padding: 11px 18px;
+  border-radius: 9px;
+  font-size: 0.9rem;
+  line-height: 1.2;
+}
+@media (max-width: 600px) {
+  .detalle-orden__acciones-revision .devolucion-orden,
+  .detalle-orden__acciones-revision .devolucion-orden__boton {
     width: 100%;
   }
 }
