@@ -6,6 +6,7 @@ import HistorialEstadosOrden from "./HistorialEstadosOrden";
 import DevolucionOrden from "./DevolucionOrden";
 import EnvioOrdenProveedor from "./EnvioOrdenProveedor";
 import RespuestaProveedorOrden from "./RespuestaProveedorOrden";
+import AnulacionOrden from "./AnulacionOrden";
 import { aprobarOrdenCompra } from "./aprobacionOrden";
 import "./DetalleOrdenCompra.css";
 
@@ -25,9 +26,17 @@ export default function DetalleOrdenCompra({
 }: Props) {
   const { ordenes, ofertas, errorCarga } = useRequisiciones();
 
-  const [idSeleccionado, setIdSeleccionado] = useState(
-    idOrdenInicial === null ? "" : String(idOrdenInicial)
-  );
+  const [seleccion, setSeleccion] = useState({
+    idOrdenInicial,
+    valor: idOrdenInicial === null ? "" : String(idOrdenInicial),
+  });
+
+  const idSeleccionado =
+    seleccion.idOrdenInicial === idOrdenInicial
+      ? seleccion.valor
+      : idOrdenInicial === null
+        ? ""
+        : String(idOrdenInicial);
 
   const [error, setError] = useState("");
   const [modalAprobacion, setModalAprobacion] = useState(false);
@@ -46,12 +55,6 @@ export default function DetalleOrdenCompra({
 
   const proveedor =
     oferta?.proveedor?.razonSocial ?? "No disponible";
-
-  useEffect(() => {
-    if (idOrdenInicial !== null) {
-      setIdSeleccionado(String(idOrdenInicial));
-    }
-  }, [idOrdenInicial]);
 
   useEffect(() => {
     if (!modalAprobacion) return;
@@ -111,7 +114,7 @@ export default function DetalleOrdenCompra({
   }, [modalAprobacion]);
 
   function seleccionarOrden(valor: string) {
-    setIdSeleccionado(valor);
+    setSeleccion({ idOrdenInicial, valor });
     setError("");
     setModalAprobacion(false);
   }
@@ -307,6 +310,9 @@ export default function DetalleOrdenCompra({
             Boolean(orden.respuestaProveedor)) && (
             <RespuestaProveedorOrden orden={orden} />
           )}
+
+          {/* SCRUM-521 - Anulación de órdenes de compra */}
+          <AnulacionOrden orden={orden} />
 
           {/* SCRUM-522 - Historial de estados */}
           <HistorialEstadosOrden orden={orden} />

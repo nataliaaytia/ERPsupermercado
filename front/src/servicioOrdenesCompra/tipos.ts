@@ -1,6 +1,7 @@
- // NATALIA - SCRUM 523
 
 import type { ProductoReferencia } from "../requisicionesCotizaciones/tipos";
+
+// NATALIA - SCRUM 523
 
 export interface CompromisoEntrega {
   idCompromiso: number;
@@ -61,6 +62,14 @@ export interface RespuestaProveedor {
   observacion: string;
 }
 
+// SCRUM-521 - Registro de anulación de órdenes de compra
+
+export interface AnulacionOrden {
+  motivo: string;
+  fecha: string;
+  usuario: string;
+}
+
 export interface OrdenCompra {
   idOrden: number;
   idOfertaOrigen?: number;
@@ -80,6 +89,9 @@ export interface OrdenCompra {
 
   // SCRUM-520 - Confirmación o rechazo del proveedor
   respuestaProveedor?: RespuestaProveedor;
+
+  // SCRUM-521 - Información de anulación
+  anulacion?: AnulacionOrden;
 }
 
 export interface DatosCompromisoEntrega {
