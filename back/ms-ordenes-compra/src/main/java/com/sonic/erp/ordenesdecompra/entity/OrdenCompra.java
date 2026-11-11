@@ -2,12 +2,12 @@ package com.sonic.erp.ordenesdecompra.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.time.LocalDateTime;
-
 
 @Entity
 @Table(name = "orden_compra")
@@ -44,6 +44,15 @@ public class OrdenCompra {
     @Column(name = "observacion", length = 500)
     private String observacion;
 
+    @Column(name = "destino_entrega", length = 255)
+    private String destinoEntrega;
+
+    @Column(name = "horario_entrega", length = 100)
+    private String horarioEntrega;
+
+    @Column(name = "responsable_entrega", length = 100)
+    private String responsableEntrega;
+
     @Column(name = "aprobado_por", length = 100)
     private String aprobadoPor;
 
@@ -79,9 +88,7 @@ public class OrdenCompra {
     private List<HistorialEstadoOrdenCompra> historialEstados =
             new ArrayList<>();
 
-    public void agregarCambioEstado(
-            HistorialEstadoOrdenCompra cambio) {
-
+    public void agregarCambioEstado(HistorialEstadoOrdenCompra cambio) {
         historialEstados.add(cambio);
         cambio.setOrdenCompra(this);
     }
@@ -107,9 +114,7 @@ public class OrdenCompra {
     )
     private RespuestaProveedorOrdenCompra respuestaProveedor;
 
-    public void registrarRespuesta(
-            RespuestaProveedorOrdenCompra respuesta) {
-
+    public void registrarRespuesta(RespuestaProveedorOrdenCompra respuesta) {
         this.respuestaProveedor = respuesta;
 
         if (respuesta != null) {
@@ -117,7 +122,11 @@ public class OrdenCompra {
         }
     }
 
-    @OneToMany(mappedBy = "ordenCompra", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(
+            mappedBy = "ordenCompra",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
     @Builder.Default
     private List<DetalleOrdenCompra> detalles = new ArrayList<>();
 
