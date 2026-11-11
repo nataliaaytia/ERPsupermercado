@@ -6,6 +6,7 @@ import java.util.List;
 public record EntregaParcialResponse(
         Long idRecepcion,
         Long idOrden,
+        String documento,
         String estado,
         LocalDate fecha,
         String almacen,

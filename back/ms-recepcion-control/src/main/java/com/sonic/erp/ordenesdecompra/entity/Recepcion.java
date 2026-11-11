@@ -35,6 +35,9 @@ public class Recepcion {
     @Column(name = "observacion", length = 500)
     private String observacion;
 
+    @Column(name = "documento", length = 100, unique = true)
+    private String documento;
+
     @OneToMany(mappedBy = "recepcion", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<DetalleRecepcion> detalles = new ArrayList<>();

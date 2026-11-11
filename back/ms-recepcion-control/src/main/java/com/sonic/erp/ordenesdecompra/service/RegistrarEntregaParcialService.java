@@ -7,6 +7,7 @@ import com.sonic.erp.ordenesdecompra.entity.DetalleRecepcion;
 import com.sonic.erp.ordenesdecompra.entity.Recepcion;
 import com.sonic.erp.ordenesdecompra.repository.RecepcionRepository;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +20,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -51,8 +53,7 @@ public class RegistrarEntregaParcialService {
             );
         }
 
-        if (request == null
-                || request.detalles() == null
+        if (request == null || request.detalles() == null
                 || request.detalles().isEmpty()) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
@@ -60,12 +61,21 @@ public class RegistrarEntregaParcialService {
             );
         }
 
-        OrdenCompraApi orden = consultarOrden(idOrden);
+        String documento = normalizarDocumento(request.documento());
 
-        if (!"ENVIADA".equalsIgnoreCase(orden.estado())) {
+        if (recepcionRepository.existsByDocumentoIgnoreCase(documento)) {
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
-                    "Solo se pueden registrar entregas para órdenes ENVIADA"
+                    "El documento ya está registrado en otra recepción"
+            );
+        }
+
+        OrdenCompraApi orden = consultarOrden(idOrden);
+
+        if (!"ACEPTADA_PROVEEDOR".equalsIgnoreCase(orden.estado())) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Solo se pueden recibir entregas de órdenes aceptadas por el proveedor"
             );
         }
 
@@ -79,11 +89,11 @@ public class RegistrarEntregaParcialService {
             );
         }
 
-        List<Recepcion> recepcionesAnteriores =
+        List<Recepcion> anteriores =
                 recepcionRepository.findByIdOrden(idOrden);
 
         Map<Long, Acumulado> acumulados =
-                calcularAcumulados(recepcionesAnteriores);
+                calcularAcumulados(anteriores);
 
         Set<Long> productosEnSolicitud = new HashSet<>();
 
@@ -96,7 +106,7 @@ public class RegistrarEntregaParcialService {
                     || linea.cantidadRecibida() <= 0) {
                 throw new ResponseStatusException(
                         HttpStatus.BAD_REQUEST,
-                        "Cada línea debe incluir producto y cantidad positiva"
+                        "Cada línea debe incluir un producto y una cantidad positiva"
                 );
             }
 
@@ -107,10 +117,9 @@ public class RegistrarEntregaParcialService {
                 );
             }
 
-            Integer cantidadOrdenada =
-                    cantidadesOrdenadas.get(linea.productoId());
+            Integer ordenada = cantidadesOrdenadas.get(linea.productoId());
 
-            if (cantidadOrdenada == null) {
+            if (ordenada == null) {
                 throw new ResponseStatusException(
                         HttpStatus.BAD_REQUEST,
                         "El producto " + linea.productoId()
@@ -125,7 +134,7 @@ public class RegistrarEntregaParcialService {
 
             int pendiente = Math.max(
                     0,
-                    cantidadOrdenada
+                    ordenada
                             - acumulado.cantidadAceptada
                             - acumulado.cantidadEnInspeccion
             );
@@ -133,16 +142,18 @@ public class RegistrarEntregaParcialService {
             if (linea.cantidadRecibida() > pendiente) {
                 throw new ResponseStatusException(
                         HttpStatus.CONFLICT,
-                        "Cantidad en conflicto para producto "
+                        "Cantidad en conflicto para el producto "
                                 + linea.productoId()
-                                + ": pendiente " + pendiente
-                                + ", solicitada " + linea.cantidadRecibida()
+                                + ": saldo pendiente " + pendiente
+                                + ", cantidad solicitada "
+                                + linea.cantidadRecibida()
                 );
             }
         }
 
-        Recepcion nuevaRecepcion = Recepcion.builder()
+        Recepcion nueva = Recepcion.builder()
                 .idOrden(idOrden)
+                .documento(documento)
                 .fecha(request.fecha())
                 .almacen(request.almacen().trim())
                 .estado("PENDIENTE_INSPECCION")
@@ -158,7 +169,7 @@ public class RegistrarEntregaParcialService {
                     .cantidadAceptada(0)
                     .build();
 
-            nuevaRecepcion.agregarDetalle(detalle);
+            nueva.agregarDetalle(detalle);
 
             Acumulado acumulado = acumulados.computeIfAbsent(
                     linea.productoId(),
@@ -167,8 +178,16 @@ public class RegistrarEntregaParcialService {
             acumulado.cantidadEnInspeccion += linea.cantidadRecibida();
         }
 
-        Recepcion guardada =
-                recepcionRepository.saveAndFlush(nuevaRecepcion);
+        Recepcion guardada;
+        try {
+            guardada = recepcionRepository.saveAndFlush(nueva);
+        } catch (DataIntegrityViolationException e) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "El documento ya está registrado o infringe una restricción de datos",
+                    e
+            );
+        }
 
         List<EntregaParcialResponse.DetalleResponse> detallesResponse =
                 guardada.getDetalles().stream()
@@ -181,25 +200,21 @@ public class RegistrarEntregaParcialService {
                         )
                         .toList();
 
-        List<EntregaParcialResponse.SaldoResponse> saldosResponse =
-                construirSaldos(cantidadesOrdenadas, acumulados);
-
         return new EntregaParcialResponse(
                 guardada.getIdRecepcion(),
                 guardada.getIdOrden(),
+                guardada.getDocumento(),
                 guardada.getEstado(),
                 guardada.getFecha(),
                 guardada.getAlmacen(),
                 guardada.getObservacion(),
                 detallesResponse,
-                saldosResponse
+                construirSaldos(cantidadesOrdenadas, acumulados)
         );
     }
 
     private OrdenCompraApi consultarOrden(Long idOrden) {
-        String url = ordenesBaseUrl
-                + "/api/ordenes-compra/"
-                + idOrden;
+        String url = ordenesBaseUrl + "/api/ordenes-compra/" + idOrden;
 
         try {
             OrdenCompraApi orden =
@@ -272,18 +287,18 @@ public class RegistrarEntregaParcialService {
 
             String estado = recepcion.getEstado() == null
                     ? ""
-                    : recepcion.getEstado().trim().toUpperCase();
+                    : recepcion.getEstado().trim().toUpperCase(Locale.ROOT);
 
-            boolean validada =
+            boolean autorizada =
                     "AUTORIZADA".equals(estado)
                             || "VALIDADA".equals(estado);
 
-            boolean anulada =
+            boolean excluida =
                     "ANULADA".equals(estado)
                             || "CANCELADA".equals(estado)
                             || "RECHAZADO_DESPACHO".equals(estado);
 
-            if (anulada) {
+            if (excluida) {
                 continue;
             }
 
@@ -297,16 +312,16 @@ public class RegistrarEntregaParcialService {
                         productoId -> new Acumulado()
                 );
 
-                if (validada) {
-                    int aceptada = detalle.getCantidadAceptada() == null
-                            ? 0
-                            : detalle.getCantidadAceptada();
-                    acumulado.cantidadAceptada += aceptada;
+                if (autorizada) {
+                    acumulado.cantidadAceptada +=
+                            detalle.getCantidadAceptada() == null
+                                    ? 0
+                                    : detalle.getCantidadAceptada();
                 } else {
-                    int recibida = detalle.getCantidadRecibida() == null
-                            ? 0
-                            : detalle.getCantidadRecibida();
-                    acumulado.cantidadEnInspeccion += recibida;
+                    acumulado.cantidadEnInspeccion +=
+                            detalle.getCantidadRecibida() == null
+                                    ? 0
+                                    : detalle.getCantidadRecibida();
                 }
             }
         }
@@ -350,11 +365,30 @@ public class RegistrarEntregaParcialService {
         return saldos;
     }
 
-    private String limpiarObservacion(String observacion) {
-        if (observacion == null || observacion.isBlank()) {
-            return null;
+    private String normalizarDocumento(String documento) {
+        if (documento == null || documento.isBlank()) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "El documento es obligatorio"
+            );
         }
-        return observacion.trim();
+
+        String normalizado = documento.trim().toUpperCase(Locale.ROOT);
+
+        if (normalizado.length() > 100) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "El documento no puede superar 100 caracteres"
+            );
+        }
+
+        return normalizado;
+    }
+
+    private String limpiarObservacion(String observacion) {
+        return observacion == null || observacion.isBlank()
+                ? null
+                : observacion.trim();
     }
 
     private static class Acumulado {

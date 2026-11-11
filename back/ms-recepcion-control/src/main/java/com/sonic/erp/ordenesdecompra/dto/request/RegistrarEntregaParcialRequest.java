@@ -14,6 +14,10 @@ public record RegistrarEntregaParcialRequest(
         @NotNull(message = "La fecha es obligatoria")
         LocalDate fecha,
 
+        @NotBlank(message = "El documento es obligatorio")
+        @Size(max = 100, message = "El documento no puede superar 100 caracteres")
+        String documento,
+
         @NotBlank(message = "El almacén es obligatorio")
         @Size(max = 100, message = "El almacén no puede superar 100 caracteres")
         String almacen,
