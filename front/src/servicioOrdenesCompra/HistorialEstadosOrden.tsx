@@ -1,5 +1,8 @@
 
-import type { OrdenCompra } from "./tipos";
+import type {
+  HistorialEstadoOrden,
+  OrdenCompra,
+} from "./tipos";
 import "./HistorialEstadosOrden.css";
 
 interface Props {
@@ -24,12 +27,46 @@ function formatearFecha(fecha: string): string {
   });
 }
 
-export default function HistorialEstadosOrden({ orden }: Props) {
-  const historial = [...(orden.historialEstados ?? [])].sort(
+function obtenerHistorial(
+  orden: OrdenCompra
+): HistorialEstadoOrden[] {
+  const historial = [...(orden.historialEstados ?? [])];
+  const respuesta = orden.respuestaProveedor;
+
+  if (respuesta) {
+    const respuestaYaRegistrada = historial.some(
+      (cambio) =>
+        cambio.estadoAnterior === "Enviada" &&
+        cambio.estadoNuevo === respuesta.estado
+    );
+
+    if (!respuestaYaRegistrada) {
+      historial.push({
+        estadoAnterior: "Enviada",
+        estadoNuevo: respuesta.estado,
+        usuario: "Comprador",
+        fecha: respuesta.fecha,
+        observacion:
+          `Respuesta del proveedor registrada. ` +
+          `Referencia: ${respuesta.referencia}. ` +
+          (respuesta.observacion
+            ? `Observación: ${respuesta.observacion}`
+            : "Sin observaciones."),
+      });
+    }
+  }
+
+  return historial.sort(
     (a, b) =>
       new Date(b.fecha).getTime() -
       new Date(a.fecha).getTime()
   );
+}
+
+export default function HistorialEstadosOrden({
+  orden,
+}: Props) {
+  const historial = obtenerHistorial(orden);
 
   return (
     <section className="historial-estados">
@@ -44,7 +81,9 @@ export default function HistorialEstadosOrden({ orden }: Props) {
 
         <span className="historial-estados__contador">
           {historial.length}{" "}
-          {historial.length === 1 ? "cambio" : "cambios"}
+          {historial.length === 1
+            ? "cambio"
+            : "cambios"}
         </span>
       </div>
 
@@ -69,10 +108,13 @@ export default function HistorialEstadosOrden({ orden }: Props) {
             <tbody>
               {historial.map((cambio, indice) => (
                 <tr key={`${cambio.fecha}-${indice}`}>
-                  <td>{formatearFecha(cambio.fecha)}</td>
+                  <td>
+                    {formatearFecha(cambio.fecha)}
+                  </td>
 
                   <td>
-                    {cambio.estadoAnterior || "No registrado"}
+                    {cambio.estadoAnterior ||
+                      "No registrado"}
                   </td>
 
                   <td>
@@ -82,11 +124,13 @@ export default function HistorialEstadosOrden({ orden }: Props) {
                   </td>
 
                   <td>
-                    {cambio.usuario || "No registrado"}
+                    {cambio.usuario ||
+                      "No registrado"}
                   </td>
 
                   <td>
-                    {cambio.observacion || "Sin observaciones"}
+                    {cambio.observacion ||
+                      "Sin observaciones"}
                   </td>
                 </tr>
               ))}
