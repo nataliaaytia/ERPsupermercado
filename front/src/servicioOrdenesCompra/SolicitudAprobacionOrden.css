@@ -1,0 +1,232 @@
+
+.solicitud-aprobacion {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.solicitud-aprobacion__boton {
+  min-height: 44px;
+  padding: 11px 18px;
+  border: 1px solid #269dd0;
+  border-radius: 7px;
+  background: #269dd0;
+  color: #071525;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.solicitud-aprobacion__boton:hover:not(:disabled),
+.solicitud-aprobacion__confirmar:hover:not(:disabled) {
+  background: #46b8e8;
+}
+
+.solicitud-aprobacion__boton:disabled,
+.solicitud-aprobacion__confirmar:disabled,
+.solicitud-aprobacion__cancelar:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.solicitud-aprobacion__boton:focus-visible,
+.solicitud-aprobacion__confirmar:focus-visible,
+.solicitud-aprobacion__cancelar:focus-visible {
+  outline: 2px solid #38bdf8;
+  outline-offset: 3px;
+}
+
+.solicitud-aprobacion__exito,
+.solicitud-aprobacion__error {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.solicitud-aprobacion__exito {
+  color: var(--color-exito, #16a34a);
+}
+
+.solicitud-aprobacion__error {
+  color: var(--color-error, #ef4444);
+}
+
+/* Fondo del modal */
+
+.solicitud-aprobacion__overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(2, 6, 23, 0.76);
+  backdrop-filter: blur(4px);
+}
+
+/* Ventana de confirmación */
+
+.solicitud-aprobacion__modal {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 480px;
+  max-height: calc(100dvh - 40px);
+  overflow-y: auto;
+  padding: 28px;
+  border: 1px solid var(
+    --border-color,
+    rgba(148, 163, 184, 0.2)
+  );
+  border-radius: 14px;
+  background: var(--surface-primary, #14213a);
+  color: var(--text-primary, #f8fafc);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.4);
+}
+
+.solicitud-aprobacion__modal-encabezado {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.solicitud-aprobacion__icono {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: rgba(38, 157, 208, 0.15);
+  color: #38bdf8;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.solicitud-aprobacion__modal-encabezado h2 {
+  margin: 0 0 8px;
+  color: inherit;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.solicitud-aprobacion__modal-encabezado p {
+  margin: 0;
+  color: var(--text-secondary, #94a3b8);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* Información de la orden */
+
+.solicitud-aprobacion__resumen {
+  margin-top: 24px;
+  padding: 16px;
+  border: 1px solid var(
+    --border-color,
+    rgba(148, 163, 184, 0.15)
+  );
+  border-radius: 9px;
+  background: var(--surface-secondary, #0b1425);
+}
+
+.solicitud-aprobacion__numero {
+  display: block;
+  margin-bottom: 12px;
+  color: inherit;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.solicitud-aprobacion__transicion {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  color: var(--text-secondary, #94a3b8);
+  font-size: 13px;
+}
+
+.solicitud-aprobacion__transicion strong {
+  color: #38bdf8;
+  font-weight: 600;
+}
+
+.solicitud-aprobacion__advertencia {
+  margin: 18px 0 24px;
+  color: var(--text-secondary, #94a3b8);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* Botones del modal */
+
+.solicitud-aprobacion__modal-acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.solicitud-aprobacion__cancelar,
+.solicitud-aprobacion__confirmar {
+  min-height: 42px;
+  padding: 10px 18px;
+  border-radius: 7px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.solicitud-aprobacion__cancelar {
+  border: 1px solid var(
+    --border-color,
+    rgba(148, 163, 184, 0.25)
+  );
+  background: transparent;
+  color: inherit;
+}
+
+.solicitud-aprobacion__cancelar:hover:not(:disabled) {
+  background: rgba(148, 163, 184, 0.12);
+}
+
+.solicitud-aprobacion__confirmar {
+  border: 1px solid #269dd0;
+  background: #269dd0;
+  color: #071525;
+}
+
+/* Pantallas pequeñas */
+
+@media (max-width: 768px) {
+  .solicitud-aprobacion {
+    width: 100%;
+    margin-left: 0;
+    align-items: stretch;
+  }
+
+  .solicitud-aprobacion__boton {
+    width: 100%;
+  }
+
+  .solicitud-aprobacion__modal {
+    padding: 22px;
+  }
+}
+
+@media (max-width: 480px) {
+  .solicitud-aprobacion__modal-acciones {
+    flex-direction: column-reverse;
+  }
+
+  .solicitud-aprobacion__cancelar,
+  .solicitud-aprobacion__confirmar {
+    width: 100%;
+  }
+}

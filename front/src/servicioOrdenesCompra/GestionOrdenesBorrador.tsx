@@ -1,11 +1,11 @@
-
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { useRequisiciones } from "../requisicionesCotizaciones/useRequisiciones";
 import {
   cargarOrdenesCompra,
   guardarOrdenesCompra,
 } from "./compromisosEntrega";
+import SolicitudAprobacionOrden from "./SolicitudAprobacionOrden";
 import type { DetalleOrdenCompra } from "./tipos";
 import "./GestionOrdenesBorrador.css";
 
@@ -49,14 +49,11 @@ export default function GestionOrdenesBorrador() {
   const [exito, setExito] = useState("");
   const [guardando, setGuardando] = useState(false);
 
-  const borradores = useMemo(
-    () => ordenes.filter(orden => orden.estado === "Borrador"),
-    [ordenes]
-  );
-
-  const orden = borradores.find(
+  const orden = ordenes.find(
     item => String(item.idOrden) === idOrden
   );
+
+  const editable = orden?.estado === "Borrador";
 
   const oferta = ofertas.find(
     item => item.idOferta === orden?.idOfertaOrigen
@@ -129,6 +126,8 @@ export default function GestionOrdenesBorrador() {
     campo: "cantidadTexto" | "producto",
     valor: string
   ) {
+    if (!editable) return;
+
     setError("");
     setExito("");
 
@@ -164,6 +163,8 @@ export default function GestionOrdenesBorrador() {
   }
 
   function agregarLinea() {
+    if (!editable) return;
+
     const disponible = catalogoCotizado.find(
       producto =>
         !lineas.some(
@@ -197,6 +198,8 @@ export default function GestionOrdenesBorrador() {
   }
 
   function quitarLinea(idDetalle: number) {
+    if (!editable) return;
+
     setLineas(actual =>
       actual.filter(linea => linea.idDetalle !== idDetalle)
     );
@@ -206,7 +209,7 @@ export default function GestionOrdenesBorrador() {
   }
 
   function descartarCambios() {
-    if (!orden) return;
+    if (!orden || !editable) return;
 
     setLineas(
       orden.detalles.map(detalle => ({
@@ -227,7 +230,7 @@ export default function GestionOrdenesBorrador() {
 
     if (guardando) return;
 
-    if (!orden || !ofertaValida) {
+    if (!orden || !editable || !ofertaValida) {
       setError(
         "Selecciona una orden en borrador con una oferta válida."
       );
@@ -247,7 +250,9 @@ export default function GestionOrdenesBorrador() {
     );
 
     if (cantidadesInvalidas) {
-      setError("Revisa las cantidades marcadas antes de guardar.");
+      setError(
+        "Revisa las cantidades marcadas antes de guardar."
+      );
       return;
     }
 
@@ -315,7 +320,8 @@ export default function GestionOrdenesBorrador() {
 
       if (
         vigente.detalles.some(
-          detalle => (detalle.compromisos?.length ?? 0) > 0
+          detalle =>
+            (detalle.compromisos?.length ?? 0) > 0
         )
       ) {
         throw new Error(
@@ -360,21 +366,25 @@ export default function GestionOrdenesBorrador() {
   return (
     <section className="borrador-editor">
       <header className="borrador-editor__encabezado">
-        <h2>Editar orden en borrador</h2>
+        <h2>Consultar y editar órdenes de compra</h2>
         <p>
-          Modifica productos cotizados y cantidades antes de
-          solicitar aprobación.
+          Consulta las órdenes registradas y modifica las que estén
+          en borrador antes de solicitar aprobación.
         </p>
       </header>
 
       {errorCarga && (
-        <p className="borrador-editor__error" role="alert">
+        <p
+          className="borrador-editor__error"
+          role="alert"
+        >
           {errorCarga}
         </p>
       )}
 
       <label className="borrador-editor__campo">
-        Orden en borrador
+        Orden de compra
+
         <select
           value={idOrden}
           disabled={Boolean(errorCarga)}
@@ -382,22 +392,25 @@ export default function GestionOrdenesBorrador() {
             setIdOrden(evento.target.value)
           }
         >
-          <option value="">Selecciona una orden</option>
+          <option value="">
+            Selecciona una orden
+          </option>
 
-          {borradores.map(item => (
+          {ordenes.map(item => (
             <option
               key={item.idOrden}
               value={item.idOrden}
             >
-              {item.numero} · {item.detalles.length} productos
+              {item.numero} · {item.estado} ·{" "}
+              {item.detalles.length} productos
             </option>
           ))}
         </select>
       </label>
 
-      {borradores.length === 0 && !errorCarga && (
+      {ordenes.length === 0 && !errorCarga && (
         <p className="borrador-editor__aviso">
-          Todavía no hay órdenes en borrador para editar.
+          Todavía no hay órdenes de compra registradas.
         </p>
       )}
 
@@ -406,6 +419,10 @@ export default function GestionOrdenesBorrador() {
           <div className="borrador-editor__resumen">
             <span>
               <strong>Orden:</strong> {orden.numero}
+            </span>
+
+            <span>
+              <strong>Estado:</strong> {orden.estado}
             </span>
 
             <span>
@@ -423,7 +440,18 @@ export default function GestionOrdenesBorrador() {
             </span>
           </div>
 
-          {!ofertaValida && (
+          {!editable && (
+            <p
+              className="borrador-editor__aviso"
+              role="status"
+            >
+              Esta orden está en estado {orden.estado} y solo
+              puede consultarse. Únicamente las órdenes en
+              borrador pueden modificarse.
+            </p>
+          )}
+
+          {editable && !ofertaValida && (
             <p
               className="borrador-editor__error"
               role="alert"
@@ -453,7 +481,9 @@ export default function GestionOrdenesBorrador() {
                       <select
                         aria-label={`Producto de línea ${linea.idDetalle}`}
                         value={linea.producto.idProducto}
-                        disabled={!ofertaValida}
+                        disabled={
+                          !editable || !ofertaValida
+                        }
                         onChange={evento =>
                           actualizarLinea(
                             linea.idDetalle,
@@ -462,7 +492,13 @@ export default function GestionOrdenesBorrador() {
                           )
                         }
                       >
-                        {catalogoCotizado
+                        {!editable ? (
+                          <option
+                            value={linea.producto.idProducto}
+                          >
+                            {linea.producto.descripcion}
+                          </option>
+                        ) : catalogoCotizado
                           .filter(
                             producto =>
                               producto.producto.idProducto ===
@@ -475,8 +511,12 @@ export default function GestionOrdenesBorrador() {
                           )
                           .map(producto => (
                             <option
-                              key={producto.producto.idProducto}
-                              value={producto.producto.idProducto}
+                              key={
+                                producto.producto.idProducto
+                              }
+                              value={
+                                producto.producto.idProducto
+                              }
                             >
                               {producto.producto.descripcion}
                             </option>
@@ -487,13 +527,17 @@ export default function GestionOrdenesBorrador() {
                     <td>
                       <input
                         aria-label={`Cantidad de línea ${linea.idDetalle}`}
-                        aria-invalid={Boolean(errorCantidad(linea.cantidadTexto))}
+                        aria-invalid={Boolean(
+                          errorCantidad(linea.cantidadTexto)
+                        )}
                         aria-describedby={
+                          editable &&
                           errorCantidad(linea.cantidadTexto)
                             ? `error-cantidad-${linea.idDetalle}`
                             : undefined
                         }
                         className={
+                          editable &&
                           errorCantidad(linea.cantidadTexto)
                             ? "borrador-editor__input-invalido"
                             : ""
@@ -502,7 +546,9 @@ export default function GestionOrdenesBorrador() {
                         min="1"
                         step="1"
                         value={linea.cantidadTexto}
-                        disabled={!ofertaValida}
+                        disabled={
+                          !editable || !ofertaValida
+                        }
                         onChange={evento =>
                           actualizarLinea(
                             linea.idDetalle,
@@ -511,6 +557,7 @@ export default function GestionOrdenesBorrador() {
                           )
                         }
                       />
+
                       {errorCantidad(linea.cantidadTexto) && (
                         <span
                           id={`error-cantidad-${linea.idDetalle}`}
@@ -521,10 +568,17 @@ export default function GestionOrdenesBorrador() {
                       )}
                     </td>
 
-                    <td>Bs {moneda(linea.precio)}</td>
+                    <td>
+                      Bs {moneda(linea.precio)}
+                    </td>
 
                     <td>
-                      Bs {moneda(calcularSubtotal(linea))}
+                      Bs{" "}
+                      {moneda(
+                        editable
+                          ? calcularSubtotal(linea)
+                          : linea.subtotal
+                      )}
                     </td>
 
                     <td>
@@ -532,6 +586,7 @@ export default function GestionOrdenesBorrador() {
                         type="button"
                         className="borrador-editor__quitar"
                         disabled={
+                          !editable ||
                           !ofertaValida ||
                           lineas.length === 1
                         }
@@ -553,6 +608,7 @@ export default function GestionOrdenesBorrador() {
               type="button"
               className="borrador-editor__secundario"
               disabled={
+                !editable ||
                 !ofertaValida ||
                 catalogoCotizado.every(producto =>
                   lineas.some(
@@ -567,7 +623,12 @@ export default function GestionOrdenesBorrador() {
               + Agregar producto cotizado
             </button>
 
-            <strong>Total: Bs {moneda(total)}</strong>
+            <strong>
+              Total: Bs{" "}
+              {moneda(
+                editable ? total : orden.total
+              )}
+            </strong>
           </div>
 
           {error && (
@@ -592,6 +653,7 @@ export default function GestionOrdenesBorrador() {
             <button
               type="submit"
               disabled={
+                !editable ||
                 !cambios ||
                 !ofertaValida ||
                 guardando ||
@@ -606,11 +668,24 @@ export default function GestionOrdenesBorrador() {
             <button
               type="button"
               className="borrador-editor__secundario"
-              disabled={!cambios}
+              disabled={
+                !editable || !cambios
+              }
               onClick={descartarCambios}
             >
               Descartar cambios
             </button>
+            {editable && (
+              <SolicitudAprobacionOrden
+                idOrden={orden.idOrden}
+                deshabilitado={
+                  cambios ||
+                  guardando ||
+                  Boolean(errorCarga) ||
+                  !ofertaValida
+                }
+              />
+            )}
           </div>
         </form>
       )}

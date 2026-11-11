@@ -1,63 +1,77 @@
-//NATALIA - SCRUM 523
+
+// NATALIA - SCRUM 523
 
 import type { ProductoReferencia } from "../requisicionesCotizaciones/tipos";
 
 export interface CompromisoEntrega {
-    idCompromiso: number;
-    fechaEntrega: string;
-    cantidad: number;
-    estado: string;
-    observacion: string;
+  idCompromiso: number;
+  fechaEntrega: string;
+  cantidad: number;
+  estado: string;
+  observacion: string;
 }
 
 export interface DetalleOrdenCompra {
-    idDetalle: number;
-    producto: ProductoReferencia;
-    cantidad: number;
-    precio: number;
-    subtotal: number;
-    compromisos?: CompromisoEntrega[];
+  idDetalle: number;
+  producto: ProductoReferencia;
+  cantidad: number;
+  precio: number;
+  subtotal: number;
+  compromisos?: CompromisoEntrega[];
 }
 
 export interface CondicionesLogisticas {
-    destino: string;
-    horario: string;
-    responsableEntrega: string;
+  destino: string;
+  horario: string;
+  responsableEntrega: string;
+}
+
+// SCRUM-522 - Historial de estados de órdenes de compra
+
+export interface HistorialEstadoOrden {
+  estadoAnterior: string;
+  estadoNuevo: string;
+  usuario: string;
+  fecha: string;
+  observacion: string;
 }
 
 export interface OrdenCompra {
-    idOrden: number;
-    idOfertaOrigen?: number;
-    numero: string;
-    fecha: string;
-    estado: string;
-    total: number;
-    observacion: string;
-    condicionesLogisticas?: CondicionesLogisticas;
-    detalles: DetalleOrdenCompra[];
+  idOrden: number;
+  idOfertaOrigen?: number;
+  numero: string;
+  fecha: string;
+  estado: string;
+  total: number;
+  observacion: string;
+  condicionesLogisticas?: CondicionesLogisticas;
+  detalles: DetalleOrdenCompra[];
+
+  // SCRUM-522 - Registro cronológico de cambios de estado
+  historialEstados?: HistorialEstadoOrden[];
 }
 
 export interface DatosCompromisoEntrega {
-    idOrden: number;
-    idDetalle: number;
-    fechaEntrega: string;
-    cantidad: string;
-    observacion: string;
+  idOrden: number;
+  idDetalle: number;
+  fechaEntrega: string;
+  cantidad: string;
+  observacion: string;
 }
 
-//SCRUM 525
+// SCRUM 525
 
 export interface LineaRecepcionValidada {
-    idDetalleOrden: number;
-    cantidadRecibida: number;
-    cantidadAceptada: number;
+  idDetalleOrden: number;
+  cantidadRecibida: number;
+  cantidadAceptada: number;
 }
 
 export interface RecepcionValidada {
-    idRecepcion: number;
-    idOrden: number;
-    estado: "Validada";
-    detalles: LineaRecepcionValidada[];
-    fechaValidacion?: string;
-    esEjemplo?: boolean;
+  idRecepcion: number;
+  idOrden: number;
+  estado: "Validada";
+  detalles: LineaRecepcionValidada[];
+  fechaValidacion?: string;
+  esEjemplo?: boolean;
 }
