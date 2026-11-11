@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useRequisiciones } from "../requisicionesCotizaciones/useRequisiciones";
 import HistorialEstadosOrden from "./HistorialEstadosOrden";
+import DevolucionOrden from "./DevolucionOrden";
 import "./DetalleOrdenCompra.css";
 
 interface Props {
@@ -197,6 +198,13 @@ export default function DetalleOrdenCompra({
               </strong>
             </div>
           </div>
+
+          {orden.estado === "Pendiente de aprobación" && (
+            <DevolucionOrden
+              idOrden={orden.idOrden}
+              numeroOrden={orden.numero}
+            />
+          )}
 
           <HistorialEstadosOrden orden={orden} />
         </div>
