@@ -1,9 +1,8 @@
+
 import { useState } from "react";
 import { useRequisiciones } from "../requisicionesCotizaciones/useRequisiciones";
-import type { OrdenCompra } from "./tipos";
+import HistorialEstadosOrden from "./HistorialEstadosOrden";
 import "./DetalleOrdenCompra.css";
-
-const CLAVE_COMPRAS = "erp-compras-estado";
 
 interface Props {
   idOrdenInicial?: number | null;
@@ -25,20 +24,11 @@ export default function DetalleOrdenCompra({
     idOrdenInicial === null ? "" : String(idOrdenInicial)
   );
 
-  const [ordenActualizada, setOrdenActualizada] =
-    useState<OrdenCompra | null>(null);
-
-  const [cargando, setCargando] = useState(false);
   const [error, setError] = useState("");
 
-  const ordenSeleccionada = ordenes.find(
-    (orden) => String(orden.idOrden) === idSeleccionado
+  const orden = ordenes.find(
+    (item) => String(item.idOrden) === idSeleccionado
   );
-
-  const orden =
-    ordenActualizada?.idOrden === ordenSeleccionada?.idOrden
-      ? ordenActualizada
-      : ordenSeleccionada;
 
   const oferta = ofertas.find(
     (item) => item.idOferta === orden?.idOfertaOrigen
@@ -49,57 +39,7 @@ export default function DetalleOrdenCompra({
 
   function seleccionarOrden(valor: string) {
     setIdSeleccionado(valor);
-    setOrdenActualizada(null);
     setError("");
-  }
-
-  function actualizarDetalle() {
-    if (!idSeleccionado) return;
-
-    setCargando(true);
-    setError("");
-
-    try {
-      const guardado = localStorage.getItem(CLAVE_COMPRAS);
-
-      if (!guardado) {
-        throw new Error("No se encontraron datos guardados.");
-      }
-
-      const datos: unknown = JSON.parse(guardado);
-
-      if (
-        typeof datos !== "object" ||
-        datos === null ||
-        !("ordenes" in datos) ||
-        !Array.isArray(datos.ordenes)
-      ) {
-        throw new Error("Los datos de órdenes no son válidos.");
-      }
-
-      const ordenesGuardadas = datos.ordenes as OrdenCompra[];
-
-      const encontrada = ordenesGuardadas.find(
-        (item) => String(item.idOrden) === idSeleccionado
-      );
-
-      if (!encontrada) {
-        setOrdenActualizada(null);
-        throw new Error(
-          "La orden seleccionada ya no está disponible."
-        );
-      }
-
-      setOrdenActualizada(encontrada);
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "No se pudo actualizar el detalle."
-      );
-    } finally {
-      setCargando(false);
-    }
   }
 
   return (
@@ -122,8 +62,8 @@ export default function DetalleOrdenCompra({
           <select
             id="detalle-orden-select"
             value={idSeleccionado}
-            onChange={(e) =>
-              seleccionarOrden(e.target.value)
+            onChange={(evento) =>
+              seleccionarOrden(evento.target.value)
             }
           >
             <option value="">
@@ -139,17 +79,6 @@ export default function DetalleOrdenCompra({
               </option>
             ))}
           </select>
-
-          <button
-            type="button"
-            className="detalle-orden__actualizar"
-            onClick={actualizarDetalle}
-            disabled={!idSeleccionado || cargando}
-            title="Volver a consultar los datos guardados de la orden"
-            aria-label="Actualizar detalle de la orden"
-          >
-            ↻
-          </button>
         </div>
       </div>
 
@@ -159,12 +88,6 @@ export default function DetalleOrdenCompra({
           role="alert"
         >
           {errorCarga || error}
-        </p>
-      )}
-
-      {cargando && (
-        <p role="status">
-          Actualizando información...
         </p>
       )}
 
@@ -274,6 +197,8 @@ export default function DetalleOrdenCompra({
               </strong>
             </div>
           </div>
+
+          <HistorialEstadosOrden orden={orden} />
         </div>
       )}
     </section>
