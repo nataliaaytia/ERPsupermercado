@@ -5,6 +5,7 @@ import { useRequisiciones } from "../requisicionesCotizaciones/useRequisiciones"
 import HistorialEstadosOrden from "./HistorialEstadosOrden";
 import DevolucionOrden from "./DevolucionOrden";
 import EnvioOrdenProveedor from "./EnvioOrdenProveedor";
+import RespuestaProveedorOrden from "./RespuestaProveedorOrden";
 import { aprobarOrdenCompra } from "./aprobacionOrden";
 import "./DetalleOrdenCompra.css";
 
@@ -157,7 +158,10 @@ export default function DetalleOrdenCompra({
             <option value="">Selecciona una orden</option>
 
             {ordenes.map((item) => (
-              <option key={item.idOrden} value={item.idOrden}>
+              <option
+                key={item.idOrden}
+                value={item.idOrden}
+              >
                 {item.numero}
               </option>
             ))}
@@ -240,10 +244,16 @@ export default function DetalleOrdenCompra({
                 <tbody>
                   {orden.detalles.map((detalle) => (
                     <tr key={detalle.idDetalle}>
-                      <td>{detalle.producto.descripcion}</td>
+                      <td>
+                        {detalle.producto.descripcion}
+                      </td>
                       <td>{detalle.cantidad}</td>
-                      <td>{moneda(detalle.precio)}</td>
-                      <td>{moneda(detalle.subtotal)}</td>
+                      <td>
+                        {moneda(detalle.precio)}
+                      </td>
+                      <td>
+                        {moneda(detalle.subtotal)}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -256,6 +266,7 @@ export default function DetalleOrdenCompra({
             </div>
           </div>
 
+          {/* SCRUM-519 - Aprobación y devolución */}
           {orden.estado === "Pendiente de aprobación" && (
             <div className="detalle-orden__seccion">
               <h3>Revisión de la orden</h3>
@@ -265,7 +276,9 @@ export default function DetalleOrdenCompra({
                   ref={botonAbrirRef}
                   type="button"
                   className="detalle-orden__boton-aprobar"
-                  onClick={() => setModalAprobacion(true)}
+                  onClick={() =>
+                    setModalAprobacion(true)
+                  }
                 >
                   Aprobar orden
                 </button>
@@ -278,8 +291,7 @@ export default function DetalleOrdenCompra({
             </div>
           )}
 
-          {/* Mantener visible el historial de envíos
-              tanto en Aprobada como en Enviada. */}
+          {/* SCRUM-519 - Envío simulado e historial */}
           {(orden.estado === "Aprobada" ||
             orden.estado === "Enviada") && (
             <EnvioOrdenProveedor
@@ -288,6 +300,15 @@ export default function DetalleOrdenCompra({
             />
           )}
 
+          {/* SCRUM-520 - Registro y consulta de respuesta */}
+          {(orden.estado === "Enviada" ||
+            orden.estado === "Confirmada" ||
+            orden.estado === "Rechazada" ||
+            Boolean(orden.respuestaProveedor)) && (
+            <RespuestaProveedorOrden orden={orden} />
+          )}
+
+          {/* SCRUM-522 - Historial de estados */}
           <HistorialEstadosOrden orden={orden} />
         </div>
       )}
@@ -298,7 +319,9 @@ export default function DetalleOrdenCompra({
           <div
             className="detalle-orden__modal-fondo"
             onMouseDown={(evento) => {
-              if (evento.target === evento.currentTarget) {
+              if (
+                evento.target === evento.currentTarget
+              ) {
                 setModalAprobacion(false);
               }
             }}
@@ -321,8 +344,9 @@ export default function DetalleOrdenCompra({
               </p>
 
               <p className="detalle-orden__modal-ayuda">
-                La orden pasará al estado Aprobada y quedará
-                habilitada para su envío al proveedor.
+                La orden pasará al estado Aprobada y
+                quedará habilitada para su envío al
+                proveedor.
               </p>
 
               <div className="detalle-orden__modal-acciones">
@@ -330,7 +354,9 @@ export default function DetalleOrdenCompra({
                   ref={botonCancelarRef}
                   type="button"
                   className="detalle-orden__modal-cancelar"
-                  onClick={() => setModalAprobacion(false)}
+                  onClick={() =>
+                    setModalAprobacion(false)
+                  }
                 >
                   Cancelar
                 </button>
