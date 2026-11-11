@@ -1,0 +1,272 @@
+/* SCRUM-519 - Envío simulado de órdenes al proveedor */
+
+.envio-proveedor {
+  display: grid;
+  gap: 18px;
+  padding: 20px 0;
+  border-top: 1px solid var(--border-color);
+  color: var(--text-primary);
+  min-width: 0;
+}
+
+.envio-proveedor__encabezado {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.envio-proveedor__encabezado h3 {
+  margin: 0 0 6px;
+  font-size: 1.1rem;
+  color: var(--text-primary);
+}
+
+.envio-proveedor__encabezado p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.envio-proveedor__principal,
+.envio-proveedor__secundario {
+  min-height: 42px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, opacity 0.2s ease;
+}
+
+.envio-proveedor__principal {
+  border: 1px solid var(--accent, #38bdf8);
+  background: var(--accent, #38bdf8);
+  color: #071625;
+}
+
+.envio-proveedor__principal:hover:not(:disabled) {
+  filter: brightness(0.95);
+}
+
+.envio-proveedor__secundario {
+  border: 1px solid var(--border-color);
+  background: transparent;
+  color: var(--text-primary);
+}
+
+.envio-proveedor__secundario:hover:not(:disabled) {
+  background: var(--accent-soft);
+}
+
+.envio-proveedor button:disabled,
+.envio-proveedor__dialogo button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.envio-proveedor button:focus-visible,
+.envio-proveedor__dialogo button:focus-visible,
+.envio-proveedor__dialogo select:focus-visible {
+  outline: 2px solid var(--accent, #38bdf8);
+  outline-offset: 3px;
+}
+
+.envio-proveedor__exito,
+.envio-proveedor__error,
+.envio-proveedor__aviso {
+  padding: 12px 14px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.envio-proveedor__exito {
+  border: 1px solid #22c55e;
+  background: rgba(34, 197, 94, 0.1);
+  color: var(--text-primary);
+}
+
+.envio-proveedor__error {
+  border: 1px solid #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--text-primary);
+}
+
+.envio-proveedor__aviso {
+  margin: 12px 0;
+  border: 1px solid var(--border-color);
+  background: var(--accent-soft);
+  color: var(--text-primary);
+}
+
+.envio-proveedor__historial {
+  display: grid;
+  gap: 12px;
+}
+
+.envio-proveedor__historial h4 {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--text-primary);
+}
+
+.envio-proveedor__tabla {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.envio-proveedor__tabla table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.envio-proveedor__tabla th,
+.envio-proveedor__tabla td {
+  padding: 11px 12px;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+.envio-proveedor__tabla th {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.envio-proveedor__tabla td {
+  font-size: 0.9rem;
+}
+
+/* Modal de confirmación */
+
+.envio-proveedor__dialogo {
+  box-sizing: border-box;
+  width: min(620px, calc(100% - 32px));
+  max-height: calc(100dvh - 40px);
+  overflow-y: auto;
+  padding: 24px;
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.35);
+}
+
+.envio-proveedor__dialogo::backdrop {
+  background: rgba(2, 6, 23, 0.76);
+  backdrop-filter: blur(4px);
+}
+
+.envio-proveedor__dialogo form {
+  display: grid;
+  gap: 16px;
+}
+
+.envio-proveedor__dialogo h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: var(--text-primary);
+}
+
+.envio-proveedor__dialogo h4 {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--text-primary);
+}
+
+.envio-proveedor__datos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  background: var(--bg-primary);
+}
+
+.envio-proveedor__datos p {
+  margin: 0;
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+  color: var(--text-secondary);
+}
+
+.envio-proveedor__datos strong {
+  color: var(--text-primary);
+}
+
+.envio-proveedor__total {
+  margin: 0;
+  text-align: right;
+  font-size: 1.05rem;
+  color: var(--text-primary);
+}
+
+.envio-proveedor__campo {
+  display: grid;
+  gap: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.envio-proveedor__campo select {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font: inherit;
+}
+
+.envio-proveedor__acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-color);
+}
+
+/* Responsive */
+
+@media (max-width: 600px) {
+  .envio-proveedor {
+    padding: 16px 0;
+  }
+
+  .envio-proveedor__encabezado {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .envio-proveedor__encabezado button {
+    width: 100%;
+  }
+
+  .envio-proveedor__dialogo {
+    padding: 18px;
+  }
+
+  .envio-proveedor__datos {
+    grid-template-columns: 1fr;
+  }
+
+  .envio-proveedor__tabla table {
+    min-width: 440px;
+  }
+
+  .envio-proveedor__acciones {
+    flex-direction: column-reverse;
+  }
+
+  .envio-proveedor__acciones button {
+    width: 100%;
+  }
+}

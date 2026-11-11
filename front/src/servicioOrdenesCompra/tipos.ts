@@ -36,6 +36,19 @@ export interface HistorialEstadoOrden {
   observacion: string;
 }
 
+// SCRUM-519 - Registro de envíos simulados al proveedor
+
+export type EstadoEnvioOrden = "Exitoso" | "Fallido";
+
+export interface RegistroEnvioOrden {
+  idIntento: number;
+  fecha: string;
+  proveedor: string;
+  canal: string;
+  estado: EstadoEnvioOrden;
+  mensaje: string;
+}
+
 export interface OrdenCompra {
   idOrden: number;
   idOfertaOrigen?: number;
@@ -49,6 +62,9 @@ export interface OrdenCompra {
 
   // SCRUM-522 - Registro cronológico de cambios de estado
   historialEstados?: HistorialEstadoOrden[];
+
+  // SCRUM-519 - Historial de intentos de envío
+  historialEnvios?: RegistroEnvioOrden[];
 }
 
 export interface DatosCompromisoEntrega {
