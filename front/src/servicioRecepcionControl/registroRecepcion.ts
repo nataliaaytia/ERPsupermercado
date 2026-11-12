@@ -211,6 +211,17 @@ export function corregirRecepcion(
 
         const bloqueo = motivoBloqueoRecepcion(recepcion, actual.recepcionesValidadas);
         if (bloqueo) throw new Error(bloqueo);
+        if (
+            actual.inspeccionesCalidad.some(
+                inspeccion =>
+                    inspeccion.idRecepcion === recepcion.idRecepcion &&
+                    inspeccion.idOrden === recepcion.idOrden,
+            )
+        ) {
+            throw new Error(
+                "La recepción ya tiene una inspección registrada y no se puede editar.",
+            );
+        }
 
         const orden = actual.ordenes.find(item => item.idOrden === recepcion.idOrden);
         if (!orden) throw new Error("No se encontró la orden de la recepción.");

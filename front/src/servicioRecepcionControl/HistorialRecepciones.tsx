@@ -2,16 +2,25 @@ import { useState } from "react";
 import type { OfertaProveedor } from "../requisicionesCotizaciones/tipos";
 import type { OrdenCompra, RecepcionValidada } from "../servicioOrdenesCompra/tipos";
 import CostoTransporteRecepcion from "./CostoTransporteRecepcion";
+import ConciliacionRecepcion from "./ConciliacionRecepcion";
 import EditorRecepcion from "./EditorRecepcion";
+import InspeccionCalidadRecepcion from "./InspeccionCalidadRecepcion";
 import ResumenCantidadesRecepcion from "./ResumenCantidadesRecepcion";
 import type { RecepcionRegistrada } from "./tiposRecepcion";
+import type {
+    DatosInspeccionCalidad,
+    InspeccionCalidadRecepcion as DatosInspeccion,
+} from "./tiposInspeccion";
 
 interface Props {
     puedeConsultar: boolean;
+    onSolicitarLogin?: () => void;
     ordenes: readonly OrdenCompra[];
     ofertas: readonly OfertaProveedor[];
     recepciones: readonly RecepcionRegistrada[];
     validadas: readonly RecepcionValidada[];
+    inspecciones: readonly DatosInspeccion[];
+    onRegistrarInspeccion: (datos: DatosInspeccionCalidad) => void;
 }
 
 interface Filtros {
@@ -93,6 +102,14 @@ export default function HistorialRecepciones(props: Props) {
         return (
             <section className="ordenes-compra__tarjeta">
                 <p>Inicia sesión para consultar el historial de recepciones.</p>
+                {props.onSolicitarLogin && (
+                    <button
+                        type="button"
+                        onClick={props.onSolicitarLogin}
+                    >
+                        Iniciar sesión y volver al historial
+                    </button>
+                )}
             </section>
         );
     }
@@ -153,9 +170,22 @@ export default function HistorialRecepciones(props: Props) {
                     <h3>{grupo.numeroOrden} · {grupo.proveedor}</h3>
 
                     {grupo.recepciones.map(recepcion => {
-                        const estado = idsValidados.has(`${idOrden}:${recepcion.idRecepcion}`)
+                        const inspeccion = props.inspecciones.find(
+                            item =>
+                                item.idRecepcion === recepcion.idRecepcion &&
+                                item.idOrden === recepcion.idOrden,
+                        );
+                        const validacion = props.validadas.find(
+                            item =>
+                                item.idRecepcion === recepcion.idRecepcion &&
+                                item.idOrden === recepcion.idOrden &&
+                                item.estado === "Validada",
+                        );
+                        const estado = validacion
                             ? "Validada"
-                            : recepcion.estado;
+                            : inspeccion
+                              ? "Inspeccionada"
+                              : recepcion.estado;
 
                         return (
                             <details key={recepcion.idRecepcion}>
@@ -163,15 +193,43 @@ export default function HistorialRecepciones(props: Props) {
 
                                 <p><strong>Documento de entrega:</strong> {recepcion.documento}</p>
 
+                                {(inspeccion ||
+                                    (!idsValidados.has(
+                                        `${recepcion.idOrden}:${recepcion.idRecepcion}`,
+                                    ) &&
+                                        (recepcion.estado ===
+                                            "Pendiente de inspección" ||
+                                            recepcion.estado ===
+                                                "En inspección"))) && (
+                                    <InspeccionCalidadRecepcion
+                                        idRecepcion={recepcion.idRecepcion}
+                                        detallesRecibidos={recepcion.detalles}
+                                        orden={grupo.orden}
+                                        inspeccion={inspeccion}
+                                        onRegistrar={
+                                            props.onRegistrarInspeccion
+                                        }
+                                    />
+                                )}
+
                                 <ResumenCantidadesRecepcion
                                     recepcion={recepcion}
                                     validadas={props.validadas}
                                 />
 
+                                {inspeccion && (
+                                    <ConciliacionRecepcion
+                                        recepcion={recepcion}
+                                        inspeccion={inspeccion}
+                                        validacion={validacion}
+                                    />
+                                )}
+
                                 <EditorRecepcion
                                     recepcion={recepcion}
                                     orden={grupo.orden}
                                     recepcionesValidadas={props.validadas}
+                                    inspeccionRegistrada={Boolean(inspeccion)}
                                 />
 
                                 <CostoTransporteRecepcion
