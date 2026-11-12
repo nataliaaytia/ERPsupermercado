@@ -52,6 +52,68 @@ frontend no puede conectarse directamente a Pub/Sub de forma segura. La
 función local procesa un resultado ya entregado a la aplicación; no es una
 suscripción ni transporta mensajes por sí sola.
 
+## Conciliación de recepción con orden de compra
+
+En una recepción inspeccionada, el historial permite ejecutar una conciliación.
+El frontend consulta la orden por HTTP GET usando `VITE_ORDEN_COMPRA_API` como
+ruta base y agregando `/{idOrden}`. La respuesta debe ser una orden JSON con
+`idOrden`, `numero` y `detalles` con `idDetalle`, `cantidad`, y
+`producto.descripcion`. Por ejemplo, si la base es
+`http://localhost:8080/api/ordenes`, para la orden 123 se solicita
+`GET http://localhost:8080/api/ordenes/123`.
+
+No se encontró esa ruta implementada en los microservicios de este repositorio;
+Backend debe proveerla/configurar CORS y definir el endpoint real antes de que
+la consulta funcione en el entorno integrado. La conciliación compara por
+`idDetalleOrden`: solicitada, recibida, aceptada y diferencias. La cantidad
+aceptada procede de la validación final local; si no existe, se muestra como
+pendiente y la conciliación no se declara conforme. Diferencias de cantidades,
+líneas faltantes/extra o aceptación pendiente bloquean el resultado conforme.
+
+## Envío de órdenes confirmadas a Contabilidad
+
+Al registrar una respuesta **Confirmada** para una orden enviada, el frontend
+guarda la respuesta y el evento `OrdenCompraConfirmada` juntos en el almacén
+local. El evento incluye `idEvento`, `correlationId`, `idOrden`, número y fecha
+de orden, proveedor, referencia y fecha de confirmación, total y líneas con
+producto, cantidad, precio y subtotal.
+
+Después intenta publicar el JSON de forma asíncrona con `POST` a
+`VITE_ORDEN_COMPRA_CONTABILIDAD_API`, enviando el `idEvento` como
+`Idempotency-Key`. La respuesta HTTP exitosa significa que el endpoint aceptó
+el evento; no confirma que Contabilidad lo haya procesado. Los errores y los
+intentos quedan visibles junto a la respuesta del proveedor. El evento conserva
+su mismo identificador al reintentar.
+
+No se encontró un endpoint ni un contrato de evento de órdenes hacia
+Contabilidad en los microservicios de este repositorio. Backend debe
+implementar el endpoint configurado para persistir/publicar el evento en el
+tópico Pub/Sub acordado y aplicar idempotencia. Los endpoints Pub/Sub existentes
+publican mensajes de prueba o alertas de inventario y no son compatibles con
+este evento. La respuesta del proveedor se registra actualmente desde el
+frontend; no se consulta ni verifica mediante un servicio externo.
+
+## Resultado de Contabilidad para órdenes confirmadas
+
+El procesador frontend
+`registrarResultadoOrdenCompraContabilidad` acepta una respuesta ya entregada
+por la integración, valida que `idEvento`, `correlationId` e `idOrden`
+correspondan exactamente a un evento publicado y conserva el resultado y la
+fecha de recepción en el almacén local. Los estados esperados son
+`CompromisoRegistrado` y `Rechazado`; el rechazo debe incluir `motivoRechazo`.
+Puede incluir `idCompromisoContable` e `idMensajePubSub`. La vista del detalle
+de la orden muestra el resultado, o indica que sigue pendiente. Una repetición
+idéntica no se procesa de nuevo; respuestas incompatibles o no correlacionadas
+se registran como errores.
+
+Esta función procesa mensajes que otra capa haya entregado; no abre una
+suscripción Pub/Sub ni recibe mensajes por sí sola. El repositorio no contiene
+una suscripción de Contabilidad ni un canal para entregar sus resultados al
+frontend. Backend debe implementar el consumidor Pub/Sub y acordar un canal de
+entrega seguro (por ejemplo, API autenticada, SSE o WebSocket) que invoque o
+adapte este procesador. El consumidor debe confirmar el mensaje Pub/Sub solo
+después de persistir el resultado. No se simulan respuestas de Contabilidad.
+
 ## React Compiler
 
 The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
