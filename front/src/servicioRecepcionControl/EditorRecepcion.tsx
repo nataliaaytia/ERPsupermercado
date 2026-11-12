@@ -8,12 +8,14 @@ interface Props {
     recepcion: RecepcionRegistrada;
     orden?: OrdenCompra;
     recepcionesValidadas: readonly RecepcionValidada[];
+    inspeccionRegistrada?: boolean;
 }
 
 export default function EditorRecepcion({
     recepcion,
     orden,
     recepcionesValidadas,
+    inspeccionRegistrada = false,
 }: Props) {
     const [editando, setEditando] = useState(false);
     const [fecha, setFecha] = useState("");
@@ -23,7 +25,9 @@ export default function EditorRecepcion({
     const [error, setError] = useState("");
     const [mensaje, setMensaje] = useState("");
 
-    const bloqueo = motivoBloqueoRecepcion(recepcion, recepcionesValidadas);
+    const bloqueo = inspeccionRegistrada
+        ? "La recepción ya tiene una inspección registrada y no se puede editar."
+        : motivoBloqueoRecepcion(recepcion, recepcionesValidadas);
 
     function abrir() {
         setFecha(recepcion.fecha);

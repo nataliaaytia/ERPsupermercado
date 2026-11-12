@@ -10,6 +10,11 @@ import type {
     ErrorRespuestaDisponibilidad,
     EventoMercaderiaDisponible,
 } from "../servicioRecepcionControl/tiposDisponibilidad";
+import type { InspeccionCalidadRecepcion } from "../servicioRecepcionControl/tiposInspeccion";
+import type {
+    ErrorRespuestaContabilidad,
+    EventoOrdenCompraConfirmada,
+} from "../servicioOrdenesCompra/tiposEventoContabilidad";
 
 const CLAVE = "erp-compras-estado";
 const CLAVE_ANTERIOR_ORDENES = "erp-ordenes-compra";
@@ -22,6 +27,9 @@ interface EstadoCompartido extends EstadoCompras {
     resolucionesDevoluciones: ResolucionDevolucion[];
     eventosMercaderiaDisponible: EventoMercaderiaDisponible[];
     erroresRespuestasDisponibilidad: ErrorRespuestaDisponibilidad[];
+    eventosOrdenCompraContabilidad: EventoOrdenCompraConfirmada[];
+    erroresRespuestasContabilidad: ErrorRespuestaContabilidad[];
+    inspeccionesCalidad: InspeccionCalidadRecepcion[];
     ejemploInicializado: boolean;
     errorCarga: string;
 }
@@ -182,6 +190,9 @@ export function obtenerCompras(): EstadoCompartido {
         resolucionesDevoluciones: [],
         eventosMercaderiaDisponible: [],
         erroresRespuestasDisponibilidad: [],
+        eventosOrdenCompraContabilidad: [],
+        erroresRespuestasContabilidad: [],
+        inspeccionesCalidad: [],
         ejemploInicializado: false,
         errorCarga: "",
     };
@@ -248,6 +259,26 @@ export function obtenerCompras(): EstadoCompartido {
                 "Los errores de respuestas de disponibilidad guardados no son válidos.",
             );
         }
+        const eventosOrdenCompraContabilidad =
+            anterior.eventosOrdenCompraContabilidad ?? [];
+        if (!Array.isArray(eventosOrdenCompraContabilidad)) {
+            throw new Error(
+                "Los eventos de órdenes para Contabilidad guardados no son válidos.",
+            );
+        }
+        const erroresRespuestasContabilidad =
+            anterior.erroresRespuestasContabilidad ?? [];
+        if (!Array.isArray(erroresRespuestasContabilidad)) {
+            throw new Error(
+                "Los errores de respuestas de Contabilidad guardados no son válidos.",
+            );
+        }
+        const inspeccionesCalidad = anterior.inspeccionesCalidad ?? [];
+        if (!Array.isArray(inspeccionesCalidad)) {
+            throw new Error(
+                "Las inspecciones de calidad guardadas no son válidas.",
+            );
+        }
 
         const nuevo = agregarEjemplo({
             ...inicial,
@@ -263,6 +294,9 @@ export function obtenerCompras(): EstadoCompartido {
             resolucionesDevoluciones,
             eventosMercaderiaDisponible,
             erroresRespuestasDisponibilidad,
+            eventosOrdenCompraContabilidad,
+            erroresRespuestasContabilidad,
+            inspeccionesCalidad,
             ejemploInicializado: anterior.ejemploInicializado === true,
             errorCarga: "",
             mensaje: "",
@@ -327,6 +361,11 @@ export function despacharCompras(accion: AccionCompras): void {
         recepcionesRegistradas: actual.recepcionesRegistradas,
         resolucionesDevoluciones: actual.resolucionesDevoluciones,
         eventosMercaderiaDisponible: actual.eventosMercaderiaDisponible,
+        eventosOrdenCompraContabilidad:
+            actual.eventosOrdenCompraContabilidad,
+        erroresRespuestasContabilidad:
+            actual.erroresRespuestasContabilidad,
+        inspeccionesCalidad: actual.inspeccionesCalidad,
         ejemploInicializado: actual.ejemploInicializado,
         errorCarga: actual.errorCarga,
     }));
