@@ -126,6 +126,38 @@
     color: var(--text-secondary);
 }
 
+.inspeccion-calidad {
+    display: grid;
+    gap: 1rem;
+    margin-block: 1rem;
+}
+
+.inspeccion-calidad h4,
+.inspeccion-calidad p {
+    margin: 0;
+}
+
+.inspeccion-calidad table input {
+    box-sizing: border-box;
+    min-width: 7rem;
+    width: 100%;
+}
+
+.conciliacion-recepcion {
+    display: grid;
+    gap: 1rem;
+    margin-block: 1rem;
+}
+
+.conciliacion-recepcion h4,
+.conciliacion-recepcion p {
+    margin: 0;
+}
+
+.conciliacion-recepcion table {
+    min-width: 50rem;
+}
+
 @media (max-width: 600px) {
     .recepcion-control form>button[type="submit"] {
         justify-self: stretch;

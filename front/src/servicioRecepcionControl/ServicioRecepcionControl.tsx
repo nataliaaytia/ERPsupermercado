@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
+import DisponibilidadDespacho from "./DisponibilidadDespacho";
 import HistorialRecepciones from "./HistorialRecepciones";
 import MenuLateral from "../requisicionesCotizaciones/MenuLateral";
 import {
@@ -10,13 +11,19 @@ import {
     ordenesDisponiblesParaRecepcion,
     registrarRecepcion,
 } from "./registroRecepcion";
+import { registrarInspeccionCalidad } from "./servicioInspeccionCalidad";
+import type { DatosInspeccionCalidad } from "./tiposInspeccion";
 import "../requisicionesCotizaciones/Requisiciones.css";
 import "../servicioOrdenesCompra/ServicioOrdenesCompra.css";
 import "./ServicioRecepcionControl.css";
 
 type OrdenDisponible = ReturnType<typeof ordenesDisponiblesParaRecepcion>[number];
 
-const opciones = ["Registrar recepción", "Recepciones registradas"];
+const opciones = [
+    "Registrar recepción",
+    "Recepciones registradas",
+    "Disponibilidad para despacho",
+];
 
 function FormularioRecepcion({
     seleccion,
@@ -127,12 +134,30 @@ function FormularioRecepcion({
 
 export default function ServicioRecepcionControl({
     puedeConsultar = false,
-}: { puedeConsultar?: boolean }) {
+    onSolicitarLogin,
+}: {
+    puedeConsultar?: boolean;
+    onSolicitarLogin?: () => void;
+}) {
     const compras = useRequisiciones();
-    const [opcionActiva, setOpcionActiva] = useState(0);
+    const [opcionActiva, setOpcionActiva] = useState(() => {
+        const guardada = Number(
+            sessionStorage.getItem("recepcion-control-opcion"),
+        );
+        return Number.isInteger(guardada) &&
+            guardada >= 0 &&
+            guardada < opciones.length
+            ? guardada
+            : 0;
+    });
     const [menuAbierto, setMenuAbierto] = useState(true);
     const [idOrden, setIdOrden] = useState("");
     const [mensaje, setMensaje] = useState("");
+
+    function elegirOpcion(indice: number) {
+        setOpcionActiva(indice);
+        sessionStorage.setItem("recepcion-control-opcion", String(indice));
+    }
 
     const disponibles = ordenesDisponiblesParaRecepcion(
         compras.ordenes,
@@ -152,7 +177,7 @@ export default function ServicioRecepcionControl({
                 opcionActiva={opcionActiva}
                 abierto={menuAbierto}
                 onAbrirCerrar={() => setMenuAbierto(actual => !actual)}
-                onElegir={setOpcionActiva}
+                onElegir={elegirOpcion}
             />
 
             <section className="requisiciones-contenido ordenes-compra recepcion-control">
@@ -201,14 +226,21 @@ export default function ServicioRecepcionControl({
                             />
                         )}
                     </>
-                ) : (
+                ) : opcionActiva === 1 ? (
                     <HistorialRecepciones
                         puedeConsultar={puedeConsultar}
                         ordenes={compras.ordenes}
                         ofertas={compras.ofertas}
                         recepciones={compras.recepcionesRegistradas}
                         validadas={compras.recepcionesValidadas}
+                        inspecciones={compras.inspeccionesCalidad}
+                        onRegistrarInspeccion={(
+                            datos: DatosInspeccionCalidad,
+                        ) => registrarInspeccionCalidad(datos)}
+                        onSolicitarLogin={onSolicitarLogin}
                     />
+                ) : (
+                    <DisponibilidadDespacho />
                 )}
             </section>
         </div>
