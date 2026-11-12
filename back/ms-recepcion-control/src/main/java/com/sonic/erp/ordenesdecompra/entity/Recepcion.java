@@ -5,6 +5,7 @@ import lombok.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.math.BigDecimal;
 
 @Entity
 @Table(name = "recepcion")
@@ -34,6 +35,18 @@ public class Recepcion {
 
     @Column(name = "observacion", length = 500)
     private String observacion;
+
+    @Column(name = "documento", length = 100, unique = true)
+    private String documento;
+
+    @Column(name = "costo_transporte", precision = 12, scale = 2)
+    private BigDecimal costoTransporte;
+
+    @Column(name = "concepto_transporte", length = 255)
+    private String conceptoTransporte;
+
+    @Column(name = "comprobante_transporte", length = 100)
+    private String comprobanteTransporte;
 
     @OneToMany(mappedBy = "recepcion", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
