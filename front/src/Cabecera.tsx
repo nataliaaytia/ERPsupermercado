@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Sun, Moon } from 'lucide-react';
 import { useTheme } from './ThemeContext';
@@ -26,7 +27,9 @@ export const Cabecera: React.FC<CabeceraProps> = ({
                     tabIndex={0}
                 >
                     <span className="brand-dot" />
-                    <span className="brand-title">COMPRAS Y PROVEEDORES</span>
+                    <span className="brand-title">
+                        COMPRAS Y PROVEEDORES
+                    </span>
                 </div>
 
                 <nav className="cabecera-nav">
@@ -36,6 +39,7 @@ export const Cabecera: React.FC<CabeceraProps> = ({
                     >
                         Catálogo
                     </button>
+
                     <button
                         className={`cabecera-link ${currentPage === 'requisiciones' ? 'active' : ''}`}
                         onClick={() => onNavigate('requisiciones')}
@@ -57,6 +61,14 @@ export const Cabecera: React.FC<CabeceraProps> = ({
                     >
                         Recepción y Control
                     </button>
+
+                    <button
+                        type="button"
+                        className={`cabecera-link ${currentPage === 'facturacion' ? 'active' : ''}`}
+                        onClick={() => onNavigate('facturacion')}
+                    >
+                        Facturación
+                    </button>
                 </nav>
 
                 <div className="cabecera-actions">
@@ -73,7 +85,11 @@ export const Cabecera: React.FC<CabeceraProps> = ({
                         aria-label="Cambiar tema"
                         title={theme === 'dark' ? 'Modo Día' : 'Modo Noche'}
                     >
-                        {theme === 'dark' ? <Moon size={16} /> : <Sun size={16} />}
+                        {theme === 'dark' ? (
+                            <Moon size={16} />
+                        ) : (
+                            <Sun size={16} />
+                        )}
                     </button>
                 </div>
             </div>

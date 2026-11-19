@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { ThemeProvider } from './ThemeContext';
 import Cabecera from './Cabecera';
@@ -6,10 +5,9 @@ import Home from './Home';
 import Catalogo from './catalogo/Catalogo';
 import Login from './Login';
 import Requisiciones from './requisicionesCotizaciones/Requisiciones';
-
 import ServicioOrdenesCompra from './servicioOrdenesCompra/ServicioOrdenesCompra';
-
 import ServicioRecepcionControl from './servicioRecepcionControl/ServicioRecepcionControl';
+import ServicioFacturaciones from './servicioFacturaciones/ServicioFacturaciones';
 
 const paginasValidas = [
   'home',
@@ -17,6 +15,7 @@ const paginasValidas = [
   'requisiciones',
   'ordenes-compra',
   'recepcion-control',
+  'facturacion',
   'login',
 ];
 
@@ -77,12 +76,19 @@ export const App = () => {
 
           {currentPage === 'requisiciones' && <Requisiciones />}
 
-          {currentPage === 'ordenes-compra' && <ServicioOrdenesCompra />}
+          {currentPage === 'ordenes-compra' && (
+            <ServicioOrdenesCompra />
+          )}
+
           {currentPage === 'recepcion-control' && (
             <ServicioRecepcionControl
               puedeConsultar={isLoggedIn}
               onSolicitarLogin={solicitarLogin}
             />
+          )}
+
+          {currentPage === 'facturacion' && (
+            <ServicioFacturaciones />
           )}
 
           {currentPage === 'login' && (
