@@ -2,11 +2,16 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { FormEvent } from "react";
+import { useRequisiciones } from "../requisicionesCotizaciones/useRequisiciones";
 import type {
   EstadoRespuestaProveedor,
   OrdenCompra,
 } from "./tipos";
 import { registrarRespuestaProveedor } from "./registroRespuestaProveedor";
+import {
+  publicarOrdenConfirmadaAContabilidad,
+  recuperarPublicacionesContabilidadInterrumpidas,
+} from "./servicioEventoContabilidad";
 import "./RespuestaProveedorOrden.css";
 
 interface Props {
@@ -24,6 +29,7 @@ function fechaLocal(): string {
 }
 
 export default function RespuestaProveedorOrden({ orden }: Props) {
+  const compras = useRequisiciones();
   const tituloId = useId();
   const modalRef = useRef<HTMLDivElement>(null);
   const botonAbrirRef = useRef<HTMLButtonElement>(null);
@@ -39,6 +45,17 @@ export default function RespuestaProveedorOrden({ orden }: Props) {
   const [error, setError] = useState("");
 
   const registrada = orden.respuestaProveedor;
+  const eventoContabilidad =
+    compras.eventosOrdenCompraContabilidad.find(
+      evento => evento.idOrden === orden.idOrden,
+    );
+  const erroresContabilidad =
+    compras.erroresRespuestasContabilidad.filter(
+      registro =>
+        registro.idEvento === eventoContabilidad?.idEvento ||
+        registro.idOrden === orden.idOrden,
+    );
+
   const puedeRegistrar = orden.estado === "Enviada" && !registrada;
 
   useEffect(() => {
@@ -108,6 +125,10 @@ export default function RespuestaProveedorOrden({ orden }: Props) {
     };
   }, [modalAbierto, confirmando, procesando]);
 
+  useEffect(() => {
+    recuperarPublicacionesContabilidadInterrumpidas();
+  }, []);
+
   function abrirFormulario() {
     if (!puedeRegistrar || procesando) return;
 
@@ -159,13 +180,25 @@ export default function RespuestaProveedorOrden({ orden }: Props) {
     setError("");
 
     try {
-      registrarRespuestaProveedor({
+      const evento = registrarRespuestaProveedor({
         idOrden: orden.idOrden,
         estado: respuesta,
         referencia,
         fecha,
         observacion,
       });
+
+      if (evento) {
+        void publicarOrdenConfirmadaAContabilidad(
+          evento.idEvento,
+        ).catch(fallo => {
+          setError(
+            fallo instanceof Error
+              ? fallo.message
+              : "No se pudo actualizar el estado del evento contable.",
+          );
+        });
+      }
 
       setModalAbierto(false);
       setConfirmando(false);
@@ -243,6 +276,222 @@ export default function RespuestaProveedorOrden({ orden }: Props) {
             desde este formulario.
           </p>
         </div>
+      )}
+
+      {registrada?.estado === "Confirmada" && (
+        <section
+          className="respuesta-proveedor__registro"
+          aria-label="Publicación del compromiso a Contabilidad"
+        >
+          <h4>Compromiso de compra para Contabilidad</h4>
+          {eventoContabilidad ? (
+            <>
+              <p>
+                <strong>Evento:</strong>{" "}
+                {eventoContabilidad.tipoEvento}
+              </p>
+              <p>
+                <strong>ID del evento:</strong>{" "}
+                {eventoContabilidad.idEvento}
+              </p>
+              <p>
+                <strong>correlationId:</strong>{" "}
+                {eventoContabilidad.correlationId}
+              </p>
+              <p>
+                <strong>Estado de publicación:</strong>{" "}
+                {eventoContabilidad.estadoPublicacion}
+              </p>
+              <p>
+                <strong>Intentos:</strong>{" "}
+                {eventoContabilidad.intentosPublicacion.length}
+              </p>
+              <p>
+                <strong>Último intento:</strong>{" "}
+                {eventoContabilidad.fechaUltimoIntento
+                  ? new Date(
+                      eventoContabilidad.fechaUltimoIntento,
+                    ).toLocaleString("es-BO")
+                  : "Todavía no se ha intentado"}
+              </p>
+              {eventoContabilidad.referenciaPublicacion && (
+                <p>
+                  <strong>Referencia del publicador:</strong>{" "}
+                  {eventoContabilidad.referenciaPublicacion}
+                </p>
+              )}
+              {eventoContabilidad.estadoPublicacion ===
+                "Publicado" && (
+                <p className="respuesta-proveedor__aviso">
+                  El publicador aceptó el evento. Esto no confirma
+                  que Contabilidad lo haya procesado.
+                </p>
+              )}
+              {eventoContabilidad.resultadoContabilidad ? (
+                <>
+                  <p>
+                    <strong>Resultado de Contabilidad:</strong>{" "}
+                    <span
+                      className={
+                        eventoContabilidad.resultadoContabilidad
+                          .estadoProcesamiento ===
+                        "CompromisoRegistrado"
+                          ? "respuesta-proveedor__confirmada"
+                          : "respuesta-proveedor__rechazada"
+                      }
+                    >
+                      {eventoContabilidad.resultadoContabilidad
+                        .estadoProcesamiento === "CompromisoRegistrado"
+                        ? "Compromiso registrado"
+                        : "Rechazado"}
+                    </span>
+                  </p>
+                  <p>
+                    <strong>Orden relacionada:</strong>{" "}
+                    {eventoContabilidad.resultadoContabilidad.idOrden}
+                  </p>
+                  <p>
+                    <strong>Evento original:</strong>{" "}
+                    {eventoContabilidad.resultadoContabilidad.idEvento}
+                  </p>
+                  <p>
+                    <strong>correlationId:</strong>{" "}
+                    {eventoContabilidad.resultadoContabilidad.correlationId}
+                  </p>
+                  <p>
+                    <strong>Fecha del resultado:</strong>{" "}
+                    {new Date(
+                      eventoContabilidad.resultadoContabilidad.fechaResultado,
+                    ).toLocaleString("es-BO")}
+                  </p>
+                  <p>
+                    <strong>Respuesta recibida:</strong>{" "}
+                    {new Date(
+                      eventoContabilidad.resultadoContabilidad.fechaRecepcion,
+                    ).toLocaleString("es-BO")}
+                  </p>
+                  {eventoContabilidad.resultadoContabilidad
+                    .idCompromisoContable && (
+                    <p>
+                      <strong>ID del compromiso:</strong>{" "}
+                      {
+                        eventoContabilidad.resultadoContabilidad
+                          .idCompromisoContable
+                      }
+                    </p>
+                  )}
+                  {eventoContabilidad.resultadoContabilidad.motivoRechazo && (
+                    <p className="respuesta-proveedor__error">
+                      <strong>Motivo del rechazo:</strong>{" "}
+                      {
+                        eventoContabilidad.resultadoContabilidad
+                          .motivoRechazo
+                      }
+                    </p>
+                  )}
+                  {eventoContabilidad.resultadoContabilidad.idMensajePubSub && (
+                    <p>
+                      <strong>ID de mensaje Pub/Sub:</strong>{" "}
+                      {
+                        eventoContabilidad.resultadoContabilidad
+                          .idMensajePubSub
+                      }
+                    </p>
+                  )}
+                </>
+              ) : (
+                <p className="respuesta-proveedor__aviso" role="status">
+                  {eventoContabilidad.estadoPublicacion === "Publicado"
+                    ? "Pendiente de respuesta de Contabilidad."
+                    : "Aún no se ha publicado el evento; no hay resultado que procesar."}
+                </p>
+              )}
+              {erroresContabilidad.length > 0 && (
+                <div>
+                  <h5>Respuestas no procesadas</h5>
+                  <ul>
+                    {erroresContabilidad.map((registro, indice) => (
+                      <li
+                        className="respuesta-proveedor__error"
+                        key={
+                          registro.idMensajePubSub ??
+                          `${registro.fechaRecepcion}-${indice}`
+                        }
+                      >
+                        {registro.idMensajePubSub &&
+                          `Mensaje ${registro.idMensajePubSub} · `}
+                        {new Date(
+                          registro.fechaRecepcion,
+                        ).toLocaleString("es-BO")}
+                        {" · "}
+                        {registro.error}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {eventoContabilidad.errorPublicacion && (
+                <p
+                  className="respuesta-proveedor__error"
+                  role="status"
+                >
+                  {eventoContabilidad.errorPublicacion}
+                </p>
+              )}
+              {eventoContabilidad.intentosPublicacion.length > 0 && (
+                <details>
+                  <summary>Historial de intentos</summary>
+                  <ol>
+                    {eventoContabilidad.intentosPublicacion.map(
+                      intento => (
+                        <li key={intento.numero}>
+                          Intento {intento.numero} ·{" "}
+                          {new Date(
+                            intento.fechaIntento,
+                          ).toLocaleString("es-BO")}{" "}
+                          · {intento.resultado}
+                          {intento.mensaje &&
+                            ` · ${intento.mensaje}`}
+                        </li>
+                      ),
+                    )}
+                  </ol>
+                </details>
+              )}
+              {(eventoContabilidad.estadoPublicacion ===
+                "Pendiente" ||
+                eventoContabilidad.estadoPublicacion === "Error" ||
+                eventoContabilidad.estadoPublicacion ===
+                  "Pendiente de configuración") && (
+                <button
+                  type="button"
+                  className="respuesta-proveedor__principal"
+                  onClick={() => {
+                    void publicarOrdenConfirmadaAContabilidad(
+                      eventoContabilidad.idEvento,
+                    ).catch(fallo => {
+                      setError(
+                        fallo instanceof Error
+                          ? fallo.message
+                          : "No se pudo actualizar el estado del evento contable.",
+                      );
+                    });
+                  }}
+                >
+                  {eventoContabilidad.intentosPublicacion.length
+                    ? "Reintentar publicación"
+                    : "Intentar publicación"}
+                </button>
+              )}
+            </>
+          ) : (
+            <p className="respuesta-proveedor__aviso">
+              Esta orden ya tenía una confirmación registrada antes
+              de esta integración; no se generó un evento
+              retroactivo.
+            </p>
+          )}
+        </section>
       )}
 
       {modalAbierto &&

@@ -4,6 +4,7 @@ import type {
   EstadoRespuestaProveedor,
   RespuestaProveedor,
 } from "./tipos";
+import type { EventoOrdenCompraConfirmada } from "./tiposEventoContabilidad";
 
 interface DatosRespuestaProveedor {
   idOrden: number;
@@ -19,7 +20,7 @@ export function registrarRespuestaProveedor({
   referencia,
   fecha,
   observacion,
-}: DatosRespuestaProveedor): void {
+}: DatosRespuestaProveedor): EventoOrdenCompraConfirmada | undefined {
   const referenciaLimpia = referencia.trim();
   const observacionLimpia = observacion.trim();
 
@@ -55,6 +56,8 @@ export function registrarRespuestaProveedor({
     throw new Error("La fecha de respuesta no puede ser futura.");
   }
 
+  let eventoCreado: EventoOrdenCompraConfirmada | undefined;
+
   actualizarCompras((actual) => {
     const orden = actual.ordenes.find(
       (item) => item.idOrden === idOrden
@@ -74,6 +77,81 @@ export function registrarRespuestaProveedor({
       throw new Error(
         "Solo se puede registrar una respuesta para una orden enviada."
       );
+    }
+
+    if (estado === "Confirmada") {
+      const oferta = actual.ofertas.find(
+        (item) => item.idOferta === orden.idOfertaOrigen
+      );
+
+      if (!oferta?.proveedor) {
+        throw new Error(
+          "No se encontró el proveedor asociado a la orden para registrar el compromiso contable."
+        );
+      }
+
+      if (
+        actual.eventosOrdenCompraContabilidad.some(
+          (item) => item.idOrden === orden.idOrden
+        )
+      ) {
+        throw new Error(
+          "Ya existe un evento contable para esta orden."
+        );
+      }
+
+      if (
+        !Number.isFinite(orden.total) ||
+        orden.total <= 0 ||
+        orden.detalles.length === 0 ||
+        orden.detalles.some(
+          (detalle) =>
+            !Number.isSafeInteger(detalle.idDetalle) ||
+            detalle.idDetalle <= 0 ||
+            !Number.isSafeInteger(detalle.producto.idProducto) ||
+            detalle.producto.idProducto <= 0 ||
+            !Number.isSafeInteger(detalle.cantidad) ||
+            detalle.cantidad <= 0 ||
+            !Number.isFinite(detalle.precio) ||
+            detalle.precio <= 0 ||
+            !Number.isFinite(detalle.subtotal) ||
+            detalle.subtotal <= 0
+        )
+      ) {
+        throw new Error(
+          "La orden contiene datos inválidos para registrar el compromiso contable."
+        );
+      }
+
+      const idEvento =
+        `ORDEN-COMPRA-CONFIRMADA-${orden.idOrden}`;
+      eventoCreado = {
+        idEvento,
+        tipoEvento: "OrdenCompraConfirmada",
+        correlationId: idEvento,
+        fechaEvento: new Date().toISOString(),
+        idOrden: orden.idOrden,
+        numeroOrden: orden.numero,
+        fechaOrden: orden.fecha,
+        referenciaProveedor: referenciaLimpia,
+        fechaConfirmacionProveedor: fecha,
+        proveedor: {
+          idProveedor: oferta.proveedor.idProveedor,
+          razonSocial: oferta.proveedor.razonSocial,
+          nitRuc: oferta.proveedor.nitRuc,
+        },
+        total: orden.total,
+        detalles: orden.detalles.map((detalle) => ({
+          idDetalle: detalle.idDetalle,
+          idProducto: detalle.producto.idProducto,
+          producto: detalle.producto.descripcion,
+          cantidad: detalle.cantidad,
+          precioUnitario: detalle.precio,
+          subtotal: detalle.subtotal,
+        })),
+        estadoPublicacion: "Pendiente",
+        intentosPublicacion: [],
+      };
     }
 
     const respuesta: RespuestaProveedor = {
@@ -112,6 +190,14 @@ export function registrarRespuestaProveedor({
           ],
         };
       }),
+      eventosOrdenCompraContabilidad: eventoCreado
+        ? [
+            ...actual.eventosOrdenCompraContabilidad,
+            eventoCreado,
+          ]
+        : actual.eventosOrdenCompraContabilidad,
     };
   });
+
+  return eventoCreado;
 }

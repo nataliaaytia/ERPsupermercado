@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { ThemeProvider } from './ThemeContext';
 import Cabecera from './Cabecera';
@@ -6,11 +5,8 @@ import Home from './Home';
 import Catalogo from './catalogo/Catalogo';
 import Login from './Login';
 import Requisiciones from './requisicionesCotizaciones/Requisiciones';
-
 import ServicioOrdenesCompra from './servicioOrdenesCompra/ServicioOrdenesCompra';
-
 import ServicioRecepcionControl from './servicioRecepcionControl/ServicioRecepcionControl';
-
 import ServicioFacturaciones from './servicioFacturaciones/ServicioFacturaciones';
 
 const paginasValidas = [
@@ -24,6 +20,7 @@ const paginasValidas = [
 ];
 
 export const App = () => {
+  const [paginaDespuesLogin, setPaginaDespuesLogin] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState<string>(() => {
     const paginaGuardada = sessionStorage.getItem('currentPage');
 
@@ -43,12 +40,19 @@ export const App = () => {
 
   const handleLoginSuccess = () => {
     setIsLoggedIn(true);
-    navegar('home');
+    navegar(paginaDespuesLogin ?? 'home');
+    setPaginaDespuesLogin(null);
+  };
+
+  const solicitarLogin = () => {
+    setPaginaDespuesLogin(currentPage === 'login' ? null : currentPage);
+    navegar('login');
   };
 
   const handleLogout = () => {
     localStorage.removeItem('isLoggedIn');
     setIsLoggedIn(false);
+    setPaginaDespuesLogin(null);
   };
 
   return (
@@ -79,6 +83,7 @@ export const App = () => {
           {currentPage === 'recepcion-control' && (
             <ServicioRecepcionControl
               puedeConsultar={isLoggedIn}
+              onSolicitarLogin={solicitarLogin}
             />
           )}
 
