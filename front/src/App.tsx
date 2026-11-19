@@ -11,12 +11,15 @@ import ServicioOrdenesCompra from './servicioOrdenesCompra/ServicioOrdenesCompra
 
 import ServicioRecepcionControl from './servicioRecepcionControl/ServicioRecepcionControl';
 
+import ServicioFacturaciones from './servicioFacturaciones/ServicioFacturaciones';
+
 const paginasValidas = [
   'home',
   'catalogo',
   'requisiciones',
   'ordenes-compra',
   'recepcion-control',
+  'facturacion',
   'login',
 ];
 
@@ -69,9 +72,18 @@ export const App = () => {
 
           {currentPage === 'requisiciones' && <Requisiciones />}
 
-          {currentPage === 'ordenes-compra' && <ServicioOrdenesCompra />}
+          {currentPage === 'ordenes-compra' && (
+            <ServicioOrdenesCompra />
+          )}
+
           {currentPage === 'recepcion-control' && (
-            <ServicioRecepcionControl puedeConsultar={isLoggedIn} />
+            <ServicioRecepcionControl
+              puedeConsultar={isLoggedIn}
+            />
+          )}
+
+          {currentPage === 'facturacion' && (
+            <ServicioFacturaciones />
           )}
 
           {currentPage === 'login' && (
