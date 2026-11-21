@@ -1,0 +1,28 @@
+.catalogo-container .proveedor-modal__formulario {
+  display: grid;
+  gap: 18px;
+}
+
+.catalogo-container .proveedor-modal__icono {
+  display: inline-flex;
+  margin-bottom: 10px;
+  color: var(--info);
+}
+
+.catalogo-container .proveedor-modal__error {
+  color: var(--danger);
+  font-size: 13px;
+}
+
+.catalogo-container .proveedor-modal__nota {
+  margin: 0;
+  padding: 12px;
+  background: var(--info-soft);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.catalogo-container .proveedor-modal [aria-invalid="true"] {
+  border-color: var(--danger);
+}

@@ -1,0 +1,25 @@
+.layout-modulo {
+  display: flex;
+  flex: 1;
+  min-height: calc(100vh - var(--header-height));
+}
+
+.contenido-modulo {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  flex: 1;
+  min-width: 0;
+  max-width: 1280px;
+  padding: 2rem 2.5rem 3rem;
+}
+
+@media (max-width: 800px) {
+  .layout-modulo {
+    flex-direction: column;
+  }
+
+  .contenido-modulo {
+    padding: 1.25rem 1rem 2rem;
+  }
+}

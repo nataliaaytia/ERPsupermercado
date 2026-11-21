@@ -1,0 +1,279 @@
+
+.devolucion-orden {
+  display: flex;
+  align-items: center;
+  margin-top: 0;
+}
+
+.devolucion-orden__boton {
+  min-height: 44px;
+  padding: 11px 18px;
+  border: 1px solid var(--warning);
+  border-radius: 7px;
+  background: var(--warning-soft);
+  color: var(--warning);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.devolucion-orden__boton:hover:not(:disabled) {
+  background: var(--warning-soft);
+}
+
+.devolucion-orden__boton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.devolucion-orden__boton:focus-visible,
+.devolucion-orden__cancelar:focus-visible,
+.devolucion-orden__confirmar:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* Fondo del modal */
+
+.devolucion-orden__fondo {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: var(--overlay);
+  backdrop-filter: blur(4px);
+}
+
+/* Ventana */
+
+.devolucion-orden__modal {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 520px;
+  max-height: calc(100dvh - 40px);
+  overflow-y: auto;
+  padding: 28px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-md);
+}
+
+.devolucion-orden__encabezado {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.devolucion-orden__icono {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: var(--warning-soft);
+  color: var(--warning);
+  font-size: 25px;
+  font-weight: 700;
+}
+
+.devolucion-orden__encabezado h3 {
+  margin: 0 0 8px;
+  color: inherit;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.devolucion-orden__encabezado p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* Resumen de la orden */
+
+.devolucion-orden__informacion {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 24px 0;
+  padding: 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 9px;
+  background: var(--bg-secondary);
+}
+
+.devolucion-orden__informacion > strong {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.devolucion-orden__transicion {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.devolucion-orden__transicion strong {
+  color: var(--warning);
+  font-weight: 600;
+}
+
+/* Campo del motivo */
+
+.devolucion-orden__campo {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.devolucion-orden__campo label {
+  color: inherit;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.devolucion-orden__campo label span {
+  color: var(--warning);
+}
+
+.devolucion-orden__campo textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 110px;
+  padding: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.devolucion-orden__campo textarea::placeholder {
+  color: var(--text-secondary);
+}
+
+.devolucion-orden__campo textarea:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.devolucion-orden__campo small {
+  align-self: flex-end;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.devolucion-orden__advertencia {
+  margin: 18px 0 24px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.devolucion-orden__error {
+  margin: 0 0 14px;
+  color: var(--danger);
+  font-size: 14px;
+}
+
+/* Botones */
+
+.devolucion-orden__acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.devolucion-orden__acciones button {
+  min-height: 42px;
+  padding: 10px 18px;
+  border-radius: 7px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.devolucion-orden__cancelar {
+  border: 1px solid var(--border-strong);
+  background: transparent;
+  color: var(--text-primary);
+}
+
+.devolucion-orden__cancelar:hover:not(:disabled) {
+  background: var(--bg-hover);
+}
+
+.devolucion-orden__confirmar {
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: var(--text-on-accent);
+}
+
+.devolucion-orden__confirmar:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.devolucion-orden__acciones button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Responsive */
+
+@media (max-width: 768px) {
+  .devolucion-orden__modal {
+    padding: 22px;
+  }
+}
+
+@media (max-width: 480px) {
+  .devolucion-orden__acciones {
+    flex-direction: column-reverse;
+  }
+
+  .devolucion-orden__acciones button {
+    width: 100%;
+  }
+
+  .devolucion-orden__boton {
+    width: 100%;
+  }
+}
+
+/* Alineación del botón dentro de la revisión */
+.detalle-orden__acciones-revision .devolucion-orden {
+  margin: 0;
+  align-self: stretch;
+}
+.detalle-orden__acciones-revision .devolucion-orden__boton {
+  height: 100%;
+  min-height: 46px;
+  margin: 0;
+  padding: 11px 18px;
+  border-radius: 9px;
+  font-size: 0.9rem;
+  line-height: 1.2;
+}
+@media (max-width: 600px) {
+  .detalle-orden__acciones-revision .devolucion-orden,
+  .detalle-orden__acciones-revision .devolucion-orden__boton {
+    width: 100%;
+  }
+}

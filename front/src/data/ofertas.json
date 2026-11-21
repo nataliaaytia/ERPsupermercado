@@ -1,0 +1,45 @@
+[
+  {
+    "idOferta": 1, "solicitud": 1, "fecha": "2026-11-17", "validez": "2026-12-17", "estado": "Registrada", "descuento": 5,
+    "condicionesEntrega": "Entrega en almacén central, de 8:00 a 16:00.",
+    "proveedor": { "idProveedor": 1, "razonSocial": "Distribuidora Andina S.R.L.", "nitRuc": "1020304015", "estado": "Activo" },
+    "detalles": [
+      { "idDetalle": 1, "producto": { "idProducto": 2, "descripcion": "Aceite vegetal 900 ml" }, "precio": 14.8, "plazoEntrega": 2 },
+      { "idDetalle": 2, "producto": { "idProducto": 8, "descripcion": "Fideo spaghetti 400 g" }, "precio": 5.4, "plazoEntrega": 3 }
+    ]
+  },
+  {
+    "idOferta": 2, "solicitud": 1, "fecha": "2026-11-18", "validez": "2026-12-10", "estado": "Registrada", "descuento": 0,
+    "condicionesEntrega": "Entrega puesta en almacén, flete incluido.",
+    "proveedor": { "idProveedor": 5, "razonSocial": "Importadora El Sol S.R.L.", "nitRuc": "5060708019", "estado": "Activo" },
+    "detalles": [
+      { "idDetalle": 1, "producto": { "idProducto": 2, "descripcion": "Aceite vegetal 900 ml" }, "precio": 14.2, "plazoEntrega": 5 },
+      { "idDetalle": 2, "producto": { "idProducto": 8, "descripcion": "Fideo spaghetti 400 g" }, "precio": 5.1, "plazoEntrega": 5 }
+    ]
+  },
+  {
+    "idOferta": 3, "solicitud": 2, "fecha": "2026-11-12", "validez": "2026-12-12", "estado": "Seleccionada", "descuento": 7,
+    "condicionesEntrega": "Cadena de frío garantizada. Entrega diaria antes de las 7:00.",
+    "proveedor": { "idProveedor": 2, "razonSocial": "Lácteos del Valle S.A.", "nitRuc": "2030405016", "estado": "Activo" },
+    "detalles": [
+      { "idDetalle": 1, "producto": { "idProducto": 4, "descripcion": "Leche entera UHT 1 L" }, "precio": 7.5, "plazoEntrega": 1 },
+      { "idDetalle": 2, "producto": { "idProducto": 5, "descripcion": "Yogurt bebible frutilla 1 L" }, "precio": 11.0, "plazoEntrega": 1 }
+    ]
+  },
+  {
+    "idOferta": 4, "solicitud": 3, "fecha": "2026-11-07", "validez": "2026-12-07", "estado": "Seleccionada", "descuento": 0,
+    "condicionesEntrega": "Entrega en almacén central.",
+    "proveedor": { "idProveedor": 1, "razonSocial": "Distribuidora Andina S.R.L.", "nitRuc": "1020304015", "estado": "Activo" },
+    "detalles": [
+      { "idDetalle": 1, "producto": { "idProducto": 1, "descripcion": "Arroz grano largo 1 kg" }, "precio": 9.5, "plazoEntrega": 2 }
+    ]
+  },
+  {
+    "idOferta": 5, "solicitud": 3, "fecha": "2026-11-08", "validez": "2026-12-08", "estado": "Rechazada", "descuento": 0,
+    "condicionesEntrega": "Entrega en 5 días hábiles.",
+    "proveedor": { "idProveedor": 3, "razonSocial": "Comercial La Paz Ltda.", "nitRuc": "3040506017", "estado": "Observado" },
+    "detalles": [
+      { "idDetalle": 1, "producto": { "idProducto": 1, "descripcion": "Arroz grano largo 1 kg" }, "precio": 9.1, "plazoEntrega": 5 }
+    ]
+  }
+]

@@ -1,0 +1,82 @@
+[
+  {
+    "idProducto": 1,
+    "sku": "ABA-ARR-001",
+    "nombre": "Arroz grano largo 1 kg",
+    "categoria": "Abarrotes",
+    "unidadMedida": "Bolsa",
+    "descripcion": "Arroz blanco de grano largo, calidad extra."
+  },
+  {
+    "idProducto": 2,
+    "sku": "ABA-ACE-002",
+    "nombre": "Aceite vegetal 900 ml",
+    "categoria": "Abarrotes",
+    "unidadMedida": "Botella",
+    "descripcion": "Aceite vegetal de soya refinado."
+  },
+  {
+    "idProducto": 3,
+    "sku": "ABA-AZU-003",
+    "nombre": "Azúcar blanca 1 kg",
+    "categoria": "Abarrotes",
+    "unidadMedida": "Bolsa",
+    "descripcion": "Azúcar blanca refinada de caña."
+  },
+  {
+    "idProducto": 4,
+    "sku": "LAC-LEC-001",
+    "nombre": "Leche entera UHT 1 L",
+    "categoria": "Lácteos",
+    "unidadMedida": "Caja",
+    "descripcion": "Leche entera larga vida, envase tetra."
+  },
+  {
+    "idProducto": 5,
+    "sku": "LAC-YOG-002",
+    "nombre": "Yogurt bebible frutilla 1 L",
+    "categoria": "Lácteos",
+    "unidadMedida": "Botella",
+    "descripcion": "Yogurt bebible sabor frutilla."
+  },
+  {
+    "idProducto": 6,
+    "sku": "LIM-DET-001",
+    "nombre": "Detergente en polvo 1 kg",
+    "categoria": "Limpieza",
+    "unidadMedida": "Bolsa",
+    "descripcion": "Detergente en polvo multiuso."
+  },
+  {
+    "idProducto": 7,
+    "sku": "LIM-PAP-002",
+    "nombre": "Papel higiénico pack x4",
+    "categoria": "Limpieza",
+    "unidadMedida": "Pack",
+    "descripcion": "Papel higiénico doble hoja, 4 rollos."
+  },
+  {
+    "idProducto": 8,
+    "sku": "ABA-FID-004",
+    "nombre": "Fideo spaghetti 400 g",
+    "categoria": "Abarrotes",
+    "unidadMedida": "Paquete",
+    "descripcion": "Fideo spaghetti de sémola de trigo."
+  },
+  {
+    "idProducto": 9,
+    "sku": "ABA-HAR-005",
+    "nombre": "Harina de trigo 1 kg",
+    "categoria": "Abarrotes",
+    "unidadMedida": "Bolsa",
+    "descripcion": "Harina de trigo para panificación."
+  },
+  {
+    "idProducto": 10,
+    "sku": "CON-ATU-001",
+    "nombre": "Atún en lata 170 g",
+    "categoria": "Conservas",
+    "unidadMedida": "Lata",
+    "descripcion": "Atún en aceite, lata abre fácil."
+  }
+]

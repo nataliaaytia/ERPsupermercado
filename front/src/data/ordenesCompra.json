@@ -1,0 +1,43 @@
+[
+  {
+    "idOrden": 1,
+    "idOfertaOrigen": 3,
+    "numero": "OC-0001",
+    "fecha": "2026-11-13",
+    "estado": "Confirmada",
+    "total": 3320.1,
+    "observacion": "Orden generada desde la oferta adjudicada a Lácteos del Valle S.A.",
+    "condicionesLogisticas": {
+      "destino": "Almacén central - Av. Buenos Aires #500",
+      "horario": "Lunes a sábado, 06:00 a 08:00",
+      "responsableEntrega": "Carlos Mamani"
+    },
+    "detalles": [
+      {
+        "idDetalle": 1, "producto": { "idProducto": 4, "descripcion": "Leche entera UHT 1 L" },
+        "cantidad": 300, "precio": 7.5, "subtotal": 2092.5,
+        "compromisos": [
+          { "idCompromiso": 1, "fechaEntrega": "2026-11-22", "cantidad": 300, "estado": "Pendiente", "observacion": "Entrega única" }
+        ]
+      },
+      {
+        "idDetalle": 2, "producto": { "idProducto": 5, "descripcion": "Yogurt bebible frutilla 1 L" },
+        "cantidad": 120, "precio": 11.0, "subtotal": 1227.6,
+        "compromisos": [
+          { "idCompromiso": 1, "fechaEntrega": "2026-11-19", "cantidad": 120, "estado": "Pendiente", "observacion": "Entrega única" }
+        ]
+      }
+    ],
+    "historialEstados": [
+      { "estadoAnterior": "", "estadoNuevo": "Borrador", "usuario": "Comprador", "fecha": "2026-11-13T09:10:00", "observacion": "Orden creada desde la oferta adjudicada." },
+      { "estadoAnterior": "Borrador", "estadoNuevo": "Pendiente de aprobación", "usuario": "Comprador", "fecha": "2026-11-13T09:30:00", "observacion": "Se solicitó la aprobación." },
+      { "estadoAnterior": "Pendiente de aprobación", "estadoNuevo": "Aprobada", "usuario": "Jefe de compras", "fecha": "2026-11-13T11:00:00", "observacion": "Monto dentro del rango autorizado." },
+      { "estadoAnterior": "Aprobada", "estadoNuevo": "Enviada", "usuario": "Comprador", "fecha": "2026-11-13T11:20:00", "observacion": "Enviada por correo electrónico." },
+      { "estadoAnterior": "Enviada", "estadoNuevo": "Confirmada", "usuario": "Comprador", "fecha": "2026-11-14T08:45:00", "observacion": "El proveedor aceptó la orden." }
+    ],
+    "historialEnvios": [
+      { "idIntento": 1, "fecha": "2026-11-13T11:20:00", "proveedor": "Lácteos del Valle S.A.", "canal": "Correo electrónico", "estado": "Exitoso", "mensaje": "Orden enviada correctamente." }
+    ],
+    "respuestaProveedor": { "estado": "Confirmada", "referencia": "LDV-PED-8841", "fecha": "2026-11-14", "observacion": "Se confirma la entrega según compromisos." }
+  }
+]

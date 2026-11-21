@@ -1,0 +1,12 @@
+.lista-facturas {
+  display: grid;
+  gap: 1rem;
+}
+
+.lista-facturas header {
+  justify-content: space-between;
+}
+
+.lista-facturas h2 {
+  margin-bottom: 0.15rem;
+}

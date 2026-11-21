@@ -1,0 +1,63 @@
+.editar-requisicion header h2 {
+    margin: 0 0 0.5rem;
+    color: var(--text-primary);
+}
+
+.editar-requisicion header p {
+    margin: 0;
+    color: var(--text-secondary);
+}
+
+.editar-requisicion fieldset {
+    display: grid;
+    gap: 1.25rem;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: none;
+}
+
+.editar-requisicion__errores {
+    margin: 0;
+    padding: 1rem;
+    color: var(--text-primary);
+    background: var(--danger-soft);
+    border: 1px solid var(--danger);
+    border-radius: 8px;
+}
+
+.editar-requisicion__errores ul {
+    margin: 0.5rem 0 0;
+    padding-left: 1.25rem;
+}
+
+.editar-requisicion__acciones {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.editar-requisicion__cancelar {
+    padding: 0.7rem 1.1rem;
+    color: var(--text-primary);
+    background: transparent;
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    font: inherit;
+    cursor: pointer;
+}
+
+.editar-requisicion__cancelar:hover:not(:disabled) {
+    background: var(--bg-hover);
+}
+
+.editar-requisicion button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.editar-requisicion button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+}

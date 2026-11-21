@@ -1,0 +1,148 @@
+[
+  {
+    "idProveedor": 1,
+    "nitRuc": "1020304015",
+    "razonSocial": "Distribuidora Andina S.R.L.",
+    "direccion": "Av. 6 de Agosto #1450, La Paz",
+    "telefono": "+591 2 2441122",
+    "correo": "ventas@andina.com.bo",
+    "estado": "Activo",
+    "puntajeDesempeno": 95,
+    "ordenesCompra": 48,
+    "montoTotalComprado": 125000,
+    "tiempoPromedioDias": 1.5,
+    "descuentoVolumen": [
+      { "cantidadMinima": 50, "descuento": 5 },
+      { "cantidadMinima": 100, "descuento": 8 },
+      { "cantidadMinima": 500, "descuento": 12 }
+    ],
+    "documentos": [
+      { "idDocumento": 101, "tipoDocumento": "Ficha RUC", "numeroDocumento": "1020304015", "fechaVencimiento": "2027-12-31", "archivo": "ficha_ruc_andina.pdf", "estadoValidacion": "Válido" },
+      { "idDocumento": 102, "tipoDocumento": "Licencia de Funcionamiento", "numeroDocumento": "LF-2025-089", "fechaVencimiento": "2026-12-10", "archivo": "licencia_andina.pdf", "estadoValidacion": "Válido" }
+    ],
+    "catalogo": [
+      { "idProducto": 1, "precioPactado": 9.5, "tiempoEntregaEstimado": "24 a 48 horas", "stockDisponible": 5000 },
+      { "idProducto": 2, "precioPactado": 14.8, "tiempoEntregaEstimado": "24 a 48 horas", "stockDisponible": 2400 },
+      { "idProducto": 3, "precioPactado": 7.2, "tiempoEntregaEstimado": "24 horas", "stockDisponible": 3800 },
+      { "idProducto": 8, "precioPactado": 5.4, "tiempoEntregaEstimado": "2 a 3 días hábiles", "stockDisponible": 3000 },
+      { "idProducto": 9, "precioPactado": 6.9, "tiempoEntregaEstimado": "2 a 3 días hábiles", "stockDisponible": 1500 }
+    ]
+  },
+  {
+    "idProveedor": 2,
+    "nitRuc": "2030405016",
+    "razonSocial": "Lácteos del Valle S.A.",
+    "direccion": "Carretera a Quillacollo km 8, Cochabamba",
+    "telefono": "+591 4 4265500",
+    "correo": "pedidos@lacteosdelvalle.bo",
+    "estado": "Activo",
+    "puntajeDesempeno": 88,
+    "ordenesCompra": 36,
+    "montoTotalComprado": 98000,
+    "tiempoPromedioDias": 1,
+    "descuentoVolumen": [
+      { "cantidadMinima": 100, "descuento": 4 },
+      { "cantidadMinima": 300, "descuento": 7 }
+    ],
+    "documentos": [
+      { "idDocumento": 201, "tipoDocumento": "Ficha RUC", "numeroDocumento": "2030405016", "fechaVencimiento": "2027-06-30", "archivo": "ficha_ruc_valle.pdf", "estadoValidacion": "Válido" },
+      { "idDocumento": 202, "tipoDocumento": "Registro Sanitario SENASAG", "numeroDocumento": "SEN-LAC-4471", "fechaVencimiento": "2026-12-05", "archivo": "senasag_valle.pdf", "estadoValidacion": "Válido" }
+    ],
+    "catalogo": [
+      { "idProducto": 4, "precioPactado": 7.5, "tiempoEntregaEstimado": "24 horas", "stockDisponible": 6000 },
+      { "idProducto": 5, "precioPactado": 11.0, "tiempoEntregaEstimado": "24 horas", "stockDisponible": 2200 }
+    ]
+  },
+  {
+    "idProveedor": 3,
+    "nitRuc": "3040506017",
+    "razonSocial": "Comercial La Paz Ltda.",
+    "direccion": "Calle Max Paredes #820, La Paz",
+    "telefono": "+591 2 2457788",
+    "correo": "contacto@comerciallapaz.bo",
+    "estado": "Observado",
+    "puntajeDesempeno": 72,
+    "ordenesCompra": 19,
+    "montoTotalComprado": 41000,
+    "tiempoPromedioDias": 3,
+    "descuentoVolumen": [
+      { "cantidadMinima": 200, "descuento": 6 }
+    ],
+    "documentos": [
+      { "idDocumento": 301, "tipoDocumento": "Ficha RUC", "numeroDocumento": "3040506017", "fechaVencimiento": "2026-10-31", "archivo": "ficha_ruc_comlapaz.pdf", "estadoValidacion": "Vencido" }
+    ],
+    "catalogo": [
+      { "idProducto": 1, "precioPactado": 9.1, "tiempoEntregaEstimado": "3 a 5 días hábiles", "stockDisponible": 1800 },
+      { "idProducto": 3, "precioPactado": 7.0, "tiempoEntregaEstimado": "3 a 5 días hábiles", "stockDisponible": 900 },
+      { "idProducto": 10, "precioPactado": 12.5, "tiempoEntregaEstimado": "2 días hábiles", "stockDisponible": 1200 }
+    ]
+  },
+  {
+    "idProveedor": 4,
+    "nitRuc": "4050607018",
+    "razonSocial": "Higiene Total Bolivia S.A.",
+    "direccion": "Parque Industrial PI-12, Santa Cruz",
+    "telefono": "+591 3 3489900",
+    "correo": "ventas@higienetotal.bo",
+    "estado": "Activo",
+    "puntajeDesempeno": 91,
+    "ordenesCompra": 27,
+    "montoTotalComprado": 63000,
+    "tiempoPromedioDias": 2,
+    "descuentoVolumen": [
+      { "cantidadMinima": 50, "descuento": 3 },
+      { "cantidadMinima": 200, "descuento": 9 }
+    ],
+    "documentos": [
+      { "idDocumento": 401, "tipoDocumento": "Ficha RUC", "numeroDocumento": "4050607018", "fechaVencimiento": "2028-01-15", "archivo": "ficha_ruc_higiene.pdf", "estadoValidacion": "Válido" },
+      { "idDocumento": 402, "tipoDocumento": "Certificación ISO", "numeroDocumento": "ISO-9001-2291", "fechaVencimiento": "2027-03-20", "archivo": "iso_higiene.pdf", "estadoValidacion": "Válido" }
+    ],
+    "catalogo": [
+      { "idProducto": 6, "precioPactado": 16.0, "tiempoEntregaEstimado": "2 días hábiles", "stockDisponible": 1400 },
+      { "idProducto": 7, "precioPactado": 12.9, "tiempoEntregaEstimado": "2 días hábiles", "stockDisponible": 2600 }
+    ]
+  },
+  {
+    "idProveedor": 5,
+    "nitRuc": "5060708019",
+    "razonSocial": "Importadora El Sol S.R.L.",
+    "direccion": "Av. Cristo Redentor #3300, Santa Cruz",
+    "telefono": "+591 3 3521010",
+    "correo": "importaciones@elsol.bo",
+    "estado": "Activo",
+    "puntajeDesempeno": 84,
+    "ordenesCompra": 22,
+    "montoTotalComprado": 57000,
+    "tiempoPromedioDias": 4,
+    "descuentoVolumen": [
+      { "cantidadMinima": 100, "descuento": 5 },
+      { "cantidadMinima": 400, "descuento": 10 }
+    ],
+    "documentos": [
+      { "idDocumento": 501, "tipoDocumento": "Ficha RUC", "numeroDocumento": "5060708019", "fechaVencimiento": "2027-09-01", "archivo": "ficha_ruc_elsol.pdf", "estadoValidacion": "Válido" }
+    ],
+    "catalogo": [
+      { "idProducto": 2, "precioPactado": 14.2, "tiempoEntregaEstimado": "4 a 6 días hábiles", "stockDisponible": 3200 },
+      { "idProducto": 8, "precioPactado": 5.1, "tiempoEntregaEstimado": "4 a 6 días hábiles", "stockDisponible": 4000 },
+      { "idProducto": 10, "precioPactado": 11.8, "tiempoEntregaEstimado": "4 a 6 días hábiles", "stockDisponible": 2500 }
+    ]
+  },
+  {
+    "idProveedor": 6,
+    "nitRuc": "6070809010",
+    "razonSocial": "Molinos del Sur Ltda.",
+    "direccion": "Zona Industrial, Tarija",
+    "telefono": "+591 4 6644550",
+    "correo": "info@molinosdelsur.bo",
+    "estado": "Inactivo",
+    "puntajeDesempeno": 60,
+    "ordenesCompra": 8,
+    "montoTotalComprado": 12000,
+    "tiempoPromedioDias": 5,
+    "descuentoVolumen": [],
+    "documentos": [],
+    "catalogo": [
+      { "idProducto": 9, "precioPactado": 6.5, "tiempoEntregaEstimado": "5 días hábiles", "stockDisponible": 800 }
+    ]
+  }
+]

@@ -1,0 +1,30 @@
+{
+  "recepcionesRegistradas": [
+    {
+      "idRecepcion": 1,
+      "idOrden": 1,
+      "fecha": "2026-11-19",
+      "documento": "REM-LDV-0412",
+      "estado": "Pendiente de inspección",
+      "detalles": [{ "idDetalleOrden": 1, "cantidadRecibida": 100 }]
+    }
+  ],
+  "inspeccionesCalidad": [
+    {
+      "idInspeccion": 1,
+      "idRecepcion": 1,
+      "idOrden": 1,
+      "fechaInspeccion": "2026-11-19T09:00:00",
+      "detalles": [{ "idDetalleOrden": 1, "cantidadRecibida": 100, "cantidadConforme": 100, "cantidadRechazada": 0 }]
+    }
+  ],
+  "recepcionesValidadas": [
+    {
+      "idRecepcion": 1,
+      "idOrden": 1,
+      "estado": "Validada",
+      "fechaValidacion": "2026-11-19T10:00:00",
+      "detalles": [{ "idDetalleOrden": 1, "cantidadRecibida": 100, "cantidadAceptada": 100 }]
+    }
+  ]
+}
