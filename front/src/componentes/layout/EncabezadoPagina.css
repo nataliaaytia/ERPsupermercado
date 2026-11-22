@@ -1,0 +1,26 @@
+.encabezado-pagina {
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.encabezado-pagina__modulo {
+  margin: 0 0 0.25rem;
+  color: var(--accent);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.encabezado-pagina__titulo {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 1.75rem;
+  line-height: 1.2;
+}
+
+.encabezado-pagina__descripcion {
+  margin: 0.4rem 0 0;
+  max-width: 70ch;
+  color: var(--text-secondary);
+}

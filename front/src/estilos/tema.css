@@ -1,0 +1,101 @@
+/*
+ * Paleta única del sistema.
+ * Todas las pantallas deben usar SOLO estas variables (nunca colores fijos).
+ * El modo se controla con el atributo data-theme="light" | "dark" en <html>.
+ */
+
+:root,
+[data-theme='light'] {
+  color-scheme: light;
+
+  /* Fondos y superficies */
+  --bg-primary: #f7f5f0;
+  --bg-secondary: #f0eae1;
+  --bg-card: #ffffff;
+  --bg-hover: #f1f5f9;
+  --header-bg: rgba(247, 245, 240, 0.85);
+
+  /* Texto */
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --text-on-accent: #ffffff;
+
+  /* Marca */
+  --accent: #0e8ac0;
+  --accent-hover: #0b729f;
+  --accent-soft: #e0f2fe;
+
+  /* Bordes */
+  --border-color: #e2e8f0;
+  --border-strong: #cbd5e1;
+
+  /* Estados */
+  --success: #15803d;
+  --success-soft: #dcfce7;
+  --warning: #b45309;
+  --warning-soft: #fef3c7;
+  --danger: #b91c1c;
+  --danger-soft: #fee2e2;
+  --info: #1d4ed8;
+  --info-soft: #dbeafe;
+
+  /* Efectos */
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 8px 24px rgba(15, 23, 42, 0.08);
+  --overlay: rgba(15, 23, 42, 0.45);
+
+  /* Fondo animado de la portada (GradientWaves) */
+  --onda-horizonte: #f7f5f0;
+  --onda-color: #bae6fd;
+  --onda-cresta: #38bdf8;
+  --spotlight: rgba(14, 138, 192, 0.18);
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  --bg-primary: #0a1120;
+  --bg-secondary: #0f1a2e;
+  --bg-card: #131f37;
+  --bg-hover: #1a2944;
+  --header-bg: rgba(10, 17, 32, 0.85);
+
+  --text-primary: #f1f5f9;
+  --text-secondary: #a3b1c2;
+  --text-on-accent: #04121c;
+
+  --accent: #38bdf8;
+  --accent-hover: #7dd3fc;
+  --accent-soft: rgba(56, 189, 248, 0.15);
+
+  --border-color: #1e2d4a;
+  --border-strong: #334155;
+
+  --success: #4ade80;
+  --success-soft: rgba(74, 222, 128, 0.14);
+  --warning: #fbbf24;
+  --warning-soft: rgba(251, 191, 36, 0.14);
+  --danger: #f87171;
+  --danger-soft: rgba(248, 113, 113, 0.14);
+  --info: #93c5fd;
+  --info-soft: rgba(147, 197, 253, 0.14);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.35);
+  --overlay: rgba(0, 0, 0, 0.6);
+
+  --onda-horizonte: #0a1120;
+  --onda-color: #1d4ed8;
+  --onda-cresta: #38bdf8;
+  --spotlight: rgba(56, 189, 248, 0.2);
+}
+
+/* Medidas compartidas (no dependen del modo) */
+:root {
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --header-height: 60px;
+  --sidebar-width: 240px;
+  --font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}

@@ -1,0 +1,54 @@
+[
+  {
+    "idRequisicion": 1, "fecha": "2026-11-18", "solicitante": "Jefe de Abarrotes", "prioridad": "Alta", "estado": "Pendiente",
+    "observacion": "Reposición semanal de abarrotes para sucursal central.",
+    "detalles": [
+      { "idDetalle": 1, "producto": { "idProducto": 1, "descripcion": "Arroz grano largo 1 kg" }, "cantidad": 200, "observacion": "" },
+      { "idDetalle": 2, "producto": { "idProducto": 3, "descripcion": "Azúcar blanca 1 kg" }, "cantidad": 150, "observacion": "" }
+    ]
+  },
+  {
+    "idRequisicion": 2, "fecha": "2026-11-17", "solicitante": "Jefe de Limpieza", "prioridad": "Media", "estado": "Aprobada",
+    "observacion": "Stock de detergente para promoción de fin de mes.",
+    "detalles": [
+      { "idDetalle": 1, "producto": { "idProducto": 6, "descripcion": "Detergente en polvo 1 kg" }, "cantidad": 80, "observacion": "" }
+    ]
+  },
+  {
+    "idRequisicion": 3, "fecha": "2026-11-17", "solicitante": "Jefe de Limpieza", "prioridad": "Baja", "estado": "Aprobada",
+    "observacion": "Reposición de papel higiénico para góndola.",
+    "detalles": [
+      { "idDetalle": 1, "producto": { "idProducto": 7, "descripcion": "Papel higiénico pack x4" }, "cantidad": 120, "observacion": "" }
+    ]
+  },
+  {
+    "idRequisicion": 4, "fecha": "2026-11-14", "solicitante": "Jefe de Abarrotes", "prioridad": "Alta", "estado": "Aprobada",
+    "observacion": "Aceite y fideo para campaña de canasta familiar.",
+    "detalles": [
+      { "idDetalle": 1, "producto": { "idProducto": 2, "descripcion": "Aceite vegetal 900 ml" }, "cantidad": 240, "observacion": "" },
+      { "idDetalle": 2, "producto": { "idProducto": 8, "descripcion": "Fideo spaghetti 400 g" }, "cantidad": 300, "observacion": "" }
+    ]
+  },
+  {
+    "idRequisicion": 5, "fecha": "2026-11-10", "solicitante": "Jefe de Lácteos", "prioridad": "Alta", "estado": "Aprobada",
+    "observacion": "Reposición de lácteos para la semana.",
+    "detalles": [
+      { "idDetalle": 1, "producto": { "idProducto": 4, "descripcion": "Leche entera UHT 1 L" }, "cantidad": 300, "observacion": "" },
+      { "idDetalle": 2, "producto": { "idProducto": 5, "descripcion": "Yogurt bebible frutilla 1 L" }, "cantidad": 120, "observacion": "" }
+    ]
+  },
+  {
+    "idRequisicion": 6, "fecha": "2026-11-05", "solicitante": "Jefe de Abarrotes", "prioridad": "Media", "estado": "Aprobada",
+    "observacion": "Arroz para reposición quincenal.",
+    "detalles": [
+      { "idDetalle": 1, "producto": { "idProducto": 1, "descripcion": "Arroz grano largo 1 kg" }, "cantidad": 400, "observacion": "" }
+    ]
+  },
+  {
+    "idRequisicion": 7, "fecha": "2026-11-19", "solicitante": "Jefe de Conservas", "prioridad": "Baja", "estado": "Pendiente",
+    "observacion": "Ok",
+    "detalles": [
+      { "idDetalle": 1, "producto": { "idProducto": 10, "descripcion": "Atún en lata 170 g" }, "cantidad": 0, "observacion": "Requisición con errores para probar la validación." }
+    ]
+  }
+]

@@ -1,0 +1,48 @@
+.mensajes-validacion__grupo {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.mensajes-validacion {
+  margin: 0;
+  padding: 0.85rem 1rem;
+  border: 1px solid;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.mensajes-validacion strong {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.mensajes-validacion ul {
+  margin: 0.5rem 0 0;
+  padding-left: 1.5rem;
+}
+
+.mensajes-validacion li + li {
+  margin-top: 0.25rem;
+}
+
+.mensajes-validacion--correcto {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--success);
+  background: var(--success-soft);
+  border-color: var(--success);
+}
+
+.mensajes-validacion--error {
+  color: var(--danger);
+  background: var(--danger-soft);
+  border-color: var(--danger);
+}
+
+.mensajes-validacion--advertencia {
+  color: var(--warning);
+  background: var(--warning-soft);
+  border-color: var(--warning);
+}

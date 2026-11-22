@@ -1,0 +1,21 @@
+[
+  {
+    "idEvento": "ORDEN-COMPRA-CONFIRMADA-1",
+    "tipoEvento": "OrdenCompraConfirmada",
+    "correlationId": "ORDEN-COMPRA-CONFIRMADA-1",
+    "fechaEvento": "2026-11-14T08:45:00",
+    "idOrden": 1,
+    "numeroOrden": "OC-0001",
+    "fechaOrden": "2026-11-13",
+    "referenciaProveedor": "LDV-PED-8841",
+    "fechaConfirmacionProveedor": "2026-11-14",
+    "proveedor": { "idProveedor": 2, "razonSocial": "Lácteos del Valle S.A.", "nitRuc": "2030405016" },
+    "total": 3320.1,
+    "detalles": [
+      { "idDetalle": 1, "idProducto": 4, "producto": "Leche entera UHT 1 L", "cantidad": 300, "precioUnitario": 7.5, "subtotal": 2092.5 },
+      { "idDetalle": 2, "idProducto": 5, "producto": "Yogurt bebible frutilla 1 L", "cantidad": 120, "precioUnitario": 11.0, "subtotal": 1227.6 }
+    ],
+    "estadoPublicacion": "Pendiente",
+    "intentosPublicacion": []
+  }
+]

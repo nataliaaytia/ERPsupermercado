@@ -1,0 +1,5 @@
+[
+  { "idSolicitud": 1, "requisicion": 4, "fecha": "2026-11-15", "fechaLimite": "2026-11-28", "estado": "Enviada", "proveedoresIds": [1, 5] },
+  { "idSolicitud": 2, "requisicion": 5, "fecha": "2026-11-11", "fechaLimite": "2026-11-16", "estado": "Cerrada", "proveedoresIds": [2] },
+  { "idSolicitud": 3, "requisicion": 6, "fecha": "2026-11-06", "fechaLimite": "2026-11-10", "estado": "Cerrada", "proveedoresIds": [1, 3] }
+]

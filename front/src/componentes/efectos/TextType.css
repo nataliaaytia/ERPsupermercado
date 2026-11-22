@@ -1,0 +1,23 @@
+.text-type {
+  display: inline-block;
+  white-space: pre-wrap;
+}
+
+.text-type__cursor {
+  display: inline-block;
+  margin-left: 0.15rem;
+  color: var(--accent);
+  animation: text-type-parpadeo 1s steps(1) infinite;
+}
+
+@keyframes text-type-parpadeo {
+  50% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .text-type__cursor {
+    animation: none;
+  }
+}

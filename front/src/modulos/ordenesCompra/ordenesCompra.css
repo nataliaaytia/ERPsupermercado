@@ -1,0 +1,35 @@
+/*NATALIA - SCRUM 523*/
+
+/*
+ * Las clases genéricas (tarjeta, campo, alerta, etiqueta, tabla…) y los
+ * estilos base de los elementos vienen de src/estilos/base.css.
+ * Aquí solo quedan reglas propias del módulo.
+ */
+
+.ordenes-compra {
+    color: var(--text-primary);
+}
+
+.ordenes-compra header p {
+    margin-top: 0.5rem;
+    color: var(--text-secondary);
+}
+
+.ordenes-compra td:last-child {
+    min-width: 160px;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.ordenes-compra__dialogo-cierre {
+    width: min(440px, calc(100vw - 2rem));
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-lg);
+    background: transparent;
+    color: var(--text-primary);
+}
+
+.ordenes-compra__dialogo-cierre::backdrop {
+    background: var(--overlay);
+}
