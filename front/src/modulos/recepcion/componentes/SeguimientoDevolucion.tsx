@@ -17,24 +17,32 @@ export default function SeguimientoDevolucion({
     const [evidencia, setEvidencia] = useState("");
     const [detalleCompromiso, setDetalleCompromiso] = useState("");
     const [error, setError] = useState("");
+    const [mensaje, setMensaje] = useState("");
+    const [guardando, setGuardando] = useState(false);
 
-    function guardar(evento: FormEvent<HTMLFormElement>) {
+    async function guardar(evento: FormEvent<HTMLFormElement>) {
         evento.preventDefault();
+        if (guardando) return;
         setError("");
+        setMensaje("");
+        setGuardando(true);
 
         try {
-            registrarResolucionDevolucion({
+            const mensajeServidor = await registrarResolucionDevolucion({
                 idDevolucion: devolucion.idDevolucion,
                 tipo,
                 evidencia,
                 ...(tipo === "reposicion" ? { detalleCompromiso } : {}),
             });
+            setMensaje(mensajeServidor ?? "");
         } catch (fallo) {
             setError(
                 fallo instanceof Error
                     ? fallo.message
                     : "No se pudo registrar la resolución de la devolución.",
             );
+        } finally {
+            setGuardando(false);
         }
     }
 
@@ -81,6 +89,12 @@ export default function SeguimientoDevolucion({
                 </div>
             </dl>
 
+            {mensaje && (
+                <p className="alerta alerta--info" role="status">
+                    {mensaje}
+                </p>
+            )}
+
             {resolucion ? (
                 <div className="alerta alerta--exito">
                     <p>
@@ -114,7 +128,7 @@ export default function SeguimientoDevolucion({
             ) : (
                 <form
                     className="devolucion-seguimiento__formulario"
-                    onSubmit={guardar}
+                    onSubmit={evento => void guardar(evento)}
                     noValidate
                 >
                     <label className="campo">
@@ -180,7 +194,9 @@ export default function SeguimientoDevolucion({
                         </p>
                     )}
 
-                    <button type="submit">Registrar resolución</button>
+                    <button type="submit" disabled={guardando}>
+                        {guardando ? "Guardando…" : "Registrar resolución"}
+                    </button>
                 </form>
             )}
         </article>

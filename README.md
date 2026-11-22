@@ -179,3 +179,42 @@ Actualmente se trabaja en el primer sprint, enfocado en el microservicio:
 **Gestión de Proveedores y Catálogos**
 
 El desarrollo inicial se concentra en la gestión de proveedores, productos, catálogos, documentación, condiciones comerciales, incidencias y evaluación del desempeño.
+
+## Ejecutar con Docker
+
+Requisitos: Docker Desktop. Desde la raíz del repositorio (la primera vez tarda unos minutos):
+
+```bash
+docker compose up --build -d
+```
+
+| Servicio | URL | Base de datos (pgAdmin) |
+|---|---|---|
+| Frontend | http://localhost:5173 | — |
+| ms-proveedores-catalogo | http://localhost:8080 | localhost:5433 · bd_proveedores |
+| ms-cotizaciones-requisiciones | http://localhost:8082 | localhost:5434 · bd_cotizaciones |
+| ms-ordenes-compra | http://localhost:8083 | localhost:5435 · bd_ordenes |
+| ms-recepcion-control | http://localhost:8084 | localhost:5436 · bd_recepcion |
+| Correo de prueba (Mailpit) | http://localhost:8025 | — |
+
+- Usuario y contraseña de las bases: `postgres` / `postgres` (se cambian con un archivo `.env`, ver `.env.example`).
+- Cada microservicio tiene su propia base, que se llena sola al arrancar con
+  `docker/<servicio>/datos-iniciales.sql`. Esos archivos se generan con
+  `python3 docker/generar-datos-iniciales.py` a partir de `docker/semillas/*.json`, así los IDs coinciden entre servicios.
+- Usuarios del sistema: los de `docker/semillas/usuarios.json` (por ejemplo `comprador` / `compras123`, `jefe` / `jefe1234`).
+- El frontend habla con los microservicios a través de su propio servidor (nginx, rutas `/srv/...`),
+  por eso no hay problemas de CORS. El front no tiene datos propios: todo lo lee de los microservicios.
+  Facturación aún no tiene microservicio: sus facturas se guardan en el navegador.
+- Los correos que envía Órdenes de compra a los proveedores se ven en http://localhost:8025.
+- Si detienes un contenedor (por ejemplo `ordenes`) desde Docker Desktop, el front muestra
+  "¡Ups! Algo salió mal" indicando qué servicio no responde, y se recupera solo al encenderlo.
+- Borrar todas las bases y empezar de cero: `docker compose down -v`.
+
+### Front en modo desarrollo contra los microservicios en Docker
+
+```bash
+docker compose up --build -d proveedores cotizaciones ordenes recepcion correo
+cd front && npm run dev
+```
+
+El servidor de desarrollo de Vite reenvía `/srv/...` a cada microservicio (ver `front/vite.config.ts`).

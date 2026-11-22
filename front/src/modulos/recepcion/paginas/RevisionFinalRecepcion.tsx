@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import type { OrdenCompra, RecepcionValidada } from "../../ordenesCompra/tipos";
+import { conexion } from "../../../servicios/api/configuracion";
 import { calcularSaldosEntrega } from "../../ordenesCompra/servicios/utilidadesSeguimientoEntregas";
 import type { RecepcionRegistrada } from "../tipos/recepcion";
 import type { InspeccionCalidadRecepcion } from "../tipos/inspeccion";
@@ -12,7 +13,9 @@ interface PropsRevisionFinalRecepcion {
     recepcionesValidadas: readonly RecepcionValidada[];
     /** Inspecciones de calidad: sus cantidades conformes se proponen como aceptadas. */
     inspecciones?: readonly InspeccionCalidadRecepcion[];
-    onConfirmar: (datos: DatosConfirmacionRecepcion) => void;
+    onConfirmar: (datos: DatosConfirmacionRecepcion) => Promise<string | undefined>;
+    /** Usuario que autoriza (se envía al servidor con la conexión activa). */
+    usuarioAutorizador?: string;
 }
 
 interface ErrorRevision {
@@ -27,12 +30,16 @@ export default function RevisionFinalRecepcion({
     recepcionesValidadas,
     inspecciones = [],
     onConfirmar,
+    usuarioAutorizador,
 }: PropsRevisionFinalRecepcion) {
     const [idRecepcion, setIdRecepcion] = useState("");
     const [cantidades, setCantidades] = useState<Record<number, string>>({});
     const [confirmada, setConfirmada] = useState(false);
     const [errores, setErrores] = useState<ErrorRevision>({ lineas: {} });
     const [mensaje, setMensaje] = useState("");
+    const [guardando, setGuardando] = useState(false);
+    /** Con la conexión activa se autorizan las cantidades conformes de la inspección. */
+    const soloInspeccion = conexion.recepcion;
 
     const pendientes = recepciones.filter(
         recepcion =>
@@ -68,8 +75,17 @@ export default function RevisionFinalRecepcion({
         return descripcion?.trim() || "Producto no disponible";
     }
 
-    function enviar(evento: FormEvent<HTMLFormElement>) {
+    const inspeccionSeleccionada = recepcion
+        ? inspecciones.find(
+              item =>
+                  item.idRecepcion === recepcion.idRecepcion &&
+                  item.idOrden === recepcion.idOrden,
+          )
+        : undefined;
+
+    async function enviar(evento: FormEvent<HTMLFormElement>) {
         evento.preventDefault();
+        if (guardando) return;
         setMensaje("");
 
         const nuevosErrores: ErrorRevision = { lineas: {} };
@@ -80,13 +96,17 @@ export default function RevisionFinalRecepcion({
             nuevosErrores.general =
                 "No se encontró la orden asociada a la recepción.";
         }
+        if (recepcion && soloInspeccion && !inspeccionSeleccionada) {
+            nuevosErrores.general =
+                "Primero registra la inspección de calidad de esta recepción.";
+        }
         if (!confirmada) {
             nuevosErrores.confirmacion =
                 "Confirma que revisaste las cantidades conformes.";
         }
 
         const detalles: DatosConfirmacionRecepcion["detalles"] = [];
-        if (recepcion && orden) {
+        if (recepcion && orden && !(soloInspeccion && !inspeccionSeleccionada)) {
             for (const detalle of recepcion.detalles) {
                 const texto = cantidades[detalle.idDetalleOrden]?.trim() ?? "";
                 const cantidadAceptada = Number(texto);
@@ -136,10 +156,18 @@ export default function RevisionFinalRecepcion({
             return;
         }
 
+        setGuardando(true);
         try {
-            onConfirmar({ idRecepcion: recepcion.idRecepcion, detalles });
+            const mensajeServidor = await onConfirmar({
+                idRecepcion: recepcion.idRecepcion,
+                detalles,
+                ...(soloInspeccion && usuarioAutorizador
+                    ? { usuarioAutorizador }
+                    : {}),
+            });
             setMensaje(
-                `La recepción ${recepcion.documento} quedó validada. Las cantidades rechazadas no se autorizaron.`,
+                mensajeServidor ??
+                    `La recepción ${recepcion.documento} quedó validada. Las cantidades rechazadas no se autorizaron.`,
             );
             setIdRecepcion("");
             setCantidades({});
@@ -153,6 +181,8 @@ export default function RevisionFinalRecepcion({
                         ? fallo.message
                         : "No se pudo confirmar la recepción.",
             });
+        } finally {
+            setGuardando(false);
         }
     }
 
@@ -160,8 +190,9 @@ export default function RevisionFinalRecepcion({
         <section className="tarjeta">
             <h2>Revisión final y aceptación</h2>
             <p>
-                Registra solo las cantidades conformes. Lo recibido que no se
-                acepte quedará excluido de las cantidades autorizadas.
+                {soloInspeccion
+                    ? "Se aceptan las cantidades conformes registradas en la inspección de calidad. Si alguna cantidad no es correcta, revisa la inspección antes de confirmar."
+                    : "Registra solo las cantidades conformes. Lo recibido que no se acepte quedará excluido de las cantidades autorizadas."}
             </p>
 
             {pendientes.length === 0 ? (
@@ -174,7 +205,7 @@ export default function RevisionFinalRecepcion({
                     )}
                 </>
             ) : (
-                <form onSubmit={enviar} noValidate>
+                <form onSubmit={evento => void enviar(evento)} noValidate>
                     <label className="campo">
                         Recepción pendiente
                         <select
@@ -282,6 +313,9 @@ export default function RevisionFinalRecepcion({
                                                     </td>
                                                     <td>{disponible}</td>
                                                     <td>
+                                                        {soloInspeccion ? (
+                                                            texto || "Sin inspección"
+                                                        ) : (
                                                         <input
                                                             type="text"
                                                             inputMode="numeric"
@@ -305,6 +339,7 @@ export default function RevisionFinalRecepcion({
                                                                 )
                                                             }
                                                         />
+                                                        )}
                                                     </td>
                                                     <td>{cantidadRechazada}</td>
                                                 </tr>
@@ -358,7 +393,9 @@ export default function RevisionFinalRecepcion({
                     )}
 
                     {recepcion && (
-                        <button type="submit">Confirmar aceptación</button>
+                        <button type="submit" disabled={guardando}>
+                            {guardando ? "Guardando…" : "Confirmar aceptación"}
+                        </button>
                     )}
                 </form>
             )}

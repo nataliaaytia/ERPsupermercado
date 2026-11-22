@@ -1,18 +1,36 @@
 /**
- * Autenticación contra los usuarios de prueba (data/usuarios.json).
- * Al conectar el backend, reemplazar por POST /auth/login del
- * microservicio de proveedores (ver servicios/api/endpoints.ts).
+ * Inicio de sesión contra el microservicio de proveedores (POST /auth/login).
  */
 import type { UsuarioSesion } from '../contexto/tiposSesion';
-import { obtenerUsuarios } from './datosPrueba';
+import { ErrorApi, establecerToken, http } from './api/clienteHttp';
+import { endpoints } from './api/endpoints';
 
-export function iniciarSesion(usuario: string, contrasena: string): UsuarioSesion | null {
-  const encontrado = obtenerUsuarios().find(
-    (item) => item.usuario === usuario.trim() && item.contrasena === contrasena,
-  );
-  if (!encontrado) return null;
+interface RespuestaLogin {
+  token: string;
+  tipoToken: string;
+  idUsuario: number;
+  username: string;
+  rol: string;
+  mensaje: string;
+}
 
-  const datos: Partial<typeof encontrado> = { ...encontrado };
-  delete datos.contrasena;
-  return datos as UsuarioSesion;
+export async function iniciarSesion(usuario: string, contrasena: string): Promise<UsuarioSesion | null> {
+  try {
+    const respuesta = await http.post<RespuestaLogin>(endpoints.autenticacion.login, {
+      username: usuario.trim(),
+      password: contrasena,
+    });
+    establecerToken(respuesta.token);
+    return {
+      idUsuario: respuesta.idUsuario,
+      usuario: respuesta.username,
+      nombre: respuesta.username,
+      rol: respuesta.rol,
+      token: respuesta.token,
+    };
+  } catch (fallo) {
+    // 400 (datos con formato inválido) y 401 (credenciales) son "usuario o contraseña incorrectos".
+    if (fallo instanceof ErrorApi && (fallo.estado === 401 || fallo.estado === 400)) return null;
+    throw fallo;
+  }
 }

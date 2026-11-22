@@ -42,6 +42,11 @@ public class RequisicionValidacionController {
         return ResponseEntity.ok(respuesta);
     }
 
+    @GetMapping
+    public ResponseEntity<java.util.List<Map<String, Object>>> listar() {
+        return ResponseEntity.ok(validacionService.listar());
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<Map<String, Object>> consultar(
             @PathVariable Long id) {

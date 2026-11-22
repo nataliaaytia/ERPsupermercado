@@ -1,5 +1,12 @@
 
-import { actualizarCompras } from "../../../estado/almacenCompras";
+import {
+  actualizarCompras,
+  obtenerCompras,
+} from "../../../estado/almacenCompras";
+import { conexion } from "../../../servicios/api/configuracion";
+import { recargar } from "../../../servicios/sincronizacion";
+import * as api from "./ordenesApi";
+import { finalizarOperacion } from "./operacionApi";
 import type {
   OrdenCompra,
   RegistroEnvioOrden,
@@ -137,4 +144,69 @@ export function simularEnvioOrden(
   }
 
   return registroCreado;
+}
+/**
+ * Envío de la orden al proveedor. Con el servidor conectado se envía un correo
+ * real con la orden; si no, se registra el resultado de la simulación.
+ */
+export async function enviarOrdenProveedor(
+  datos: DatosSimulacionEnvio
+): Promise<RegistroEnvioOrden> {
+  if (!conexion.ordenes) {
+    return simularEnvioOrden(datos);
+  }
+
+  const orden = obtenerCompras().ordenes.find(
+    (item) => item.idOrden === datos.idOrden
+  );
+
+  if (!orden) {
+    throw new Error("No se encontró la orden de compra.");
+  }
+
+  if (orden.estado !== "Aprobada") {
+    throw new Error("Solo se pueden enviar órdenes aprobadas.");
+  }
+
+  const resultado = await api.enviar(datos.idOrden);
+  const exitoso = resultado.resultado !== "FALLIDO";
+  const historial = orden.historialEnvios ?? [];
+
+  const registro: RegistroEnvioOrden = {
+    idIntento:
+      historial.reduce(
+        (maximo, intento) => Math.max(maximo, intento.idIntento),
+        0
+      ) + 1,
+    fecha: new Date().toISOString(),
+    proveedor: datos.proveedor.trim(),
+    canal: resultado.destinatario
+      ? `Correo electrónico (${resultado.destinatario})`
+      : "Correo electrónico",
+    estado: exitoso ? "Exitoso" : "Fallido",
+    mensaje: exitoso
+      ? `La orden se envió por correo a ${resultado.destinatario ?? "el proveedor"}.`
+      : `No se pudo enviar el correo${resultado.detalleError ? `: ${resultado.detalleError}` : "."}`,
+  };
+
+  // El servidor no permite consultar los envíos: se guardan en el almacén.
+  actualizarCompras((actual) => ({
+    ...actual,
+    ordenes: actual.ordenes.map((item) =>
+      item.idOrden === datos.idOrden
+        ? {
+            ...item,
+            historialEnvios: [...(item.historialEnvios ?? []), registro],
+          }
+        : item
+    ),
+  }));
+
+  if (!exitoso) {
+    await recargar("ordenes");
+    throw new Error(registro.mensaje + " Puedes volver a intentarlo.");
+  }
+
+  await finalizarOperacion(registro.mensaje);
+  return registro;
 }

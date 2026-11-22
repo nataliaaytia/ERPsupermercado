@@ -14,7 +14,7 @@ interface Props {
     }[];
     orden?: OrdenCompra;
     inspeccion?: InspeccionCalidadRecepcion;
-    onRegistrar: (datos: DatosInspeccionCalidad) => void;
+    onRegistrar: (datos: DatosInspeccionCalidad) => Promise<string | undefined>;
 }
 
 interface CamposLinea {
@@ -34,6 +34,8 @@ export default function InspeccionCalidadRecepcion({
         {},
     );
     const [error, setError] = useState("");
+    const [mensaje, setMensaje] = useState("");
+    const [guardando, setGuardando] = useState(false);
 
     function actualizarLinea(
         idDetalleOrden: number,
@@ -53,9 +55,11 @@ export default function InspeccionCalidadRecepcion({
         }));
     }
 
-    function guardar(evento: FormEvent<HTMLFormElement>) {
+    async function guardar(evento: FormEvent<HTMLFormElement>) {
         evento.preventDefault();
+        if (guardando) return;
         setError("");
+        setMensaje("");
 
         try {
             const lineas = detallesRecibidos.map(detalle => {
@@ -110,19 +114,27 @@ export default function InspeccionCalidadRecepcion({
                 idRecepcion,
                 detalles: lineas,
             };
-            onRegistrar(datos);
+            setGuardando(true);
+            setMensaje((await onRegistrar(datos)) ?? "");
         } catch (fallo) {
             setError(
                 fallo instanceof Error
                     ? fallo.message
                     : "No se pudo guardar la inspección.",
             );
+        } finally {
+            setGuardando(false);
         }
     }
 
     if (inspeccion) {
         return (
             <section className="inspeccion-calidad">
+                {mensaje && (
+                    <p className="alerta alerta--exito" role="status">
+                        {mensaje}
+                    </p>
+                )}
                 <h4>
                     Inspección registrada ·{" "}
                     {new Date(inspeccion.fechaInspeccion).toLocaleString(
@@ -168,7 +180,7 @@ export default function InspeccionCalidadRecepcion({
     return (
         <form
             className="inspeccion-calidad"
-            onSubmit={guardar}
+            onSubmit={evento => void guardar(evento)}
             noValidate
         >
             <h4>Inspección de calidad</h4>
@@ -271,7 +283,9 @@ export default function InspeccionCalidadRecepcion({
                     {error}
                 </p>
             )}
-            <button type="submit">Guardar inspección</button>
+            <button type="submit" disabled={guardando}>
+                {guardando ? "Guardando…" : "Guardar inspección"}
+            </button>
         </form>
     );
 }

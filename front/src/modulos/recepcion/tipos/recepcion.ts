@@ -2,6 +2,10 @@
 export interface DetalleRecepcion {
     idDetalleOrden: number;
     cantidadRecibida: number;
+    /** Identificador de la línea en el servidor (solo con la conexión activa). */
+    idDetalleRecepcion?: number;
+    /** Producto de la línea en el servidor (solo con la conexión activa). */
+    productoId?: number;
 }
 
 export type EstadoRecepcion =
@@ -25,6 +29,10 @@ export interface RecepcionRegistrada {
     responsableCorreccion?: string;
     fechaCorreccion?: string;
     costoTransporte?: CostoTransporte;
+    /** Datos que solo existen con la conexión activa. */
+    almacen?: string;
+    observacion?: string;
+    estadoServidor?: string;
 }
 
 export interface DatosRecepcion {
@@ -35,6 +43,9 @@ export interface DatosRecepcion {
         idDetalleOrden: number;
         cantidad: string;
     }[];
+    /** Almacén de destino (lo exige el servidor con la conexión activa). */
+    almacen?: string;
+    observacion?: string;
 }
 
 export interface DatosCorreccionRecepcion

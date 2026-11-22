@@ -1,15 +1,27 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { TrendingUp, ShoppingBag, Award, BarChart3 } from "lucide-react";
 import type { Proveedor } from "../tipos";
 import { obtenerDescuentoMaximo } from "../servicios/funcionesAuxiliares";
-import { obtenerFrecuenciaMensual } from "../../../servicios/datosPrueba";
+import {
+  obtenerFrecuenciaMensual,
+  type FrecuenciaMensualApi,
+} from "../servicios/proveedoresApi";
 
-const datosFrecuenciaMensual = obtenerFrecuenciaMensual();
 export default function RankingProveedores({
   proveedores,
 }: {
   proveedores: Proveedor[];
 }) {
+  const [datosFrecuenciaMensual, setDatosFrecuenciaMensual] = useState<
+    FrecuenciaMensualApi[]
+  >([]);
+
+  useEffect(() => {
+    obtenerFrecuenciaMensual()
+      .then(setDatosFrecuenciaMensual)
+      .catch(() => setDatosFrecuenciaMensual([]));
+  }, []);
+
   const [criterioRanking, setCriterioRanking] = useState<
     "descuento" | "puntuacion" | "tiempo"
   >("descuento");
@@ -58,7 +70,7 @@ export default function RankingProveedores({
           <div className="kpi-content">
             <span className="kpi-title">Promedio Desempeño</span>
             <span className="kpi-value">{promedioDesempeno}%</span>
-            <span className="kpi-sub positive">Datos de demostración</span>
+            <span className="kpi-sub positive">Según los datos registrados</span>
           </div>
         </div>
 
@@ -215,6 +227,9 @@ export default function RankingProveedores({
             <ShoppingBag size={18} className="chart-header-icon" />
           </div>
 
+          {datosFrecuenciaMensual.length === 0 && (
+            <p className="estado-vacio">Todavía no hay órdenes registradas por mes.</p>
+          )}
           <div className="freq-bar-chart">
             {datosFrecuenciaMensual.map((item) => {
               return (

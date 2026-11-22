@@ -4,7 +4,8 @@ import { LogIn, LogOut, Menu, Moon, RotateCcw, Sun, X } from 'lucide-react';
 import { useSesion } from '../../contexto/SesionContext';
 import { useTema } from '../../contexto/TemaContext';
 import { modulos } from '../../app/modulos';
-import { reiniciarDatosPrueba } from '../../estado/almacenCompras';
+import { reiniciarEstado } from '../../estado/almacenCompras';
+import { cargarTodo } from '../../servicios/sincronizacion';
 import './Cabecera.css';
 
 /** Barra superior común a todas las pantallas. */
@@ -14,10 +15,9 @@ export default function Cabecera() {
   const navegar = useNavigate();
   const [menuAbierto, setMenuAbierto] = useState(false);
 
-  const restablecerDatos = () => {
-    if (window.confirm('¿Descartar los cambios y volver a los datos iniciales de prueba?')) {
-      reiniciarDatosPrueba();
-    }
+  const recargarDatos = () => {
+    reiniciarEstado();
+    void cargarTodo();
   };
 
   const salir = () => {
@@ -60,9 +60,9 @@ export default function Cabecera() {
               <button
                 type="button"
                 className="cabecera__boton"
-                onClick={restablecerDatos}
-                aria-label="Restablecer datos de prueba"
-                title="Restablecer datos de prueba"
+                onClick={recargarDatos}
+                aria-label="Volver a cargar los datos"
+                title="Volver a cargar los datos"
               >
                 <RotateCcw size={16} />
               </button>

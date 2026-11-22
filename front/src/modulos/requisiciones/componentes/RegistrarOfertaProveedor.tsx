@@ -6,6 +6,7 @@ import type { AccionCompras, EstadoCompras } from "../servicios/modeloCompras";
 import type { ProveedorReferencia } from "../tipos";
 
 import EstadoPlazoCotizacion from "./EstadoPlazoCotizacion";
+import { useGuardandoCotizaciones } from "../servicios/despachoCotizaciones";
 import { calcularPlazoCotizacion } from "../servicios/plazoCotizacion";
 
 interface Props {
@@ -27,10 +28,9 @@ export default function RegistrarOfertaProveedor({
   hoy,
   dispatch,
 }: Props) {
+  const guardando = useGuardandoCotizaciones();
   const [proveedorId, setProveedorId] = useState("");
   const [validez, setValidez] = useState("");
-  const [descuento, setDescuento] = useState("0");
-  const [condicionesEntrega, setCondicionesEntrega] = useState("");
 
   const [precios, setPrecios] = useState<Record<number, string>>({});
   const [plazos, setPlazos] = useState<Record<number, string>>({});
@@ -66,8 +66,6 @@ export default function RegistrarOfertaProveedor({
 
     setProveedorId("");
     setValidez("");
-    setDescuento("0");
-    setCondicionesEntrega("");
     setPrecios({});
     setPlazos({});
     setErrores({});
@@ -110,27 +108,6 @@ export default function RegistrarOfertaProveedor({
     } else if (validez < hoy) {
       nuevosErrores.validez =
         "La fecha de validez no puede ser anterior a hoy.";
-    }
-
-    const descuentoNumero = Number(descuento);
-
-    if (descuento.trim() === "") {
-      nuevosErrores.descuento = "Ingresa el descuento ofrecido.";
-    } else if (
-      !Number.isFinite(descuentoNumero) ||
-      descuentoNumero < 0 ||
-      descuentoNumero > 100
-    ) {
-      nuevosErrores.descuento =
-        "El descuento debe estar entre 0 y 100%.";
-    }
-
-    if (!condicionesEntrega.trim()) {
-      nuevosErrores.condiciones =
-        "Ingresa las condiciones de entrega.";
-    } else if (condicionesEntrega.trim().length > 500) {
-      nuevosErrores.condiciones =
-        "Las condiciones no pueden superar los 500 caracteres.";
     }
 
     requisicion.detalles.forEach((detalle) => {
@@ -208,8 +185,9 @@ export default function RegistrarOfertaProveedor({
       solicitud: solicitud.idSolicitud,
       proveedor,
       validez,
-      condicionesEntrega: condicionesEntrega.trim(),
-      descuento: Number(descuento),
+      // El servidor no registra descuento ni condiciones de entrega.
+      condicionesEntrega: "",
+      descuento: 0,
       hoy,
       detalles: requisicion.detalles.map((detalle, i) => ({
         idDetalle: i + 1,
@@ -289,55 +267,6 @@ export default function RegistrarOfertaProveedor({
         {errores.validez && (
           <p role="alert" className="formulario-requisicion__error">
             {errores.validez}
-          </p>
-        )}
-
-        <label>
-          Descuento ofrecido (%)
-          <input
-            data-campo="descuento"
-            className="formulario-requisicion__input"
-            type="number"
-            min="0"
-            max="100"
-            step="0.01"
-            value={descuento}
-            onChange={(e) => {
-              setDescuento(e.target.value);
-              limpiarError("descuento");
-            }}
-            disabled={plazoVencido}
-            aria-invalid={Boolean(errores.descuento)}
-          />
-        </label>
-
-        {errores.descuento && (
-          <p role="alert" className="formulario-requisicion__error">
-            {errores.descuento}
-          </p>
-        )}
-
-        <label>
-          Condiciones de entrega
-          <textarea
-            data-campo="condiciones"
-            className="formulario-requisicion__input"
-            value={condicionesEntrega}
-            onChange={(e) => {
-              setCondicionesEntrega(e.target.value);
-              limpiarError("condiciones");
-            }}
-            placeholder="Ej.: entrega en almacén, embalaje incluido y transporte a cargo del proveedor"
-            rows={3}
-            maxLength={500}
-            disabled={plazoVencido}
-            aria-invalid={Boolean(errores.condiciones)}
-          />
-        </label>
-
-        {errores.condiciones && (
-          <p role="alert" className="formulario-requisicion__error">
-            {errores.condiciones}
           </p>
         )}
 
@@ -429,11 +358,13 @@ export default function RegistrarOfertaProveedor({
           <button
             type="submit"
             className="selector-proveedores-boton"
-            disabled={plazoVencido}
+            disabled={plazoVencido || guardando}
           >
             {plazoVencido
               ? "Registro de ofertas deshabilitado"
-              : "Registrar oferta"}
+              : guardando
+                ? "Guardando…"
+                : "Registrar oferta"}
           </button>
         </div>
       </form>

@@ -541,6 +541,15 @@ public class OrdenCompraService {
                     "El monto supera el limite autorizado");
         }
 
+        orden.agregarCambioEstado(
+                HistorialEstadoOrdenCompra.builder()
+                        .estadoAnterior(orden.getEstado())
+                        .estadoNuevo("APROBADA")
+                        .responsable(usuarioAprobador)
+                        .fechaCambio(LocalDateTime.now(ZoneId.of("America/La_Paz")))
+                        .observacion("Orden aprobada")
+                        .build());
+
         orden.setEstado("APROBADA");
         orden.setAprobadoPor(usuarioAprobador);
         orden.setFechaAprobacion(

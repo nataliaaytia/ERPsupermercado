@@ -56,10 +56,12 @@ public class CierreOrdenCompraService {
                         "La orden de compra no existe"
                 ));
 
-        if (!"ENVIADA".equalsIgnoreCase(orden.getEstado())) {
+        // Una orden aceptada por el proveedor es la que recibe mercadería, por eso también se puede cerrar.
+        if (!"ENVIADA".equalsIgnoreCase(orden.getEstado())
+                && !"ACEPTADA_PROVEEDOR".equalsIgnoreCase(orden.getEstado())) {
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
-                    "Solo se pueden cerrar órdenes en estado ENVIADA"
+                    "Solo se pueden cerrar órdenes enviadas o aceptadas por el proveedor"
             );
         }
 

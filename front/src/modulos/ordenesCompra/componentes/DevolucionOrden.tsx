@@ -95,7 +95,7 @@ export default function DevolucionOrden({
     setError("");
   }
 
-  function confirmarDevolucion(
+  async function confirmarDevolucion(
     evento: React.FormEvent<HTMLFormElement>
   ) {
     evento.preventDefault();
@@ -114,7 +114,7 @@ export default function DevolucionOrden({
     setError("");
 
     try {
-      devolverOrdenParaCorreccion(
+      await devolverOrdenParaCorreccion(
         idOrden,
         motivoValidado,
         "Jefe de compras"

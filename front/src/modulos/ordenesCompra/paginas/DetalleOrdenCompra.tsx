@@ -18,7 +18,7 @@ interface Props {
 export default function DetalleOrdenCompra({
   idOrdenInicial = null,
 }: Props) {
-  const { ordenes, ofertas, errorCarga } = useCompras();
+  const { ordenes, ofertas, proveedores, errorCarga } = useCompras();
 
   const [seleccion, setSeleccion] = useState({
     idOrdenInicial,
@@ -34,10 +34,12 @@ export default function DetalleOrdenCompra({
 
   const [error, setError] = useState("");
   const [modalAprobacion, setModalAprobacion] = useState(false);
+  const [aprobando, setAprobando] = useState(false);
 
   const botonCancelarRef = useRef<HTMLButtonElement>(null);
   const botonAbrirRef = useRef<HTMLButtonElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
+  const aprobandoRef = useRef(false);
 
   const orden = ordenes.find(
     (item) => String(item.idOrden) === idSeleccionado
@@ -47,8 +49,16 @@ export default function DetalleOrdenCompra({
     (item) => item.idOferta === orden?.idOfertaOrigen
   );
 
+  // Las órdenes del servidor traen su proveedor; las de prueba lo toman de la oferta.
+  const proveedorOrden =
+    orden?.proveedorId !== undefined
+      ? proveedores.find(
+          (item) => item.idProveedor === orden.proveedorId
+        )?.razonSocial
+      : undefined;
+
   const proveedor =
-    oferta?.proveedor?.razonSocial ?? "No disponible";
+    proveedorOrden ?? oferta?.proveedor?.razonSocial ?? "No disponible";
 
   useEffect(() => {
     if (!modalAprobacion) return;
@@ -63,7 +73,7 @@ export default function DetalleOrdenCompra({
     function manejarTeclado(evento: KeyboardEvent) {
       if (evento.key === "Escape") {
         evento.preventDefault();
-        setModalAprobacion(false);
+        if (!aprobandoRef.current) setModalAprobacion(false);
         return;
       }
 
@@ -114,19 +124,24 @@ export default function DetalleOrdenCompra({
     setModalAprobacion(false);
   }
 
-  function manejarAprobacion() {
-    if (!orden) return;
+  async function manejarAprobacion() {
+    if (!orden || aprobando) return;
+
+    setAprobando(true);
+    aprobandoRef.current = true;
 
     try {
-      aprobarOrdenCompra(orden.idOrden);
+      await aprobarOrdenCompra(orden.idOrden);
       setError("");
-      setModalAprobacion(false);
     } catch (fallo) {
       setError(
         fallo instanceof Error
           ? fallo.message
           : "No se pudo aprobar la orden."
       );
+    } finally {
+      aprobandoRef.current = false;
+      setAprobando(false);
       setModalAprobacion(false);
     }
   }
@@ -321,7 +336,8 @@ export default function DetalleOrdenCompra({
             className="detalle-orden__modal-fondo"
             onMouseDown={(evento) => {
               if (
-                evento.target === evento.currentTarget
+                evento.target === evento.currentTarget &&
+                !aprobando
               ) {
                 setModalAprobacion(false);
               }
@@ -358,6 +374,7 @@ export default function DetalleOrdenCompra({
                   onClick={() =>
                     setModalAprobacion(false)
                   }
+                  disabled={aprobando}
                 >
                   Cancelar
                 </button>
@@ -366,8 +383,9 @@ export default function DetalleOrdenCompra({
                   type="button"
                   className="detalle-orden__boton-aprobar"
                   onClick={manejarAprobacion}
+                  disabled={aprobando}
                 >
-                  Confirmar aprobación
+                  {aprobando ? "Procesando…" : "Confirmar aprobación"}
                 </button>
               </div>
             </div>

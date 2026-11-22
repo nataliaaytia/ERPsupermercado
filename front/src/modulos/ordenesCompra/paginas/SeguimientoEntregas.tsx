@@ -1,12 +1,46 @@
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useCompras } from "../../../estado/useCompras";
+import { conexion } from "../../../servicios/api/configuracion";
+import { consultarSaldos, type SaldoDetalleApi } from "../servicios/ordenesApi";
 import { calcularSaldosEntrega } from "../servicios/utilidadesSeguimientoEntregas";
 import { servicioCierreOrden } from "../servicios/cierreOrden";
 import { consultarCantidadesAutorizadas } from "../../recepcion/servicios/servicioConsultaValidaciones";
 
 import CierreOrden from "../componentes/CierreOrden";
 
+
+interface SaldosServidor {
+    idOrden: number;
+    estado: string;
+    detalles: SaldoDetalleApi[];
+}
+
+/** Con el servidor conectado, los saldos por línea se consultan en Órdenes de compra. */
+function useSaldosServidor(idOrden: number | undefined, estado: string | undefined) {
+    const [saldos, setSaldos] = useState<SaldosServidor | null>(null);
+
+    useEffect(() => {
+        if (!conexion.ordenes || idOrden === undefined || estado === undefined) return;
+        let activo = true;
+
+        consultarSaldos(idOrden)
+            .then(detalles => {
+                if (activo) setSaldos({ idOrden, estado, detalles });
+            })
+            .catch(() => {
+                // Si no se pueden consultar, se usan las recepciones cargadas en la aplicación.
+            });
+
+        return () => {
+            activo = false;
+        };
+    }, [idOrden, estado]);
+
+    return saldos && saldos.idOrden === idOrden && saldos.estado === estado
+        ? saldos.detalles
+        : null;
+}
 
 export default function SeguimientoEntregas() {
     const { ordenes, recepcionesValidadas } = useCompras();
@@ -23,7 +57,18 @@ export default function SeguimientoEntregas() {
         )
         : [];
 
-    const lineas = orden ? calcularSaldosEntrega(orden, recepciones) : [];
+    const saldosServidor = useSaldosServidor(orden?.idOrden, orden?.estado);
+
+    const lineas = (orden ? calcularSaldosEntrega(orden, recepciones) : []).map(linea => {
+        const saldo = saldosServidor?.find(item => item.idDetalle === linea.idDetalle);
+        return saldo
+            ? {
+                  ...linea,
+                  aceptadas: saldo.cantidadAceptada,
+                  pendientes: Math.max(0, saldo.cantidadPendiente),
+              }
+            : linea;
+    });
     const cantidadesAutorizadas = orden
         ? consultarCantidadesAutorizadas(orden.idOrden)
         : [];

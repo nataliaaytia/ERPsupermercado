@@ -1,0 +1,124 @@
+.sin-conexion {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: var(--overlay);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  animation: sin-conexion-entrada 0.25s ease-out;
+}
+
+.sin-conexion__tarjeta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.9rem;
+  width: min(460px, 100%);
+  padding: 2.25rem 2rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  text-align: center;
+  box-shadow: var(--shadow-md);
+}
+
+.sin-conexion__icono {
+  display: grid;
+  place-items: center;
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.sin-conexion h1 {
+  margin: 0;
+  font-size: 1.6rem;
+}
+
+.sin-conexion p {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.sin-conexion__estado {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.sin-conexion__punto {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--warning);
+  animation: sin-conexion-pulso 1.2s ease-in-out infinite;
+}
+
+.sin-conexion__boton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding: 0.7rem 1.3rem;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: var(--text-on-accent);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sin-conexion__boton:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.sin-conexion__boton:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.sin-conexion__girando {
+  animation: sin-conexion-giro 0.8s linear infinite;
+}
+
+@keyframes sin-conexion-entrada {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes sin-conexion-pulso {
+  50% {
+    opacity: 0.3;
+  }
+}
+
+@keyframes sin-conexion-giro {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sin-conexion,
+  .sin-conexion__punto,
+  .sin-conexion__girando {
+    animation: none;
+  }
+}
+
+.sin-conexion__lista {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-weight: 600;
+  color: var(--text-primary);
+}

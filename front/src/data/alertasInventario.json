@@ -1,5 +1,0 @@
-[
-  { "idEvento": "INV-2026-0141", "idProducto": 9, "nombreProducto": "Harina de trigo 1 kg", "cantidadActual": 35, "stockMinimo": 120, "cantidadSugerida": 250, "fechaPublicacion": "2026-11-20T08:30:00" },
-  { "idEvento": "INV-2026-0142", "idProducto": 10, "nombreProducto": "Atún en lata 170 g", "cantidadActual": 60, "stockMinimo": 200, "cantidadSugerida": 400, "fechaPublicacion": "2026-11-20T10:05:00" },
-  { "idEvento": "INV-2026-0143", "idProducto": 4, "nombreProducto": "Leche entera UHT 1 L", "cantidadActual": 140, "stockMinimo": 500, "cantidadSugerida": 600, "fechaPublicacion": "2026-11-21T07:45:00" }
-]

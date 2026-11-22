@@ -12,6 +12,9 @@ import {
     actualizarCompras,
 } from "../../../estado/almacenCompras";
 import { fechaHoy } from "../../../utilidades/fechas";
+import { conexion } from "../../../servicios/api/configuracion";
+import * as api from "./ordenesApi";
+import { finalizarOperacion } from "./operacionApi";
 
 export { fechaHoy };
 
@@ -257,9 +260,16 @@ export function agregarCompromiso(
     );
 }
 
-export function registrarCompromiso(
+/** Estado de orden en el que se programan entregas (el servidor exige órdenes aprobadas). */
+export const ESTADO_PARA_COMPROMISOS = conexion.ordenes ? "Aprobada" : "Confirmada";
+
+export async function registrarCompromiso(
     datos: DatosCompromisoEntrega,
-): OrdenCompra[] {
+): Promise<OrdenCompra[]> {
+    if (conexion.ordenes) {
+        return registrarCompromisoEnServidor(datos);
+    }
+
     const ordenes = agregarCompromiso(
         cargarOrdenesCompra(),
         datos,
@@ -269,4 +279,85 @@ export function registrarCompromiso(
     guardarOrdenesCompra(ordenes);
 
     return ordenes;
+}
+
+async function registrarCompromisoEnServidor(
+    datos: DatosCompromisoEntrega,
+): Promise<OrdenCompra[]> {
+    const orden = obtenerCompras().ordenes.find(
+        item => item.idOrden === datos.idOrden,
+    );
+
+    if (!orden || orden.estado !== "Aprobada") {
+        throw new Error(
+            "Solo puedes registrar entregas en una orden aprobada.",
+        );
+    }
+
+    const detalle = orden.detalles.find(
+        item => item.idDetalle === datos.idDetalle,
+    );
+
+    if (!detalle) {
+        throw new Error("Selecciona una línea de la orden.");
+    }
+
+    if (!fechaValida(datos.fechaEntrega) || datos.fechaEntrega < fechaHoy()) {
+        throw new Error("La fecha debe ser válida y no anterior a hoy.");
+    }
+
+    const cantidad = Number(datos.cantidad.trim());
+
+    if (!/^\d+$/.test(datos.cantidad.trim()) || !Number.isSafeInteger(cantidad) || cantidad <= 0) {
+        throw new Error(
+            "La cantidad debe ser un número entero mayor que cero.",
+        );
+    }
+
+    const saldo = detalle.cantidad - cantidadComprometida(detalle);
+
+    if (cantidad > saldo) {
+        throw new Error(
+            `La cantidad supera el saldo de la línea: ${Math.max(0, saldo)}.`,
+        );
+    }
+
+    const observacion = datos.observacion.trim();
+    const respuesta = await api.registrarCompromiso(
+        datos.idOrden,
+        datos.idDetalle,
+        {
+            fechaEntrega: datos.fechaEntrega,
+            cantidad,
+            ...(observacion ? { observacion } : {}),
+        },
+    );
+
+    // El servidor no permite consultar los compromisos: se guardan en el almacén.
+    const compromiso = api.aCompromiso(respuesta);
+    actualizarCompras(actual => ({
+        ...actual,
+        ordenes: actual.ordenes.map(item =>
+            item.idOrden !== datos.idOrden
+                ? item
+                : {
+                    ...item,
+                    detalles: item.detalles.map(linea =>
+                        linea.idDetalle !== datos.idDetalle
+                            ? linea
+                            : {
+                                ...linea,
+                                compromisos: [
+                                    ...(linea.compromisos ?? []),
+                                    compromiso,
+                                ],
+                            },
+                    ),
+                },
+        ),
+    }));
+
+    await finalizarOperacion("Compromiso de entrega registrado correctamente.");
+
+    return obtenerCompras().ordenes;
 }

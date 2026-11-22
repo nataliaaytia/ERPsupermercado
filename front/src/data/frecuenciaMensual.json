@@ -1,8 +1,0 @@
-[
-  { "mes": "Jun", "ordenes": 12, "monto": 22000 },
-  { "mes": "Jul", "ordenes": 18, "monto": 34000 },
-  { "mes": "Ago", "ordenes": 15, "monto": 28000 },
-  { "mes": "Sep", "ordenes": 22, "monto": 45000 },
-  { "mes": "Oct", "ordenes": 28, "monto": 56000 },
-  { "mes": "Nov", "ordenes": 21, "monto": 41000 }
-]

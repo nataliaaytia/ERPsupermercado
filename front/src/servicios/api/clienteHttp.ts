@@ -23,7 +23,9 @@ export function establecerToken(nuevo: string | null): void {
 }
 
 async function solicitar<T>(metodo: string, url: string, cuerpo?: unknown): Promise<T> {
-  const respuesta = await fetch(url, {
+  let respuesta: Response;
+  try {
+    respuesta = await fetch(url, {
     method: metodo,
     headers: {
       Accept: 'application/json',
@@ -31,15 +33,34 @@ async function solicitar<T>(metodo: string, url: string, cuerpo?: unknown): Prom
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
     body: cuerpo !== undefined ? JSON.stringify(cuerpo) : undefined,
-  });
+    });
+  } catch {
+    throw new ErrorApi('No se pudo conectar con el servidor. Verifica que el servicio esté encendido.', 0);
+  }
 
   const texto = await respuesta.text();
-  const datos: unknown = texto ? JSON.parse(texto) : undefined;
+  let datos: unknown;
+  try {
+    datos = texto ? JSON.parse(texto) : undefined;
+  } catch {
+    datos = texto;
+  }
 
   if (!respuesta.ok) {
-    // Ambos microservicios devuelven { mensaje } en sus errores.
+    // Cada microservicio responde los errores a su manera:
+    // { mensaje }, { message }, { errores: { campo: mensaje } } o texto plano.
+    const cuerpoError =
+      typeof datos === 'object' && datos !== null
+        ? (datos as { mensaje?: string; message?: string; errores?: Record<string, string> })
+        : undefined;
+    const detalles = cuerpoError?.errores ? Object.values(cuerpoError.errores).join(' ') : '';
+    const textoPlano = typeof datos === 'string' && datos.length < 300 ? datos : '';
     const mensaje =
-      (datos as { mensaje?: string } | undefined)?.mensaje ?? `Error ${respuesta.status} al llamar a ${url}`;
+      detalles ||
+      cuerpoError?.mensaje ||
+      cuerpoError?.message ||
+      textoPlano ||
+      `El servidor respondió con un error (${respuesta.status}).`;
     throw new ErrorApi(mensaje, respuesta.status, datos);
   }
   return datos as T;

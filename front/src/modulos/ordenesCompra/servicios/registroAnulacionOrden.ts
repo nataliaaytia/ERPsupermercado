@@ -3,7 +3,10 @@ import {
   actualizarCompras,
   obtenerCompras,
 } from "../../../estado/almacenCompras";
+import { conexion } from "../../../servicios/api/configuracion";
 import type { OrdenCompra } from "../tipos";
+import * as api from "./ordenesApi";
+import { finalizarOperacion } from "./operacionApi";
 
 const ESTADOS_ANULABLES = [
   "Borrador",
@@ -39,16 +42,43 @@ export function puedeAnularOrden(
   );
 }
 
-export function anularOrdenCompra(
+export async function anularOrdenCompra(
   idOrden: number,
   motivo: string
-): void {
+): Promise<void> {
   const motivoLimpio = motivo.trim();
 
   if (!motivoLimpio) {
     throw new Error(
       "Debes ingresar el motivo de anulación."
     );
+  }
+
+  if (conexion.ordenes) {
+    const resultado = await api.anular(idOrden, motivoLimpio);
+    const sesion = api.usuarioActual();
+
+    // El servidor no permite consultar la anulación: se guarda en el almacén.
+    actualizarCompras((actual) => ({
+      ...actual,
+      ordenes: actual.ordenes.map((item) =>
+        item.idOrden === idOrden
+          ? {
+              ...item,
+              anulacion: {
+                motivo: resultado?.motivoAnulacion ?? motivoLimpio,
+                fecha: resultado?.fechaAnulacion ?? new Date().toISOString(),
+                usuario: sesion.nombre || "Comprador",
+              },
+            }
+          : item
+      ),
+    }));
+
+    await finalizarOperacion(
+      `La orden ${resultado?.numero ?? ""} fue anulada.`.replace("  ", " ")
+    );
+    return;
   }
 
   actualizarCompras((actual) => {

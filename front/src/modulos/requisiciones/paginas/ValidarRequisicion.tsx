@@ -2,6 +2,7 @@ import EtiquetaEstado from "../componentes/EtiquetaEstado";
 import MensajesValidacion from "../componentes/MensajesValidacion";
 import { codigoRequisicion } from "../servicios/formatoRequisicion";
 import type { Requisicion } from "../tipos";
+import { useGuardandoCotizaciones } from "../servicios/despachoCotizaciones";
 import "./ValidarRequisicion.css";
 
 interface Props {
@@ -15,6 +16,8 @@ export default function ValidarRequisicion({
   onValidar,
   onAnular,
 }: Props) {
+  const guardando = useGuardandoCotizaciones();
+
   if (requisiciones.length === 0) {
     return (
       <p className="validar-requisicion__vacio">
@@ -82,6 +85,7 @@ export default function ValidarRequisicion({
               <button
                 type="button"
                 className="validar-requisicion__boton"
+                disabled={guardando}
                 onClick={() =>
                   onValidar(requisicion.idRequisicion)
                 }
@@ -92,6 +96,7 @@ export default function ValidarRequisicion({
               <button
                 type="button"
                 className="validar-requisicion__boton validar-requisicion__boton--peligro"
+                disabled={guardando}
                 onClick={() =>
                   onAnular(requisicion.idRequisicion)
                 }

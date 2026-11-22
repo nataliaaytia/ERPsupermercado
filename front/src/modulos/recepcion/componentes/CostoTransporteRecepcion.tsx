@@ -25,6 +25,7 @@ export default function CostoTransporteRecepcion({
     const [comprobante, setComprobante] = useState("");
     const [error, setError] = useState("");
     const [mensaje, setMensaje] = useState("");
+    const [guardando, setGuardando] = useState(false);
 
     const costo = recepcion.costoTransporte;
     const bloqueo = motivoBloqueoRecepcion(recepcion, recepcionesValidadas);
@@ -38,27 +39,30 @@ export default function CostoTransporteRecepcion({
         setEditando(true);
     }
 
-    function guardar(evento: FormEvent<HTMLFormElement>) {
+    async function guardar(evento: FormEvent<HTMLFormElement>) {
         evento.preventDefault();
 
-        if (bloqueo) return;
+        if (bloqueo || guardando) return;
 
         setError("");
         setMensaje("");
+        setGuardando(true);
 
         try {
-            guardarCostoTransporte(recepcion.idRecepcion, {
+            const mensajeServidor = await guardarCostoTransporte(recepcion.idRecepcion, {
                 importe,
                 concepto,
                 comprobante,
             });
 
             setEditando(false);
-            setMensaje("Costo de transporte guardado.");
+            setMensaje(mensajeServidor ?? "Costo de transporte guardado.");
         } catch (fallo) {
             setError(
                 fallo instanceof Error ? fallo.message : "No se pudo guardar el costo.",
             );
+        } finally {
+            setGuardando(false);
         }
     }
 
@@ -85,7 +89,7 @@ export default function CostoTransporteRecepcion({
             {bloqueo ? (
                 <p>El costo de transporte está disponible solo para consulta.</p>
             ) : editando ? (
-                <form className="tarjeta" onSubmit={guardar} noValidate>
+                <form className="tarjeta" onSubmit={evento => void guardar(evento)} noValidate>
                     <label className="campo">
                         Importe en bolivianos
                         <input
@@ -122,7 +126,9 @@ export default function CostoTransporteRecepcion({
                     )}
 
                     <div className="resumen">
-                        <button type="submit">Guardar costo</button>
+                        <button type="submit" disabled={guardando}>
+                            {guardando ? "Guardando…" : "Guardar costo"}
+                        </button>
                         <button type="button" onClick={() => setEditando(false)}>
                             Cancelar
                         </button>

@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCompras } from '../../../estado/useCompras';
-import { catalogos } from '../../../servicios/datosPrueba';
+import { catalogos } from '../../../config/catalogos';
 import { fechaHoy } from '../../../utilidades/fechas';
 import { moneda, redondear } from '../../../utilidades/formato';
 import type { OrdenCompra } from '../../ordenesCompra/tipos';
@@ -20,7 +20,7 @@ function FormularioFactura({ orden }: { orden: OrdenCompra }) {
 
   const [numeroFactura, setNumeroFactura] = useState('');
   const [fechaEmision, setFechaEmision] = useState(fechaHoy);
-  const [condicionPago, setCondicionPago] = useState(catalogos.condicionesPagoFactura[0].codigo);
+  const [condicionPago, setCondicionPago] = useState<string>(catalogos.condicionesPagoFactura[0].codigo);
   const [error, setError] = useState('');
   // Se propone facturar lo aceptado pendiente al precio de la orden.
   const [valores, setValores] = useState<Record<number, LineaFormulario>>(() =>

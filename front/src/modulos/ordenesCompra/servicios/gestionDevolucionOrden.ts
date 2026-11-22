@@ -1,11 +1,14 @@
 
 import { actualizarCompras } from "../../../estado/almacenCompras";
+import { conexion } from "../../../servicios/api/configuracion";
+import * as api from "./ordenesApi";
+import { finalizarOperacion } from "./operacionApi";
 
-export function devolverOrdenParaCorreccion(
+export async function devolverOrdenParaCorreccion(
   idOrden: number,
   motivo: string,
   usuario: string
-): void {
+): Promise<void> {
   const observacion = motivo.trim();
   const responsable = usuario.trim();
 
@@ -15,6 +18,14 @@ export function devolverOrdenParaCorreccion(
 
   if (!responsable) {
     throw new Error("Debes identificar al usuario que realiza la devolución.");
+  }
+
+  if (conexion.ordenes) {
+    const respuesta = await api.devolver(idOrden, observacion);
+    await finalizarOperacion(
+      respuesta?.mensaje ?? "La orden fue devuelta para corrección."
+    );
+    return;
   }
 
   actualizarCompras((actual) => {

@@ -165,14 +165,14 @@ export default function RespuestaProveedorOrden({ orden }: Props) {
     setConfirmando(true);
   }
 
-  function confirmarRegistro() {
+  async function confirmarRegistro() {
     if (!puedeRegistrar || procesando || !respuesta) return;
 
     setProcesando(true);
     setError("");
 
     try {
-      const evento = registrarRespuestaProveedor({
+      const evento = await registrarRespuestaProveedor({
         idOrden: orden.idOrden,
         estado: respuesta,
         referencia,

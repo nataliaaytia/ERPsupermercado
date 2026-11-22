@@ -3,7 +3,7 @@
  * factura comercial  vs.  orden de compra  vs.  recepción validada.
  */
 import { actualizarCompras, obtenerCompras, siguienteId, type EstadoCompartido } from '../../../estado/almacenCompras';
-import { catalogos } from '../../../servicios/datosPrueba';
+import { catalogos } from '../../../config/catalogos';
 import { fechaHoy, sumarDias } from '../../../utilidades/fechas';
 import { redondear } from '../../../utilidades/formato';
 import type { OrdenCompra } from '../../ordenesCompra/tipos';

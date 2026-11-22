@@ -1,7 +1,11 @@
 
-import { useState, type Dispatch } from "react";
+import { useState } from "react";
 
-import type { AccionCompras } from "../servicios/modeloCompras";
+import { conexion } from "../../../servicios/api/configuracion";
+import {
+  useGuardandoCotizaciones,
+  type DespacharAccion,
+} from "../servicios/despachoCotizaciones";
 import type { OfertaProveedor, ResultadoValidacion } from "../tipos";
 
 import ResultadoValidacionOferta from "./ResultadoValidacionOferta";
@@ -16,7 +20,7 @@ interface Props {
   fechaLimite: string;
   adjudicada: boolean;
   hoy: string;
-  dispatch: Dispatch<AccionCompras>;
+  dispatch: DespacharAccion;
   resultadosValidacion?: Record<number, ResultadoValidacion>;
 }
 
@@ -38,19 +42,23 @@ export default function ListaOfertasProveedor({
   const [ofertaEnEdicion, setOfertaEnEdicion] = useState<number | null>(
     null,
   );
+  const guardando = useGuardandoCotizaciones();
 
-  const guardarEdicion = (
+  const guardarEdicion = async (
     id: number,
     datos: DatosActualizacionOferta,
   ) => {
-    dispatch({
+    const guardado = await dispatch({
       tipo: "modificarOferta",
       id,
       ...datos,
       hoy,
     });
 
-    setOfertaEnEdicion(null);
+    // Con el servidor conectado, el formulario sigue abierto si no se pudo guardar.
+    if (guardado !== false || !conexion.cotizaciones) {
+      setOfertaEnEdicion(null);
+    }
   };
 
   return (
@@ -59,7 +67,7 @@ export default function ListaOfertasProveedor({
 
       {ofertas.length > 0 && (
         <section className="comparacion-ofertas">
-          <h3>Comparación de tiempos y condiciones de entrega</h3>
+          <h3>Comparación de tiempos de entrega</h3>
 
           <div className="comparacion-ofertas__contenedor">
             <table className="comparacion-ofertas__tabla">
@@ -67,7 +75,6 @@ export default function ListaOfertasProveedor({
                 <tr>
                   <th>Proveedor</th>
                   <th>Plazos por producto</th>
-                  <th>Condiciones de entrega</th>
                   <th>Estado</th>
                 </tr>
               </thead>
@@ -91,11 +98,6 @@ export default function ListaOfertasProveedor({
                           </li>
                         ))}
                       </ul>
-                    </td>
-
-                    <td>
-                      {oferta.condicionesEntrega ||
-                        "Sin condiciones registradas"}
                     </td>
 
                     <td>{oferta.estado}</td>
@@ -129,11 +131,6 @@ export default function ListaOfertasProveedor({
             (valida) =>
               valida.idOferta === oferta.idOferta,
           );
-
-        const puedeRechazar =
-          oferta.estado === "Registrada" &&
-          (solicitudEnviada || solicitudCerrada) &&
-          !adjudicada;
 
         return (
           <article
@@ -170,15 +167,6 @@ export default function ListaOfertasProveedor({
               Válida hasta: {oferta.validez}
             </p>
 
-            <p>
-              Descuento ofrecido: {oferta.descuento}%
-            </p>
-
-            <p>
-              Condiciones de entrega:{" "}
-              {oferta.condicionesEntrega}
-            </p>
-
             <ul>
               {oferta.detalles.map((detalle) => (
                 <li key={detalle.idDetalle}>
@@ -193,9 +181,7 @@ export default function ListaOfertasProveedor({
 
             {resultado && <ResultadoValidacionOferta resultado={resultado} />}
 
-            {(puedeEditar ||
-              puedeSeleccionar ||
-              puedeRechazar) && (
+            {(puedeEditar || puedeSeleccionar) && (
               <div className="selector-proveedores-acciones">
                 {puedeEditar && (
                   <button
@@ -230,23 +216,6 @@ export default function ListaOfertasProveedor({
                   </button>
                 )}
 
-                {puedeRechazar && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setOfertaEnEdicion(null);
-                      setOfertaEnConfirmacion(null);
-
-                      dispatch({
-                        tipo: "rechazar",
-                        id: oferta.idOferta,
-                        hoy,
-                      });
-                    }}
-                  >
-                    Rechazar oferta
-                  </button>
-                )}
               </div>
             )}
 
@@ -311,7 +280,7 @@ export default function ListaOfertasProveedor({
                   <div className="selector-proveedores-acciones">
                     <button
                       type="button"
-                      disabled={!puedeSeleccionar}
+                      disabled={!puedeSeleccionar || guardando}
                       onClick={() => {
                         dispatch({
                           tipo: "seleccionar",

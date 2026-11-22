@@ -1,5 +1,6 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useCompras } from "../../../estado/useCompras";
+import type { OrdenCompra } from "../tipos";
 import "./BuscarOrdenesCompra.css";
 import { moneda } from "../../../utilidades/formato";
 
@@ -15,7 +16,7 @@ export default function BuscarOrdenesCompra({
   onVerDetalle,
   estadoInicial = "",
 }: Props) {
-  const { ordenes, ofertas, errorCarga } = useCompras();
+  const { ordenes, ofertas, proveedores, errorCarga } = useCompras();
 
   const [numero, setNumero] = useState("");
   const [proveedor, setProveedor] = useState("");
@@ -33,6 +34,19 @@ export default function BuscarOrdenesCompra({
     [ofertas]
   );
 
+  // Las órdenes del servidor traen su proveedor; las de prueba lo toman de la oferta.
+  const nombreProveedor = useCallback(
+    (orden: OrdenCompra) =>
+      (orden.proveedorId !== undefined
+        ? proveedores.find(
+            (item) => item.idProveedor === orden.proveedorId
+          )?.razonSocial
+        : undefined) ??
+      proveedoresPorOferta.get(orden.idOfertaOrigen ?? -1) ??
+      "",
+    [proveedores, proveedoresPorOferta]
+  );
+
   const estados = useMemo(
     () =>
       [...new Set(ordenes.map((orden) => orden.estado))]
@@ -46,16 +60,13 @@ export default function BuscarOrdenesCompra({
     const proveedorBuscado = proveedor.trim().toLowerCase();
 
     return ordenes.filter((orden) => {
-      const nombreProveedor =
-        proveedoresPorOferta.get(orden.idOfertaOrigen ?? -1) ?? "";
-
       return (
         orden.numero.toLowerCase().includes(numeroBuscado) &&
-        nombreProveedor.toLowerCase().includes(proveedorBuscado) &&
+        nombreProveedor(orden).toLowerCase().includes(proveedorBuscado) &&
         (!estado || orden.estado === estado)
       );
     });
-  }, [ordenes, proveedoresPorOferta, numero, proveedor, estado]);
+  }, [ordenes, nombreProveedor, numero, proveedor, estado]);
 
   const totalPaginas = Math.max(
     1,
@@ -186,9 +197,7 @@ export default function BuscarOrdenesCompra({
                           <strong>{orden.numero}</strong>
                         </td>
                         <td>
-                          {proveedoresPorOferta.get(
-                            orden.idOfertaOrigen ?? -1
-                          ) || "No disponible"}
+                          {nombreProveedor(orden) || "No disponible"}
                         </td>
                         <td>{orden.fecha || "No registrada"}</td>
                         <td>

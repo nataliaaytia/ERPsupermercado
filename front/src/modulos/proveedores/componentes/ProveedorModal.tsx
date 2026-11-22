@@ -12,7 +12,8 @@ import "./ProveedorModal.css";
 interface Props {
   nitsExistentes: string[];
   onCerrar: () => void;
-  onGuardar: (datos: DatosProveedor) => string | null;
+  /** Devuelve un mensaje de error o null si se guardó. */
+  onGuardar: (datos: DatosProveedor) => Promise<string | null>;
 }
 
 const campos: {
@@ -75,8 +76,9 @@ export default function ProveedorModal({
   });
   const [errores, setErrores] = useState<ErroresProveedor>({});
   const [errorGeneral, setErrorGeneral] = useState("");
+  const [guardando, setGuardando] = useState(false);
 
-  const guardar = (event: FormEvent<HTMLFormElement>) => {
+  const guardar = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const normalizados = normalizarProveedor(datos);
     const nuevosErrores = validarProveedor(normalizados, nitsExistentes);
@@ -87,7 +89,9 @@ export default function ProveedorModal({
       document.getElementById(`${id}-${primerCampo.nombre}`)?.focus();
       return;
     }
-    const error = onGuardar(normalizados);
+    setGuardando(true);
+    const error = await onGuardar(normalizados);
+    setGuardando(false);
     if (error) setErrorGeneral(error);
   };
 
@@ -182,8 +186,8 @@ export default function ProveedorModal({
           <button type="button" className="btn-cancelar" onClick={onCerrar}>
             Cancelar
           </button>
-          <button type="submit" className="btn-guardar">
-            Guardar proveedor
+          <button type="submit" className="btn-guardar" disabled={guardando}>
+            {guardando ? "Guardando..." : "Guardar proveedor"}
           </button>
         </div>
       </form>

@@ -3,9 +3,12 @@ import {
   actualizarCompras,
   obtenerCompras,
 } from "../../../estado/almacenCompras";
+import { conexion } from "../../../servicios/api/configuracion";
+import * as api from "./ordenesApi";
+import { finalizarOperacion } from "./operacionApi";
 
 // Aprobar una orden pendiente y registrar el cambio de estado.
-export function aprobarOrdenCompra(idOrden: number): void {
+export async function aprobarOrdenCompra(idOrden: number): Promise<void> {
   const estadoActual = obtenerCompras();
 
   if (estadoActual.errorCarga) {
@@ -30,6 +33,18 @@ export function aprobarOrdenCompra(idOrden: number): void {
     throw new Error(
       "No se puede aprobar una orden sin productos."
     );
+  }
+
+  if (conexion.ordenes) {
+    const usuario = api.usuarioActual().usuario;
+
+    if (!usuario) {
+      throw new Error("Inicia sesión para aprobar la orden.");
+    }
+
+    await api.aprobar(idOrden, usuario);
+    await finalizarOperacion(`La orden ${orden.numero} fue aprobada.`);
+    return;
   }
 
   actualizarCompras((actual) => ({

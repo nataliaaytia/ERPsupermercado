@@ -1,14 +1,17 @@
 import type { Proveedor, ProductoCatalogo } from "../tipos";
-import { obtenerMetricasProveedores } from "../../../servicios/datosPrueba";
+import { obtenerCompras } from "../../../estado/almacenCompras";
 
-const metricas = obtenerMetricasProveedores();
-/** Indicadores de calidad y cumplimiento (data/metricasProveedores.json). */
-export const obtenerMetricasCalidadEntrega = (idProveedor: number) =>
-  metricas.find((metrica) => metrica.idProveedor === idProveedor) ?? {
+/** Indicadores de calidad y cumplimiento que calcula el servidor de proveedores. */
+export const obtenerMetricasCalidadEntrega = (idProveedor: number) => {
+  const indicadores = obtenerCompras().proveedores.find(
+    (proveedor) => proveedor.idProveedor === idProveedor,
+  )?.indicadores;
+  return {
     idProveedor,
-    porcentajeAceptados: 0,
-    porcentajeEntregasCompletas: 0,
+    porcentajeAceptados: indicadores?.porcentajeAceptados ?? 0,
+    porcentajeEntregasCompletas: indicadores?.porcentajeEntregasCompletas ?? 0,
   };
+};
 export const obtenerDescuentoMaximo = (proveedor: Proveedor) =>
   Math.max(0, ...proveedor.descuentoVolumen.map((tramo) => tramo.descuento));
 export const obtenerPrecioPromedioProveedor = (proveedor: Proveedor) =>

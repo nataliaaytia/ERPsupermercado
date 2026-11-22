@@ -182,7 +182,9 @@ export default function VerCatalogo({
                     </td>
                     <td>
                       <span className="stock-val">
-                        {prod.stockDisponible} {prod.unidadMedida}
+                        {prod.stockDisponible === null
+                          ? "Sin dato"
+                          : `${prod.stockDisponible} ${prod.unidadMedida}`}
                       </span>
                     </td>
                   </tr>

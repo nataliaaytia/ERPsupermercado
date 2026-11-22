@@ -5,13 +5,12 @@
  * (proveedores, requisiciones, órdenes, recepción y facturación), así los
  * datos fluyen de una etapa a la siguiente.
  *
- * - La primera vez se llena con los datos de prueba (src/data, vía datosPrueba).
+ * - Empieza vacío y se llena con los datos de cada microservicio (ver servicios/sincronizacion).
  * - Los cambios se guardan en localStorage para no perderlos al recargar.
- * - `reiniciarDatosPrueba()` vuelve al estado inicial de la demo.
+ * - `reiniciarEstado()` descarta lo guardado en el navegador.
  */
 import { estadoInicial, type AccionCompras, type EstadoCompras } from '../modulos/requisiciones/servicios/modeloCompras';
 import { reducirComprasConHistorial } from '../modulos/requisiciones/servicios/historialRequisiciones';
-import type { AlertaReposicion } from '../modulos/requisiciones/tipos/alertasInventario';
 import type { Proveedor } from '../modulos/proveedores/tipos';
 import type { OrdenCompra, RecepcionValidada } from '../modulos/ordenesCompra/tipos';
 import type { ErrorRespuestaContabilidad, EventoOrdenCompraConfirmada } from '../modulos/ordenesCompra/tipos/eventoContabilidad';
@@ -21,26 +20,14 @@ import type { ErrorRespuestaDisponibilidad, EventoMercaderiaDisponible } from '.
 import type { InspeccionCalidadRecepcion } from '../modulos/recepcion/tipos/inspeccion';
 import type { Discrepancia } from '../modulos/recepcion/tipos/discrepancia';
 import type { Factura } from '../modulos/facturacion/tipos';
-import {
-  obtenerAlertasInventario,
-  obtenerEventosContabilidad,
-  obtenerFacturas,
-  obtenerOfertas,
-  obtenerOrdenesCompra,
-  obtenerProveedores,
-  obtenerRecepciones,
-  obtenerRequisiciones,
-  obtenerSolicitudesCotizacion,
-} from '../servicios/datosPrueba';
 
 export { fechaHoy } from '../utilidades/fechas';
 
 /** Cambiar la versión invalida los datos guardados con un formato anterior. */
-const CLAVE_ALMACENAMIENTO = 'erp-compras-v3';
+const CLAVE_ALMACENAMIENTO = 'erp-compras-v4';
 
 export interface EstadoCompartido extends EstadoCompras {
   proveedores: Proveedor[];
-  alertasPendientes: AlertaReposicion[];
   ordenes: OrdenCompra[];
   recepcionesRegistradas: RecepcionRegistrada[];
   inspeccionesCalidad: InspeccionCalidadRecepcion[];
@@ -56,26 +43,22 @@ export interface EstadoCompartido extends EstadoCompras {
   errorCarga: string;
 }
 
-function crearEstadoDePrueba(): EstadoCompartido {
-  const recepciones = obtenerRecepciones();
+/** Estado vacío: todos los datos se cargan después desde los microservicios. */
+function crearEstadoInicial(): EstadoCompartido {
   return {
     ...estadoInicial,
-    proveedores: obtenerProveedores(),
-    requisiciones: obtenerRequisiciones(),
-    solicitudes: obtenerSolicitudesCotizacion(),
-    ofertas: obtenerOfertas(),
-    alertasPendientes: obtenerAlertasInventario(),
-    ordenes: obtenerOrdenesCompra(),
-    recepcionesRegistradas: recepciones.recepcionesRegistradas,
-    inspeccionesCalidad: recepciones.inspeccionesCalidad,
+    proveedores: [],
+    ordenes: [],
+    recepcionesRegistradas: [],
+    inspeccionesCalidad: [],
     discrepancias: [],
-    recepcionesValidadas: recepciones.recepcionesValidadas,
+    recepcionesValidadas: [],
     resolucionesDevoluciones: [],
     eventosMercaderiaDisponible: [],
     erroresRespuestasDisponibilidad: [],
-    eventosOrdenCompraContabilidad: obtenerEventosContabilidad(),
+    eventosOrdenCompraContabilidad: [],
     erroresRespuestasContabilidad: [],
-    facturas: obtenerFacturas(),
+    facturas: [],
     errorCarga: '',
   };
 }
@@ -86,9 +69,9 @@ function leerEstadoGuardado(): EstadoCompartido | null {
     if (!guardado) return null;
 
     const datos = JSON.parse(guardado) as Partial<EstadoCompartido>;
-    const base = crearEstadoDePrueba();
+    const base = crearEstadoInicial();
 
-    // Cualquier colección que falte o esté corrupta se toma de los datos de prueba.
+    // Cualquier colección que falte o esté corrupta queda vacía.
     const combinado = { ...base };
     for (const clave of Object.keys(base) as (keyof EstadoCompartido)[]) {
       const valor = datos[clave];
@@ -123,7 +106,7 @@ function notificar(): void {
 
 export function obtenerCompras(): EstadoCompartido {
   if (!estado) {
-    estado = leerEstadoGuardado() ?? crearEstadoDePrueba();
+    estado = leerEstadoGuardado() ?? crearEstadoInicial();
     guardar(estado);
   }
   return estado;
@@ -160,9 +143,10 @@ export function notificarMensaje(mensaje: string, tipoMensaje: EstadoCompras['ti
   actualizarCompras((actual) => ({ ...actual, mensaje, tipoMensaje }));
 }
 
-/** Descarta los cambios locales y vuelve a cargar los datos de la carpeta data. */
-export function reiniciarDatosPrueba(): void {
-  estado = crearEstadoDePrueba();
+/** Descarta lo guardado en este navegador (los datos se vuelven a pedir a los servidores). */
+export function reiniciarEstado(): void {
+  // Facturación todavía no tiene microservicio: sus facturas solo existen aquí, se conservan.
+  estado = { ...crearEstadoInicial(), facturas: obtenerCompras().facturas };
   guardar(estado);
   notificar();
 }

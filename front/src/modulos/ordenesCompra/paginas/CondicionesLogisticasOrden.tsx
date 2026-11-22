@@ -35,6 +35,7 @@ function FormularioLogistica({
   );
 
   const [error, setError] = useState("");
+  const [guardando, setGuardando] = useState(false);
 
   const editable = puedeEditarLogistica(orden);
   const registradas = orden.condicionesLogisticas;
@@ -50,12 +51,14 @@ function FormularioLogistica({
     setError("");
   }
 
-  function guardar(evento: FormEvent<HTMLFormElement>) {
+  async function guardar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault();
+    if (guardando) return;
     setError("");
+    setGuardando(true);
 
     try {
-      const actualizadas = guardarCondicionesLogisticas(
+      const actualizadas = await guardarCondicionesLogisticas(
         orden.idOrden,
         datos,
       );
@@ -73,6 +76,8 @@ function FormularioLogistica({
           ? fallo.message
           : "No se pudieron guardar las condiciones logísticas.",
       );
+    } finally {
+      setGuardando(false);
     }
   }
 
@@ -107,7 +112,7 @@ function FormularioLogistica({
 
       {editable ? (
         <form onSubmit={guardar} noValidate>
-          <fieldset>
+          <fieldset disabled={guardando}>
             <label className="campo">
               Destino
               <input
@@ -150,7 +155,7 @@ function FormularioLogistica({
             </label>
 
             <button type="submit">
-              Guardar condiciones
+              {guardando ? "Procesando…" : "Guardar condiciones"}
             </button>
 
             {error && (

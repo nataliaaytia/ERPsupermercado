@@ -11,6 +11,7 @@ import type {
 } from "../tipos";
 
 import { codigoRequisicion } from "../servicios/formatoRequisicion";
+import { useGuardandoCotizaciones } from "../servicios/despachoCotizaciones";
 
 interface Props {
   requisiciones: Requisicion[];
@@ -25,6 +26,7 @@ export default function GenerarSolicitudCotizacion({
 }: Props) {
   const [requisicionId, setRequisicionId] = useState("");
   const [fechaLimite, setFechaLimite] = useState("");
+  const guardando = useGuardandoCotizaciones();
 
   const aprobadas = requisiciones.filter(
     requisicion => requisicion.estado === "Aprobada",
@@ -83,7 +85,7 @@ export default function GenerarSolicitudCotizacion({
       <button
         type="button"
         className="selector-proveedores-boton"
-        disabled={!requisicionId || !fechaLimite}
+        disabled={!requisicionId || !fechaLimite || guardando}
         onClick={() =>
           dispatch({
             tipo: "generar",
@@ -93,7 +95,7 @@ export default function GenerarSolicitudCotizacion({
           })
         }
       >
-        Generar solicitud
+        {guardando ? "Guardando…" : "Generar solicitud"}
       </button>
     </>
   );

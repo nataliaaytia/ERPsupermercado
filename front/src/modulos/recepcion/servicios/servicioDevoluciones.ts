@@ -2,7 +2,14 @@ import {
     actualizarCompras,
     obtenerCompras,
 } from "../../../estado/almacenCompras";
+import { conexion } from "../../../servicios/api/configuracion";
+import { recargar } from "../../../servicios/sincronizacion";
 import type { ResolucionDevolucion, TipoResolucionDevolucion } from "../tipos/devolucion";
+import {
+    listarDevolucionesDeLinea,
+    registrarDevolucionApi,
+    resolverDevolucionApi,
+} from "./recepcionApi";
 
 export interface DatosResolucionDevolucion {
     idDevolucion: string;
@@ -69,9 +76,83 @@ export function consultarDevoluciones(
     });
 }
 
-export function registrarResolucionDevolucion(
+/**
+ * Con la conexión activa: genera la devolución en el servidor si todavía no
+ * existe y registra su resolución. Devuelve el mensaje del servidor.
+ */
+async function resolverDevolucionServidor(
     datos: DatosResolucionDevolucion,
-): void {
+    evidencia: string,
+    detalleCompromiso: string | undefined,
+): Promise<string> {
+    const actual = obtenerCompras();
+    if (actual.resolucionesDevoluciones.some(item => item.idDevolucion === datos.idDevolucion)) {
+        throw new Error("Esta devolución ya tiene una resolución registrada.");
+    }
+
+    const devolucion = consultarDevoluciones(actual).find(
+        item => item.idDevolucion === datos.idDevolucion,
+    );
+    if (!devolucion) {
+        throw new Error("La devolución no existe o no tiene cantidades rechazadas.");
+    }
+
+    const idDetalle = actual.recepcionesRegistradas
+        .find(item => item.idRecepcion === devolucion.idRecepcion)
+        ?.detalles.find(linea => linea.idDetalleOrden === devolucion.idDetalleOrden)
+        ?.idDetalleRecepcion;
+    if (idDetalle === undefined) {
+        throw new Error("La recepción no está actualizada. Recarga la página e inténtalo de nuevo.");
+    }
+
+    const existentes = await listarDevolucionesDeLinea(idDetalle);
+    let registrada = existentes[0];
+    if (!registrada) {
+        const motivoInspeccion = actual.inspeccionesCalidad
+            .find(item => item.idRecepcion === devolucion.idRecepcion)
+            ?.detalles.find(linea => linea.idDetalleOrden === devolucion.idDetalleOrden)
+            ?.motivoRechazo;
+        registrada = await registrarDevolucionApi({
+            idDetalle,
+            motivo: motivoInspeccion?.trim() || "Mercadería rechazada en la inspección de calidad",
+        });
+    } else if (registrada.estado !== "GENERADA") {
+        await recargar("recepcion");
+        throw new Error("Esta devolución ya tiene una resolución registrada.");
+    }
+
+    const respuesta = await resolverDevolucionApi({
+        idDevolucion: registrada.idDevolucion,
+        tipoResolucion: datos.tipo === "retiro" ? "RETIRO" : "COMPROMISO_REPOSICION",
+        evidencia,
+        ...(datos.tipo === "reposicion" && detalleCompromiso
+            ? { observacion: detalleCompromiso }
+            : {}),
+    });
+
+    // Se conserva el detalle completo de esta sesión; la recarga lo reconoce.
+    const resolucion: ResolucionDevolucion = {
+        idDevolucion: devolucion.idDevolucion,
+        tipo: datos.tipo,
+        evidencia,
+        fechaRegistro: new Date().toISOString(),
+        ...(datos.tipo === "reposicion" && detalleCompromiso ? { detalleCompromiso } : {}),
+    };
+    actualizarCompras(estado => ({
+        ...estado,
+        resolucionesDevoluciones: [...estado.resolucionesDevoluciones, resolucion],
+    }));
+    await recargar("recepcion");
+    return respuesta.mensaje?.trim() || "Resolución de la devolución registrada.";
+}
+
+/**
+ * Registra el retiro o el compromiso de reposición de una devolución.
+ * Con la conexión activa lo guarda en el servidor y devuelve su mensaje.
+ */
+export async function registrarResolucionDevolucion(
+    datos: DatosResolucionDevolucion,
+): Promise<string | undefined> {
     const evidencia = datos.evidencia.trim();
     if (!evidencia) {
         throw new Error("Ingresa la evidencia de la resolución.");
@@ -86,6 +167,10 @@ export function registrarResolucionDevolucion(
         throw new Error(
             "Describe el compromiso de reposición, incluyendo la cantidad y la fecha acordada.",
         );
+    }
+
+    if (conexion.recepcion) {
+        return resolverDevolucionServidor(datos, evidencia, detalleCompromiso);
     }
 
     actualizarCompras(actual => {

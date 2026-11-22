@@ -9,6 +9,13 @@ import {
 } from "../servicios/compromisosEntrega";
 import "./GenerarOrdenCompra.css";
 import { redondear, moneda } from "../../../utilidades/formato";
+import { obtenerCompras } from "../../../estado/almacenCompras";
+import { conexion } from "../../../servicios/api/configuracion";
+import { crearDesdeOferta } from "../servicios/ordenesApi";
+import { finalizarOperacion } from "../servicios/operacionApi";
+
+/** Con el servidor conectado, la orden toma cantidades y precios de la oferta (sin descuento). */
+const conServidor = conexion.ordenes;
 
 function calcularDetalles(
     oferta: ReturnType<typeof useCompras>["ofertas"][number],
@@ -18,7 +25,7 @@ function calcularDetalles(
         throw new Error("La requisición no contiene productos.");
     }
 
-    const descuento = oferta.descuento ?? 0;
+    const descuento = conServidor ? 0 : oferta.descuento ?? 0;
 
     if (
         !Number.isFinite(descuento) ||
@@ -98,6 +105,20 @@ export default function GenerarOrdenCompra({
     );
 
     const vistaPrevia = useMemo(() => {
+        if (conServidor && oferta && !requisicion) {
+            // Sin la requisición a la vista solo se muestran los productos cotizados.
+            return {
+                detalles: oferta.detalles.map(detalle => ({
+                    idDetalle: detalle.idDetalle,
+                    producto: detalle.producto,
+                    cantidad: 0,
+                    precio: detalle.precio,
+                    subtotal: 0,
+                })),
+                error: "",
+            };
+        }
+
         if (!oferta || !requisicion) {
             return { detalles: [] as DetalleOrdenCompra[], error: "" };
         }
@@ -131,12 +152,68 @@ export default function GenerarOrdenCompra({
         setMensaje("");
     }
 
-    function generarOrden(evento: FormEvent<HTMLFormElement>) {
+    async function generarOrdenEnServidor() {
+        if (!oferta) {
+            setError("Selecciona una oferta adjudicada válida.");
+            return;
+        }
+
+        setGuardando(true);
+
+        try {
+            const respuesta = await crearDesdeOferta(
+                oferta.solicitud,
+                oferta.idOferta,
+            );
+
+            await finalizarOperacion(
+                respuesta?.mensaje
+                    ? `${respuesta.mensaje}: ${respuesta.numero}.`
+                    : `La orden ${respuesta.numero} se creó como borrador.`,
+            );
+
+            setMensaje(
+                `La orden ${respuesta.numero} se creó correctamente como borrador.`,
+            );
+            setIdOferta("");
+
+            const creada: OrdenCompra =
+                obtenerCompras().ordenes.find(
+                    orden => orden.idOrden === respuesta.idOrden,
+                ) ?? {
+                    idOrden: respuesta.idOrden,
+                    idOfertaOrigen: oferta.idOferta,
+                    numero: respuesta.numero,
+                    fecha: fechaHoy(),
+                    estado: "Borrador",
+                    total: 0,
+                    observacion: "",
+                    detalles: [],
+                };
+
+            onOrdenCreada?.(creada);
+        } catch (fallo) {
+            setError(
+                fallo instanceof Error
+                    ? fallo.message
+                    : "No se pudo generar la orden de compra.",
+            );
+        } finally {
+            setGuardando(false);
+        }
+    }
+
+    async function generarOrden(evento: FormEvent<HTMLFormElement>) {
         evento.preventDefault();
         setError("");
         setMensaje("");
 
         if (guardando) return;
+
+        if (conServidor) {
+            await generarOrdenEnServidor();
+            return;
+        }
 
         if (!oferta || !solicitud || !requisicion) {
             setError("Selecciona una oferta adjudicada válida.");
@@ -257,7 +334,9 @@ export default function GenerarOrdenCompra({
                             <p><strong>Proveedor:</strong> {oferta.proveedor.razonSocial}</p>
                             <p><strong>Oferta:</strong> #{oferta.idOferta}</p>
                             <p><strong>Requisición:</strong> {requisicion ? `#${requisicion.idRequisicion}` : "No disponible"}</p>
-                            <p><strong>Descuento:</strong> {oferta.descuento ?? 0}%</p>
+                            {!conServidor && (
+                                <p><strong>Descuento:</strong> {oferta.descuento ?? 0}%</p>
+                            )}
                             <p><strong>Estado inicial:</strong> Borrador</p>
                         </div>
 
@@ -282,9 +361,9 @@ export default function GenerarOrdenCompra({
                                         {vistaPrevia.detalles.map(detalle => (
                                             <tr key={detalle.idDetalle}>
                                                 <td>{detalle.producto.descripcion}</td>
-                                                <td>{detalle.cantidad}</td>
+                                                <td>{detalle.cantidad || "Según la oferta"}</td>
                                                 <td>{moneda(detalle.precio)}</td>
-                                                <td>{moneda(detalle.subtotal)}</td>
+                                                <td>{detalle.cantidad ? moneda(detalle.subtotal) : "—"}</td>
                                             </tr>
                                         ))}
                                     </tbody>
@@ -292,7 +371,14 @@ export default function GenerarOrdenCompra({
                             </div>
                         )}
 
-                        {!vistaPrevia.error && (
+                        {conServidor && !vistaPrevia.error && (
+                            <p className="generar-orden__aviso">
+                                Las cantidades y precios definitivos se toman de la
+                                oferta adjudicada al generar la orden.
+                            </p>
+                        )}
+
+                        {!vistaPrevia.error && (!conServidor || total > 0) && (
                             <div className="generar-orden__total">
                                 <span>Total de la orden</span>
                                 <strong>{moneda(total)}</strong>
@@ -320,7 +406,7 @@ export default function GenerarOrdenCompra({
                         guardando ||
                         Boolean(errorCarga) ||
                         !oferta ||
-                        !requisicion ||
+                        (!requisicion && !conServidor) ||
                         Boolean(vistaPrevia.error) ||
                         vistaPrevia.detalles.length === 0
                     }

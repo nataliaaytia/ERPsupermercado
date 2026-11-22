@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import SiguientePaso from '../../componentes/ui/SiguientePaso';
 import { useProveedores } from './hooks/useProveedores';
 import type { Proveedor } from './tipos';
+import { cargarProveedoresDesdeApi, useEstadoConexionProveedores } from './servicios/sincronizacionProveedores';
 import AsociarCatalogo from './paginas/AsociarCatalogo';
 import { ComparacionProductos } from './paginas/ComparacionProductos';
 import GestionProveedores from './paginas/GestionProveedores';
@@ -12,7 +13,31 @@ import './proveedores.css';
 
 /** Contenedor con las clases de estilo propias del módulo. */
 function Contenedor({ children }: { children: ReactNode }) {
-  return <div className="catalogo-container">{children}</div>;
+  return (
+    <div className="catalogo-container">
+      <EstadoConexion />
+      {children}
+    </div>
+  );
+}
+
+/** Aviso cuando los proveedores se están cargando del servidor o no se pudo conectar. */
+function EstadoConexion() {
+  const { estado, mensaje } = useEstadoConexionProveedores();
+  if (estado === 'cargando') {
+    return <p className="alerta alerta--info">Cargando proveedores desde el servidor...</p>;
+  }
+  if (estado === 'error') {
+    return (
+      <div className="alerta alerta--error" role="alert">
+        <span>No se pudo obtener la información de proveedores. {mensaje}</span>
+        <button type="button" className="btn-secundario" onClick={() => void cargarProveedoresDesdeApi()}>
+          Reintentar
+        </button>
+      </div>
+    );
+  }
+  return null;
 }
 
 /** Guía para dejar listo a un proveedor y continuar con el proceso de compra. */
@@ -48,6 +73,7 @@ export function PaginaGestion() {
         cambiarEstadoProveedor={p.cambiarEstado}
         onRegistrarDocumento={p.registrarDocumento}
         onRegistrarProveedor={p.registrarProveedor}
+        onValidado={p.validarEnServidor}
       />
       <PasoProveedor proveedor={p.proveedorSeleccionado} />
     </Contenedor>

@@ -118,6 +118,20 @@ public class OrdenCompraController {
         return ResponseEntity.ok(resultados);
     }
 
+    @PostMapping("/{idOrden}/aprobar")
+    public ResponseEntity<com.sonic.erp.ordenesdecompra.dto.response.AprobacionOrdenCompraResponse> aprobar(
+            @PathVariable Long idOrden,
+            @jakarta.validation.Valid @org.springframework.web.bind.annotation.RequestBody
+            com.sonic.erp.ordenesdecompra.dto.request.AprobarOrdenCompraRequest request) {
+
+        return ResponseEntity.ok(ordenCompraService.aprobarOrden(
+                idOrden,
+                request.usuario(),
+                request.rol(),
+                request.limiteAutorizado()
+        ));
+    }
+
     @PostMapping("/{idOrden}/solicitar-aprobacion")
     public ResponseEntity<Map<String, Object>> solicitarAprobacion(
             @PathVariable Long idOrden) {

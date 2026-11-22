@@ -1,10 +1,15 @@
 import { useState } from "react";
+import { conexion } from "../../../servicios/api/configuracion";
 import type { RecepcionValidada } from "../../ordenesCompra/tipos";
 import type { InspeccionCalidadRecepcion } from "../tipos/inspeccion";
 import {
+    conciliarRecepcionServidor,
     consultarOrdenParaConciliacion,
 } from "../servicios/servicioConciliacionRecepcion";
-import type { OrdenConciliable } from "../servicios/servicioConciliacionRecepcion";
+import type {
+    ConciliacionServidor,
+    OrdenConciliable,
+} from "../servicios/servicioConciliacionRecepcion";
 import type { RecepcionRegistrada } from "../tipos/recepcion";
 
 interface Props {
@@ -83,13 +88,24 @@ export default function ConciliacionRecepcion({
     const [orden, setOrden] = useState<OrdenConciliable>();
     const [error, setError] = useState("");
     const [consultando, setConsultando] = useState(false);
+    const [servidor, setServidor] = useState<ConciliacionServidor>();
 
     async function conciliar() {
         setConsultando(true);
         setError("");
         setOrden(undefined);
+        setServidor(undefined);
 
         try {
+            if (conexion.recepcion) {
+                setServidor(
+                    await conciliarRecepcionServidor(
+                        recepcion.idRecepcion,
+                        recepcion.idOrden,
+                    ),
+                );
+                return;
+            }
             const resultado = await consultarOrdenParaConciliacion(
                 recepcion.idOrden,
             );
@@ -137,6 +153,53 @@ export default function ConciliacionRecepcion({
                 <p className="alerta alerta--error" role="alert">
                     {error}
                 </p>
+            )}
+
+            {servidor && (
+                <>
+                    <div className="tabla-contenedor">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th scope="col">Producto</th>
+                                    <th scope="col">Solicitadas</th>
+                                    <th scope="col">Recibidas</th>
+                                    <th scope="col">Aceptadas</th>
+                                    <th scope="col">Diferencia</th>
+                                    <th scope="col">Resultado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {servidor.filas.map(fila => (
+                                    <tr key={fila.idDetalleOrden}>
+                                        <th scope="row">
+                                            {fila.producto} · Línea{" "}
+                                            {fila.idDetalleOrden}
+                                        </th>
+                                        <td>{fila.cantidadSolicitada}</td>
+                                        <td>{fila.cantidadRecibida}</td>
+                                        <td>{fila.cantidadAceptada}</td>
+                                        <td>{diferenciaTexto(fila.diferencia)}</td>
+                                        <td>{fila.estadoLinea}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                    <p
+                        className={
+                            servidor.conforme
+                                ? "alerta alerta--exito"
+                                : "alerta alerta--error"
+                        }
+                        role="status"
+                    >
+                        {servidor.mensaje ||
+                            (servidor.conforme
+                                ? "Sin diferencias pendientes. La conciliación es conforme."
+                                : "Hay diferencias respecto de la orden de compra.")}
+                    </p>
+                </>
             )}
 
             {orden && (

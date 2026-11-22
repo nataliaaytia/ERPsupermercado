@@ -1,5 +1,7 @@
 //natalia - scrum 528
-import { actualizarCompras } from "../../../estado/almacenCompras";
+import { actualizarCompras, obtenerCompras } from "../../../estado/almacenCompras";
+import { conexion } from "../../../servicios/api/configuracion";
+import { recargar } from "../../../servicios/sincronizacion";
 import { calcularSaldosEntrega } from "../../ordenesCompra/servicios/utilidadesSeguimientoEntregas";
 import type { OrdenCompra, RecepcionValidada } from "../../ordenesCompra/tipos";
 import type {
@@ -7,6 +9,7 @@ import type {
     DatosRecepcion,
     RecepcionRegistrada,
 } from "../tipos/recepcion";
+import { editarRecepcionApi, productoDeLineaOrden, registrarEntregaApi } from "./recepcionApi";
 
 export function estaEnInspeccion(
     recepcion: RecepcionRegistrada,
@@ -141,7 +144,51 @@ function validarCaptura(
     return { fecha: datos.fecha, documento, detalles };
 }
 
-export function registrarRecepcion(datos: DatosRecepcion): void {
+/** Almacén obligatorio cuando la recepción se guarda en el servidor. */
+function validarAlmacen(almacen: string | undefined): string {
+    const valor = almacen?.trim() ?? "";
+    if (!valor) throw new Error("Indica el almacén donde se recibió la mercadería.");
+    return valor;
+}
+
+/** Registra la entrega en el servidor y devuelve el mensaje para el usuario. */
+async function registrarRecepcionApi(datos: DatosRecepcion): Promise<string> {
+    const actual = obtenerCompras();
+    const seleccion = ordenesDisponiblesParaRecepcion(
+        actual.ordenes,
+        actual.recepcionesValidadas,
+        actual.recepcionesRegistradas,
+    ).find(item => item.orden.idOrden === datos.idOrden);
+
+    if (!seleccion) {
+        throw new Error("Selecciona una orden confirmada con saldo pendiente.");
+    }
+
+    const captura = validarCaptura(datos, seleccion.lineas, actual.recepcionesRegistradas);
+    const almacen = validarAlmacen(datos.almacen);
+    const observacion = datos.observacion?.trim();
+
+    const respuesta = await registrarEntregaApi(datos.idOrden, {
+        fecha: captura.fecha,
+        documento: captura.documento,
+        almacen,
+        ...(observacion ? { observacion } : {}),
+        detalles: captura.detalles.map(linea => ({
+            productoId: productoDeLineaOrden(seleccion.orden, linea.idDetalleOrden),
+            cantidadRecibida: linea.cantidadRecibida,
+        })),
+    });
+    await recargar("recepcion");
+    return `Entrega ${respuesta.documento} de ${seleccion.orden.numero} guardada. Quedó pendiente de inspección.`;
+}
+
+/**
+ * Registra una entrega. Con la conexión activa la guarda en el servidor y
+ * devuelve su mensaje; con datos de prueba devuelve undefined.
+ */
+export async function registrarRecepcion(datos: DatosRecepcion): Promise<string | undefined> {
+    if (conexion.recepcion) return registrarRecepcionApi(datos);
+
     actualizarCompras(actual => {
         const seleccion = ordenesDisponiblesParaRecepcion(
             actual.ordenes,
@@ -198,10 +245,65 @@ export function motivoBloqueoRecepcion(
     return null;
 }
 
-export function corregirRecepcion(
+/** Corrige la recepción en el servidor (todas sus líneas actuales, sin agregar ni quitar). */
+async function corregirRecepcionApi(
     idRecepcion: number,
     datos: DatosCorreccionRecepcion,
-): void {
+): Promise<string> {
+    const actual = obtenerCompras();
+    const recepcion = actual.recepcionesRegistradas.find(item => item.idRecepcion === idRecepcion);
+    if (!recepcion) throw new Error("No se encontró la recepción.");
+
+    const bloqueo = motivoBloqueoRecepcion(recepcion, actual.recepcionesValidadas);
+    if (bloqueo) throw new Error(bloqueo);
+
+    const orden = actual.ordenes.find(item => item.idOrden === recepcion.idOrden);
+    if (!fechaValida(datos.fecha)) throw new Error("Ingresa una fecha de recepción válida.");
+    const almacen = validarAlmacen(datos.almacen);
+    const observacion = datos.observacion?.trim();
+
+    const detalles = recepcion.detalles.map(linea => {
+        const texto = datos.detalles
+            .find(item => item.idDetalleOrden === linea.idDetalleOrden)
+            ?.cantidad.trim() ?? "";
+        const cantidadRecibida = Number(texto);
+        const producto = orden?.detalles.find(item => item.idDetalle === linea.idDetalleOrden)
+            ?.producto.descripcion ?? `la línea ${linea.idDetalleOrden}`;
+
+        if (!/^\d+$/.test(texto) || !Number.isSafeInteger(cantidadRecibida) || cantidadRecibida <= 0) {
+            throw new Error(`Ingresa una cantidad entera mayor que cero para ${producto}.`);
+        }
+        if (linea.idDetalleRecepcion === undefined) {
+            throw new Error("La recepción no está actualizada. Recarga la página e inténtalo de nuevo.");
+        }
+
+        return {
+            idDetalle: linea.idDetalleRecepcion,
+            productoId: linea.productoId ?? productoDeLineaOrden(orden, linea.idDetalleOrden),
+            cantidadRecibida,
+        };
+    });
+
+    await editarRecepcionApi(idRecepcion, {
+        fecha: datos.fecha,
+        almacen,
+        ...(observacion ? { observacion } : {}),
+        detalles,
+    });
+    await recargar("recepcion");
+    return `Corrección de la recepción ${recepcion.documento} guardada.`;
+}
+
+/**
+ * Corrige una recepción todavía no inspeccionada. Con la conexión activa la
+ * guarda en el servidor y devuelve su mensaje.
+ */
+export async function corregirRecepcion(
+    idRecepcion: number,
+    datos: DatosCorreccionRecepcion,
+): Promise<string | undefined> {
+    if (conexion.recepcion) return corregirRecepcionApi(idRecepcion, datos);
+
     actualizarCompras(actual => {
         const recepcion = actual.recepcionesRegistradas.find(item => item.idRecepcion === idRecepcion);
 

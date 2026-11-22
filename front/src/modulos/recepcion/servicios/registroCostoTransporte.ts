@@ -1,4 +1,7 @@
-import { actualizarCompras } from "../../../estado/almacenCompras";
+import { actualizarCompras, obtenerCompras } from "../../../estado/almacenCompras";
+import { conexion } from "../../../servicios/api/configuracion";
+import { recargar } from "../../../servicios/sincronizacion";
+import { aBolivianos, guardarCostoTransporteApi } from "./recepcionApi";
 import { motivoBloqueoRecepcion } from "./registroRecepcion";
 import type { CostoTransporte } from "../tipos/recepcion";
 
@@ -27,10 +30,46 @@ function convertirACentavos(valor: string): number {
     return centavos;
 }
 
-export function guardarCostoTransporte(
+/** Guarda el costo en el servidor (importe decimal en bolivianos). */
+async function guardarCostoTransporteServidor(
     idRecepcion: number,
     datos: DatosCostoTransporte,
-): void {
+): Promise<string> {
+    const actual = obtenerCompras();
+    const recepcion = actual.recepcionesRegistradas.find(
+        item => item.idRecepcion === idRecepcion,
+    );
+    if (!recepcion) throw new Error("No se encontró la recepción.");
+
+    const bloqueo = motivoBloqueoRecepcion(recepcion, actual.recepcionesValidadas);
+    if (bloqueo) throw new Error(bloqueo);
+
+    const importeCentavos = convertirACentavos(datos.importe);
+    const concepto = datos.concepto.trim();
+    const comprobante = datos.comprobante.trim();
+    if (!concepto || !comprobante) {
+        throw new Error("Completa el concepto y la referencia del comprobante.");
+    }
+
+    await guardarCostoTransporteApi(idRecepcion, {
+        importe: aBolivianos(importeCentavos),
+        concepto,
+        comprobante,
+    });
+    await recargar("recepcion");
+    return "Costo de transporte guardado.";
+}
+
+/**
+ * Registra o corrige el costo de transporte de una recepción no inspeccionada.
+ * Con la conexión activa lo guarda en el servidor y devuelve su mensaje.
+ */
+export async function guardarCostoTransporte(
+    idRecepcion: number,
+    datos: DatosCostoTransporte,
+): Promise<string | undefined> {
+    if (conexion.recepcion) return guardarCostoTransporteServidor(idRecepcion, datos);
+
     actualizarCompras(actual => {
         const recepcion = actual.recepcionesRegistradas.find(
             item => item.idRecepcion === idRecepcion,

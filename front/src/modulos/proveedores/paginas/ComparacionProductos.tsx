@@ -18,6 +18,9 @@ const obtenerDescuentoPorCantidad = (
 interface ComparacionProductosProps {
   proveedores: Proveedor[];
 }
+/** Sin dato de stock no se descarta al proveedor. */
+const tieneStock = (stock: number | null, cantidad: number) => stock === null || stock >= cantidad;
+
 export const ComparacionProductos = ({
   proveedores,
 }: ComparacionProductosProps) => {
@@ -80,7 +83,7 @@ export const ComparacionProductos = ({
   const ofertasConStock =
     cantidadNumerica > 0
       ? proveedoresParaProducto.filter(
-          (item) => item.stockDisponible >= cantidadNumerica,
+          (item) => tieneStock(item.stockDisponible, cantidadNumerica),
         )
       : [];
   const ofertasElegibles = ofertasConStock.filter(
@@ -310,7 +313,7 @@ export const ComparacionProductos = ({
                 proveedoresParaProducto.map((item) => {
                   const stockSuficiente =
                     cantidadNumerica > 0 &&
-                    item.stockDisponible >= cantidadNumerica;
+                    tieneStock(item.stockDisponible, cantidadNumerica);
                   const proveedorActivo =
                     item.proveedor.estado.toLowerCase() === "activo";
                   const esElegible = stockSuficiente && proveedorActivo;
@@ -438,15 +441,18 @@ export const ComparacionProductos = ({
                       {criterios.stock && (
                         <td>
                           <span className="stock-val">
-                            {item.stockDisponible} {item.unidadMedida}
+                            {item.stockDisponible === null
+                              ? "Sin dato"
+                              : `${item.stockDisponible} ${item.unidadMedida}`}
                             {cantidadNumerica > 0 &&
-                              item.stockDisponible < cantidadNumerica && (
+                              !tieneStock(item.stockDisponible, cantidadNumerica) && (
                                 <span className="comparacion-stock-insuficiente">
                                   Stock insuficiente
                                 </span>
                               )}
                             {cantidadNumerica > 0 &&
-                              item.stockDisponible >= cantidadNumerica && (
+                              item.stockDisponible !== null &&
+                              tieneStock(item.stockDisponible, cantidadNumerica) && (
                                 <span className="comparacion-stock-disponible">
                                   Stock disponible
                                 </span>

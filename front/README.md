@@ -9,7 +9,8 @@ npm run build    # compila y verifica tipos
 npm run lint
 ```
 
-Usuarios de prueba: ver `src/data/usuarios.json` (o el desplegable en la pantalla de login).
+El front necesita los microservicios en marcha (ver el README principal: `docker compose up --build -d`).
+Usuarios: ver `docker/semillas/usuarios.json` (por ejemplo `comprador` / `compras123`).
 
 ## Estructura de carpetas
 
@@ -21,7 +22,7 @@ src/
 │   ├── ui/              # Componentes reutilizables (Notificacion, SiguientePaso)
 │   └── efectos/         # Animaciones de la portada
 ├── contexto/            # Tema (día/noche) y sesión
-├── data/                # ← TODOS los datos de prueba (JSON). Ver data/README.md
+├── config/              # Listas fijas (prioridades, tipos de documento, condiciones de pago)
 ├── estado/              # Almacén global compartido por todos los módulos
 ├── estilos/             # tema.css (paleta única) y base.css (clases comunes)
 ├── hooks/               # Hooks genéricos
@@ -32,7 +33,7 @@ src/
 │   ├── recepcion/
 │   └── facturacion/
 ├── paginas/             # Inicio, Login, 404
-├── servicios/           # datosPrueba.ts (lectura de /data) y api/ (cliente HTTP + endpoints)
+├── servicios/           # api/ (cliente HTTP, endpoints, monitor de conexión) y sincronizacion.ts
 └── utilidades/          # Fechas y formato de moneda
 ```
 
@@ -55,9 +56,9 @@ modulos/<modulo>/
   Nada de colores fijos: así día y noche funcionan en todas las pantallas.
 - **Layout**: ninguna pantalla dibuja su propia cabecera ni menú; los da `LayoutModulo`.
   Para agregar una pantalla, añadir una sección en el `modulo.tsx` correspondiente.
-- **Datos**: ninguna pantalla importa `/data`. Se lee con `servicios/datosPrueba.ts`
-  y se comparte con `useCompras()`. Para conectar el backend, reemplazar esas funciones
-  por llamadas de `servicios/api/endpoints.ts` (configurar `.env.local` desde `.env.example`).
+- **Datos**: el front no tiene datos propios. Cada módulo los pide a su microservicio
+  (`modulos/<modulo>/servicios/*Api.ts`), se guardan en el almacén global y se comparten con
+  `useCompras()`. Las rutas están en `servicios/api/endpoints.ts`.
 - **Flujo**: al terminar una etapa, la pantalla muestra `<SiguientePaso>` con el enlace a la siguiente.
 
 ## Flujo del sistema

@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import SiguientePaso from '../../componentes/ui/SiguientePaso';
+import { useSesion } from '../../contexto/SesionContext';
 import { useCompras } from '../../estado/useCompras';
 import { formatearFechaHora } from '../../utilidades/fechas';
 import DevolucionesRecepcion from './paginas/DevolucionesRecepcion';
@@ -8,6 +9,7 @@ import FormularioDiscrepancia from './paginas/FormularioDiscrepancia';
 import HistorialRecepciones from './paginas/HistorialRecepciones';
 import RegistrarRecepcion from './paginas/RegistrarRecepcion';
 import RevisionFinalRecepcion from './paginas/RevisionFinalRecepcion';
+import { etiquetaTipoDiferencia } from './servicios/recepcionApi';
 import { registrarDiscrepancia } from './servicios/servicioDiscrepancias';
 import { registrarInspeccionCalidad } from './servicios/servicioInspeccionCalidad';
 import { confirmarRecepcion } from './servicios/validarRecepcion';
@@ -98,7 +100,11 @@ export function PaginaDiscrepancias() {
                     <td>{discrepancia.idDetalleOrden}</td>
                     <td>
                       <span className="etiqueta etiqueta--advertencia">
-                        {discrepancia.tipo === 'cantidad' ? 'Cantidad' : 'Producto'}
+                        {discrepancia.tipoDiferencia
+                          ? etiquetaTipoDiferencia(discrepancia.tipoDiferencia)
+                          : discrepancia.tipo === 'cantidad'
+                            ? 'Cantidad'
+                            : 'Producto'}
                       </span>
                     </td>
                     <td>
@@ -106,6 +112,7 @@ export function PaginaDiscrepancias() {
                         ? `${discrepancia.cantidadDiscrepante} unidades. `
                         : `Se recibió: ${discrepancia.productoRecibido}. `}
                       {discrepancia.descripcion}
+                      {discrepancia.estado === 'PENDIENTE_RESOLUCION' && ' (pendiente de resolución)'}
                     </td>
                   </tr>
                 ))}
@@ -120,6 +127,7 @@ export function PaginaDiscrepancias() {
 
 export function PaginaRevisionFinal() {
   const compras = useCompras();
+  const { usuario } = useSesion();
   return (
     <Contenedor>
       <RevisionFinalRecepcion
@@ -128,6 +136,7 @@ export function PaginaRevisionFinal() {
         recepcionesValidadas={compras.recepcionesValidadas}
         inspecciones={compras.inspeccionesCalidad}
         onConfirmar={confirmarRecepcion}
+        usuarioAutorizador={usuario?.nombre ?? usuario?.usuario}
       />
       {compras.recepcionesValidadas.length > 0 && (
         <SiguientePaso

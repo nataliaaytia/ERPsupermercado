@@ -6,6 +6,7 @@ import {
   validarRequisicion,
   type ErroresRequisicion,
 } from "../servicios/validacionRequisicion";
+import { useGuardandoCotizaciones } from "../servicios/despachoCotizaciones";
 import "./FormularioRequisicion.css";
 
 interface Props {
@@ -31,6 +32,7 @@ const datosVacios = (): DatosRequisicion => ({
 const sinErrores: ErroresRequisicion = { productos: {} };
 
 export default function FormularioRequisicion({ onGuardar, sugerencias = [] }: Props) {
+  const guardando = useGuardandoCotizaciones();
   const id = useId();
   const siguienteId = useRef(2);
   const [datos, setDatos] = useState<DatosRequisicion>(datosVacios);
@@ -288,8 +290,8 @@ export default function FormularioRequisicion({ onGuardar, sugerencias = [] }: P
       </div>
 
       <div className="formulario-requisicion__pie">
-        <button type="submit" className="formulario-requisicion__guardar">
-          Registrar requisición
+        <button type="submit" className="formulario-requisicion__guardar" disabled={guardando}>
+          {guardando ? "Guardando…" : "Registrar requisición"}
         </button>
       </div>
     </form>

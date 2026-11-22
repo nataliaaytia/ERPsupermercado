@@ -9,6 +9,15 @@ import SolicitudAprobacionOrden from "../componentes/SolicitudAprobacionOrden";
 import type { DetalleOrdenCompra } from "../tipos";
 import "./GestionOrdenesBorrador.css";
 import { redondear, moneda } from "../../../utilidades/formato";
+import { conexion } from "../../../servicios/api/configuracion";
+import { editarBorrador } from "../servicios/ordenesApi";
+import { finalizarOperacion } from "../servicios/operacionApi";
+
+/**
+ * Con el servidor conectado solo se pueden cambiar cantidades o quitar líneas:
+ * los productos y precios quedan fijados por la oferta adjudicada.
+ */
+const conServidor = conexion.ordenes;
 
 type LineaEditable = DetalleOrdenCompra & {
   cantidadTexto: string;
@@ -56,10 +65,10 @@ export default function GestionOrdenesBorrador({ idOrdenInicial = null }: Props)
     item => item.idOferta === orden?.idOfertaOrigen
   );
 
-  const descuento = oferta?.descuento ?? 0;
+  const descuento = conServidor ? 0 : oferta?.descuento ?? 0;
   const catalogoCotizado = oferta?.detalles ?? [];
 
-  const ofertaValida = Boolean(
+  const ofertaValida = conServidor || Boolean(
     oferta &&
     oferta.estado === "Seleccionada" &&
     Number.isFinite(descuento) &&
@@ -227,7 +236,40 @@ export default function GestionOrdenesBorrador({ idOrdenInicial = null }: Props)
     setExito("");
   }
 
-  function guardar(evento: FormEvent<HTMLFormElement>) {
+  async function guardarEnServidor() {
+    if (!orden) return;
+
+    setGuardando(true);
+
+    try {
+      const respuesta = await editarBorrador(
+        orden.idOrden,
+        lineas.map(linea => ({
+          productoId: linea.producto.idProducto,
+          cantidad: Number(linea.cantidadTexto),
+        }))
+      );
+
+      await finalizarOperacion(
+        respuesta?.mensaje ??
+          `Los cambios de ${orden.numero} se guardaron correctamente.`
+      );
+
+      setExito(
+        `Los cambios de ${orden.numero} se guardaron correctamente.`
+      );
+    } catch (fallo) {
+      setError(
+        fallo instanceof Error
+          ? fallo.message
+          : "No se pudieron guardar los cambios."
+      );
+    } finally {
+      setGuardando(false);
+    }
+  }
+
+  async function guardar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault();
 
     setError("");
@@ -269,6 +311,11 @@ export default function GestionOrdenesBorrador({ idOrdenInicial = null }: Props)
       setError(
         "No puedes repetir el mismo producto en dos líneas."
       );
+      return;
+    }
+
+    if (conServidor) {
+      await guardarEnServidor();
       return;
     }
 
@@ -437,13 +484,26 @@ export default function GestionOrdenesBorrador({ idOrdenInicial = null }: Props)
                 : "No disponible"}
             </span>
 
+            {!conServidor && (
             <span>
               <strong>Descuento:</strong>{" "}
               {ofertaValida
                 ? `${descuento}%`
                 : "No disponible"}
             </span>
+            )}
           </div>
+
+          {editable && conServidor && (
+            <p
+              className="borrador-editor__aviso"
+              role="status"
+            >
+              Puedes cambiar las cantidades o quitar productos.
+              Los productos y precios son los de la oferta
+              adjudicada y no se pueden agregar ni reemplazar.
+            </p>
+          )}
 
           {!editable && (
             <p
@@ -474,7 +534,7 @@ export default function GestionOrdenesBorrador({ idOrdenInicial = null }: Props)
                   <th>Producto</th>
                   <th>Cantidad</th>
                   <th>Precio unitario</th>
-                  <th>Subtotal con descuento</th>
+                  <th>{conServidor ? "Subtotal" : "Subtotal con descuento"}</th>
                   <th>Acción</th>
                 </tr>
               </thead>
@@ -487,7 +547,7 @@ export default function GestionOrdenesBorrador({ idOrdenInicial = null }: Props)
                         aria-label={`Producto de línea ${linea.idDetalle}`}
                         value={linea.producto.idProducto}
                         disabled={
-                          !editable || !ofertaValida
+                          !editable || !ofertaValida || conServidor
                         }
                         onChange={evento =>
                           actualizarLinea(
@@ -497,7 +557,7 @@ export default function GestionOrdenesBorrador({ idOrdenInicial = null }: Props)
                           )
                         }
                       >
-                        {!editable ? (
+                        {!editable || conServidor ? (
                           <option
                             value={linea.producto.idProducto}
                           >
@@ -615,6 +675,7 @@ export default function GestionOrdenesBorrador({ idOrdenInicial = null }: Props)
               disabled={
                 !editable ||
                 !ofertaValida ||
+                conServidor ||
                 catalogoCotizado.every(producto =>
                   lineas.some(
                     linea =>

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { fechaHoy, useCompras } from "../../../estado/useCompras";
+import { conexion } from "../../../servicios/api/configuracion";
 import {
     ordenesDisponiblesParaRecepcion,
     registrarRecepcion,
@@ -17,19 +18,24 @@ function FormularioRecepcion({
 }) {
     const [fecha, setFecha] = useState(fechaHoy);
     const [documento, setDocumento] = useState("");
+    const [almacen, setAlmacen] = useState("Almacén central");
     const [cantidades, setCantidades] = useState<Record<number, string>>({});
     const [error, setError] = useState("");
+    const [guardando, setGuardando] = useState(false);
 
-    function guardar(evento: FormEvent<HTMLFormElement>) {
+    async function guardar(evento: FormEvent<HTMLFormElement>) {
         evento.preventDefault();
+        if (guardando) return;
         setError("");
         onMensaje("");
+        setGuardando(true);
 
         try {
-            registrarRecepcion({
+            const mensajeServidor = await registrarRecepcion({
                 idOrden: seleccion.orden.idOrden,
                 fecha,
                 documento,
+                ...(conexion.recepcion ? { almacen } : {}),
                 detalles: seleccion.lineas.flatMap(linea => {
                     const cantidad = cantidades[linea.idDetalle] ?? "";
 
@@ -40,7 +46,8 @@ function FormularioRecepcion({
             });
 
             onMensaje(
-                `Entrega de ${seleccion.orden.numero} guardada. Quedó pendiente de inspección.`,
+                mensajeServidor ??
+                    `Entrega de ${seleccion.orden.numero} guardada. Quedó pendiente de inspección.`,
             );
             setDocumento("");
             setCantidades({});
@@ -50,11 +57,13 @@ function FormularioRecepcion({
                     ? fallo.message
                     : "No se pudo registrar la recepción.",
             );
+        } finally {
+            setGuardando(false);
         }
     }
 
     return (
-        <form className="tarjeta" onSubmit={guardar} noValidate>
+        <form className="tarjeta" onSubmit={evento => void guardar(evento)} noValidate>
             <h2>Entrega de la orden {seleccion.orden.numero}</h2>
 
             <label className="campo">
@@ -77,6 +86,19 @@ function FormularioRecepcion({
                     required
                 />
             </label>
+
+            {conexion.recepcion && (
+                <label className="campo">
+                    Almacén de recepción
+                    <input
+                        type="text"
+                        value={almacen}
+                        onChange={evento => setAlmacen(evento.target.value)}
+                        placeholder="Ej. Almacén central"
+                        required
+                    />
+                </label>
+            )}
 
             <p>Deja en blanco las líneas que no llegaron en esta entrega.</p>
 
@@ -110,7 +132,9 @@ function FormularioRecepcion({
                 <p className="alerta alerta--error" role="alert">{error}</p>
             )}
 
-            <button type="submit">Registrar recepción</button>
+            <button type="submit" disabled={guardando}>
+                {guardando ? "Guardando…" : "Registrar recepción"}
+            </button>
         </form>
     );
 }

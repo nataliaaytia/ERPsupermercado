@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import SiguientePaso from '../../componentes/ui/SiguientePaso';
-import { obtenerCompras } from '../../estado/almacenCompras';
 import { productosDelCatalogo, useCompras } from '../../estado/useCompras';
 import EditarRequisicion from './componentes/EditarRequisicion';
 import AlertasInventario from './paginas/AlertasInventario';
@@ -11,9 +10,26 @@ import FormularioRequisicion from './paginas/FormularioRequisicion';
 import ListaRequisiciones from './paginas/ListaRequisiciones';
 import SelectorProveedores from './paginas/SelectorProveedores';
 import ValidarRequisicion from './paginas/ValidarRequisicion';
+import type { AlertaReposicion } from './tipos/alertasInventario';
 import type { DatosRequisicion, ProveedorReferencia } from './tipos';
 
 const RUTA = '/requisiciones';
+
+/**
+ * Alertas de reposición simuladas para la pantalla de Inventarios: una por cada
+ * producto del catálogo de proveedores (los productos vienen del servidor).
+ */
+function alertasSimuladas(proveedores: Parameters<typeof productosDelCatalogo>[0]): AlertaReposicion[] {
+  return productosDelCatalogo(proveedores).map((producto) => ({
+    idEvento: `INV-${String(producto.idProducto).padStart(4, '0')}`,
+    idProducto: producto.idProducto,
+    nombreProducto: producto.descripcion,
+    cantidadActual: 20,
+    stockMinimo: 100,
+    cantidadSugerida: 200,
+    fechaPublicacion: new Date().toISOString(),
+  }));
+}
 
 export function PaginaAlertas() {
   const compras = useCompras();
@@ -21,7 +37,7 @@ export function PaginaAlertas() {
     <>
       <div className="tarjeta">
         <AlertasInventario
-          alertasPendientes={compras.alertasPendientes}
+          alertasPendientes={alertasSimuladas(compras.proveedores)}
           alertasInventario={compras.alertasInventario}
           historialProcesamientos={compras.historialProcesamientos}
           dispatch={compras.dispatch}
@@ -42,11 +58,9 @@ export function PaginaNueva() {
   const { proveedores, registrarRequisicion } = useCompras();
   const navegar = useNavigate();
 
-  const guardar = (datos: DatosRequisicion) => {
-    const antes = obtenerCompras().requisiciones.length;
-    registrarRequisicion(datos);
+  const guardar = async (datos: DatosRequisicion) => {
     // Si el registro fue exitoso, se continúa con la aprobación.
-    if (obtenerCompras().requisiciones.length > antes) navegar(`${RUTA}/aprobacion`);
+    if (await registrarRequisicion(datos)) navegar(`${RUTA}/aprobacion`);
   };
 
   return (

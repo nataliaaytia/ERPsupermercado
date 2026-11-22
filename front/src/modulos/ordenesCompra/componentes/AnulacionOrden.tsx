@@ -142,14 +142,14 @@ export default function AnulacionOrden({ orden }: Props) {
     setConfirmando(true);
   }
 
-  function confirmarAnulacion() {
+  async function confirmarAnulacion() {
     if (procesando || !motivo.trim()) return;
 
     setProcesando(true);
     setError("");
 
     try {
-      anularOrdenCompra(orden.idOrden, motivo.trim());
+      await anularOrdenCompra(orden.idOrden, motivo.trim());
 
       setModalAbierto(false);
       setConfirmando(false);

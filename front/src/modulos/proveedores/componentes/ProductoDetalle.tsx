@@ -96,7 +96,9 @@ const ProductoDetalle = ({
           <span className="field-label">Stock disponible</span>
           <span className="field-value producto-detalle-icono">
             <Package size={16} />
-            {producto.stockDisponible} {producto.unidadMedida}
+            {producto.stockDisponible === null
+              ? "Sin dato"
+              : `${producto.stockDisponible} ${producto.unidadMedida}`}
           </span>
         </div>
       </div>

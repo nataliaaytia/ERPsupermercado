@@ -20,6 +20,7 @@ import {
 
 import { fechaHoy } from "../../../estado/useCompras";
 
+import { useGuardandoCotizaciones } from "../servicios/despachoCotizaciones";
 import "./ConsolidarRequisiciones.css";
 
 interface Props {
@@ -31,6 +32,7 @@ export default function ConsolidarRequisiciones({
     estado,
     dispatch,
 }: Props) {
+    const guardando = useGuardandoCotizaciones();
     const [ids, setIds] = useState<number[]>([]);
 
     const [solicitante, setSolicitante] =
@@ -374,10 +376,11 @@ export default function ConsolidarRequisiciones({
                 className="consolidar-requisiciones__confirmar"
                 disabled={
                     seleccionadas.length < 2 ||
-                    resumen.errores.length > 0
+                    resumen.errores.length > 0 ||
+                    guardando
                 }
             >
-                Consolidar y generar solicitud
+                {guardando ? "Guardando…" : "Consolidar y generar solicitud"}
             </button>
         </form>
     );

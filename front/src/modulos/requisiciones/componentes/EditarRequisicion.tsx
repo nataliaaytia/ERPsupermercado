@@ -16,6 +16,7 @@ import {
 
 import { codigoRequisicion } from "../servicios/formatoRequisicion";
 
+import { useGuardandoCotizaciones } from "../servicios/despachoCotizaciones";
 import "../paginas/FormularioRequisicion.css";
 import "./EditarRequisicion.css";
 
@@ -32,6 +33,7 @@ export default function EditarRequisicion({
     onGuardar,
     onCancelar,
 }: Props) {
+    const guardando = useGuardandoCotizaciones();
     const id = useId();
 
     const [datos, setDatos] = useState<DatosRequisicion>(
@@ -344,9 +346,9 @@ export default function EditarRequisicion({
                 <button
                     type="submit"
                     className="formulario-requisicion__guardar"
-                    disabled={bloqueada}
+                    disabled={bloqueada || guardando}
                 >
-                    Guardar cambios
+                    {guardando ? "Guardando…" : "Guardar cambios"}
                 </button>
             </div>
         </form>

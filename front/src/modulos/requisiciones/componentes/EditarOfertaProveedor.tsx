@@ -1,5 +1,6 @@
 import { useId, useState, type FormEvent } from "react";
 import type { OfertaProveedor, DetalleOferta } from "../tipos";
+import { useGuardandoCotizaciones } from "../servicios/despachoCotizaciones";
 import "./EditarOfertaProveedor.css";
 
 export interface DatosActualizacionOferta {
@@ -17,8 +18,6 @@ type DetalleEditable = Omit<DetalleOferta, "precio" | "plazoEntrega"> & {
 type ErroresDetalle = { precio?: string; plazoEntrega?: string };
 type ErroresEdicion = {
   validez?: string;
-  descuento?: string;
-  condicionesEntrega?: string;
   detalles: Record<number, ErroresDetalle>;
 };
 
@@ -45,8 +44,6 @@ function fechaValida(fecha: string): boolean {
 
 function validar(
   validez: string,
-  descuento: string,
-  condicionesEntrega: string,
   detalles: DetalleEditable[],
   hoy: string,
 ): ErroresEdicion {
@@ -54,22 +51,6 @@ function validar(
 
   if (!fechaValida(validez) || validez < hoy) {
     errores.validez = "Selecciona una fecha válida que no sea anterior a hoy.";
-  }
-
-  const descuentoNumero = Number(descuento);
-  if (
-    !formatoImporte.test(descuento.trim()) ||
-    !Number.isFinite(descuentoNumero) ||
-    descuentoNumero < 0 ||
-    descuentoNumero > 100
-  ) {
-    errores.descuento = "El descuento debe estar entre 0 y 100 y tener máximo dos decimales.";
-  }
-
-  const condiciones = condicionesEntrega.trim();
-  if (!condiciones || condiciones.length > 500) {
-    errores.condicionesEntrega =
-      "Las condiciones de entrega son obligatorias y no deben superar los 500 caracteres.";
   }
 
   detalles.forEach((detalle) => {
@@ -109,10 +90,9 @@ export default function EditarOfertaProveedor({
   onGuardar,
   onCancelar,
 }: Props) {
+  const guardando = useGuardandoCotizaciones();
   const id = useId();
   const [validez, setValidez] = useState(oferta.validez);
-  const [descuento, setDescuento] = useState(String(oferta.descuento));
-  const [condicionesEntrega, setCondicionesEntrega] = useState(oferta.condicionesEntrega);
   const [detalles, setDetalles] = useState<DetalleEditable[]>(
     oferta.detalles.map((detalle) => ({
       ...detalle,
@@ -149,19 +129,15 @@ export default function EditarOfertaProveedor({
 
   const guardar = (evento: FormEvent<HTMLFormElement>) => {
     evento.preventDefault();
-    const nuevosErrores = validar(validez, descuento, condicionesEntrega, detalles, hoy);
+    const nuevosErrores = validar(validez, detalles, hoy);
     setErrores(nuevosErrores);
 
     const primerDetalle = detalles.find((detalle) => nuevosErrores.detalles[detalle.idDetalle]);
     const primerCampo = nuevosErrores.validez
       ? `${id}-validez`
-      : nuevosErrores.descuento
-        ? `${id}-descuento`
-        : nuevosErrores.condicionesEntrega
-          ? `${id}-condiciones`
-          : primerDetalle
-            ? `${id}-${nuevosErrores.detalles[primerDetalle.idDetalle].precio ? "precio" : "plazo"}-${primerDetalle.idDetalle}`
-            : null;
+      : primerDetalle
+        ? `${id}-${nuevosErrores.detalles[primerDetalle.idDetalle].precio ? "precio" : "plazo"}-${primerDetalle.idDetalle}`
+        : null;
 
     if (primerCampo) {
       document.getElementById(primerCampo)?.focus();
@@ -170,8 +146,9 @@ export default function EditarOfertaProveedor({
 
     onGuardar({
       validez,
-      descuento: Number(descuento),
-      condicionesEntrega: condicionesEntrega.trim(),
+      // El servidor no registra descuento ni condiciones de entrega.
+      descuento: oferta.descuento,
+      condicionesEntrega: oferta.condicionesEntrega,
       detalles: detalles.map((detalle) => ({
         ...detalle,
         precio: Number(detalle.precio),
@@ -199,37 +176,6 @@ export default function EditarOfertaProveedor({
           }}
         />
         {errores.validez && <span role="alert" className="editar-oferta__error-campo">{errores.validez}</span>}
-      </label>
-
-      <label>
-        Descuento ofrecido (%)
-        <input
-          id={`${id}-descuento`}
-          type="text"
-          inputMode="decimal"
-          value={descuento}
-          aria-invalid={Boolean(errores.descuento)}
-          onChange={(e) => {
-            setDescuento(e.target.value);
-            setErrores((actuales) => ({ ...actuales, descuento: undefined }));
-          }}
-        />
-        {errores.descuento && <span role="alert" className="editar-oferta__error-campo">{errores.descuento}</span>}
-      </label>
-
-      <label>
-        Condiciones de entrega
-        <textarea
-          id={`${id}-condiciones`}
-          value={condicionesEntrega}
-          maxLength={500}
-          aria-invalid={Boolean(errores.condicionesEntrega)}
-          onChange={(e) => {
-            setCondicionesEntrega(e.target.value);
-            setErrores((actuales) => ({ ...actuales, condicionesEntrega: undefined }));
-          }}
-        />
-        {errores.condicionesEntrega && <span role="alert" className="editar-oferta__error-campo">{errores.condicionesEntrega}</span>}
       </label>
 
       {detalles.map((detalle) => (
@@ -267,7 +213,7 @@ export default function EditarOfertaProveedor({
       ))}
 
       <div className="selector-proveedores-acciones">
-        <button type="submit">Guardar cambios</button>
+        <button type="submit" disabled={guardando}>{guardando ? "Guardando…" : "Guardar cambios"}</button>
         <button type="button" onClick={onCancelar}>Cancelar edición</button>
       </div>
     </form>

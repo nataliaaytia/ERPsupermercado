@@ -1,7 +1,10 @@
 import { useState } from "react";
-import type { Dispatch } from "react";
 
-import type { AccionCompras, EstadoCompras } from "../servicios/modeloCompras";
+import type { EstadoCompras } from "../servicios/modeloCompras";
+import {
+  useGuardandoCotizaciones,
+  type DespacharAccion,
+} from "../servicios/despachoCotizaciones";
 import type { ProveedorReferencia } from "../tipos";
 
 import { codigoRequisicion } from "../servicios/formatoRequisicion";
@@ -18,7 +21,7 @@ import "./SelectorProveedores.css";
 interface Props {
   proveedores: ProveedorReferencia[];
   estado: EstadoCompras;
-  dispatch: Dispatch<AccionCompras>;
+  dispatch: DespacharAccion;
   solicitudInicialId?: number | null;
 }
 
@@ -39,6 +42,7 @@ export default function SelectorProveedores({
   const [confirmarCierreId, setConfirmarCierreId] = useState<number | null>(null);
 
   const hoy = fechaHoy();
+  const guardando = useGuardandoCotizaciones();
 
   const solicitudesFiltradas = estado.solicitudes.filter(
     (s) => filtroEstado === "Todas" || s.estado === filtroEstado,
@@ -288,12 +292,6 @@ export default function SelectorProveedores({
                   Cerrar solicitud
                 </button>
               )}
-              <button
-                type="button"
-                onClick={() => dispatch({ tipo: "cancelar", id: solicitud.idSolicitud })}
-              >
-                Cancelar solicitud
-              </button>
             </div>
           )}
 
@@ -305,6 +303,7 @@ export default function SelectorProveedores({
                 <button
                   type="button"
                   className="selector-proveedores-cerrar"
+                  disabled={guardando}
                   onClick={() => {
                     dispatch({ tipo: "cerrar", id: solicitud.idSolicitud, hoy });
                     setConfirmarCierreId(null);

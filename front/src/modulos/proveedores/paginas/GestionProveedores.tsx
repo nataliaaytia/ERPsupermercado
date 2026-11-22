@@ -24,12 +24,14 @@ import ProveedorModal from "../componentes/ProveedorModal";
 import { validarProveedor, normalizarProveedor } from "../servicios/validacionProveedor";
 import DocumentoModal from "../componentes/DocumentoModal";
 interface Props {
-  onRegistrarProveedor: (datos: DatosProveedor) => string | null;
+  onRegistrarProveedor: (datos: DatosProveedor) => Promise<string | null>;
   proveedores: Proveedor[];
   proveedorSeleccionado: Proveedor;
   onSeleccionar: (id: number) => void;
   cambiarEstadoProveedor: (estado: EstadoProveedor) => void;
   onRegistrarDocumento: (documento: Documento) => void;
+  /** Se llama después de validar en pantalla (p. ej. para guardar la validación en el servidor). */
+  onValidado?: () => void;
 }
 export default function GestionProveedores({
   proveedores,
@@ -38,6 +40,7 @@ export default function GestionProveedores({
   onSeleccionar,
   cambiarEstadoProveedor,
   onRegistrarDocumento,
+  onValidado,
 }: Props) {
   const [filtroBusquedaProv, setFiltroBusquedaProv] = useState<string>("");
   const [filtroEstadoProv, setFiltroEstadoProv] = useState<string>("Todos");
@@ -88,6 +91,7 @@ export default function GestionProveedores({
     ];
     const esValido = detalles.every((item) => item.valido);
     setResultadoValidacion({ ejecutado: true, esValido, detalles });
+    onValidado?.();
   };
   const proveedoresFiltrados = proveedores.filter((p) => {
     const coincideTexto =
@@ -122,8 +126,8 @@ export default function GestionProveedores({
         <ProveedorModal
           nitsExistentes={proveedores.map((proveedor) => proveedor.nitRuc)}
           onCerrar={() => setModalProveedorAbierto(false)}
-          onGuardar={(datos) => {
-            const error = onRegistrarProveedor(datos);
+          onGuardar={async (datos) => {
+            const error = await onRegistrarProveedor(datos);
             if (error) return error;
             setFiltroBusquedaProv("");
             setFiltroEstadoProv("Todos");

@@ -1,7 +1,7 @@
 [
   { "idUsuario": 1, "usuario": "admin", "contrasena": "admin123", "nombre": "Administrador de Compras", "rol": "Administrador de Compras" },
   { "idUsuario": 2, "usuario": "comprador", "contrasena": "compras123", "nombre": "Ana Quispe", "rol": "Comprador" },
-  { "idUsuario": 3, "usuario": "jefe", "contrasena": "jefe123", "nombre": "Luis Rojas", "rol": "Jefe de Compras" },
+  { "idUsuario": 3, "usuario": "jefe", "contrasena": "jefe1234", "nombre": "Luis Rojas", "rol": "Jefe de Compras" },
   { "idUsuario": 4, "usuario": "recepcion", "contrasena": "recepcion123", "nombre": "Carlos Mamani", "rol": "Encargado de Recepción" },
   { "idUsuario": 5, "usuario": "facturacion", "contrasena": "factura123", "nombre": "María Choque", "rol": "Responsable de Facturación/Pagos" },
   { "idUsuario": 6, "usuario": "gerente", "contrasena": "gerente123", "nombre": "Roberto Vargas", "rol": "Gerente" },

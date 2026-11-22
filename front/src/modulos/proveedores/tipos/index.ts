@@ -15,7 +15,8 @@ export interface ProductoCatalogo {
   descripcion: string;
   precioPactado: number;
   tiempoEntregaEstimado: string;
-  stockDisponible: number;
+  /** null cuando el proveedor no informa su stock. */
+  stockDisponible: number | null;
   unidadMedida: string;
 }
 export interface DescuentoVolumen {
@@ -37,6 +38,14 @@ export interface Proveedor {
   catalogoProductos: ProductoCatalogo[];
   descuentoVolumen: DescuentoVolumen[];
   tiempoPromedioDias: number;
+  /** Indicadores calculados por el servidor (calidad y cumplimiento). */
+  indicadores?: IndicadoresProveedor;
+}
+
+export interface IndicadoresProveedor {
+  porcentajeAceptados: number;
+  porcentajeEntregasCompletas: number;
+  cantidadRetrasos: number;
 }
 export interface HistoricoEntrega {
   mes: string;

@@ -1,4 +1,7 @@
-import { actualizarCompras } from "../../../estado/almacenCompras";
+import { actualizarCompras, obtenerCompras } from "../../../estado/almacenCompras";
+import { conexion } from "../../../servicios/api/configuracion";
+import { recargar } from "../../../servicios/sincronizacion";
+import { confirmarAutorizacionApi } from "./recepcionApi";
 import type { RecepcionValidada } from "../../ordenesCompra/tipos";
 import { calcularSaldosEntrega } from "../../ordenesCompra/servicios/utilidadesSeguimientoEntregas";
 
@@ -8,11 +11,67 @@ export interface DatosConfirmacionRecepcion {
         idDetalleOrden: number;
         cantidadAceptada: number;
     }[];
+    /** Con la conexión activa: quién autoriza y una observación opcional. */
+    usuarioAutorizador?: string;
+    observacion?: string;
 }
 
-export function confirmarRecepcion(
+/**
+ * Con la conexión activa el servidor autoriza las cantidades conformes de la
+ * inspección (no las que se escriban en el formulario).
+ */
+async function confirmarRecepcionApi(
     datos: DatosConfirmacionRecepcion,
-): void {
+): Promise<string> {
+    const actual = obtenerCompras();
+    const recepcion = actual.recepcionesRegistradas.find(
+        item => item.idRecepcion === datos.idRecepcion,
+    );
+    if (!recepcion) {
+        throw new Error("La recepción seleccionada ya no está disponible.");
+    }
+    if (
+        actual.recepcionesValidadas.some(
+            item =>
+                item.idRecepcion === recepcion.idRecepcion &&
+                item.idOrden === recepcion.idOrden,
+        )
+    ) {
+        throw new Error("Esta recepción ya fue confirmada.");
+    }
+    if (
+        !actual.inspeccionesCalidad.some(
+            item =>
+                item.idRecepcion === recepcion.idRecepcion &&
+                item.idOrden === recepcion.idOrden,
+        )
+    ) {
+        throw new Error(
+            "Primero registra la inspección de calidad de esta recepción.",
+        );
+    }
+
+    const usuarioAutorizador = datos.usuarioAutorizador?.trim();
+    const observacion = datos.observacion?.trim();
+    const respuesta = await confirmarAutorizacionApi({
+        idRecepcion: recepcion.idRecepcion,
+        ...(usuarioAutorizador ? { usuarioAutorizador } : {}),
+        ...(observacion ? { observacion } : {}),
+    });
+    await recargar("recepcion");
+    return respuesta.mensaje?.trim() ||
+        `La recepción ${recepcion.documento} quedó validada: ${respuesta.totalUnidadesAutorizadas} unidades aceptadas.`;
+}
+
+/**
+ * Confirma las cantidades aceptadas de una recepción (revisión final).
+ * Con la conexión activa la autoriza en el servidor y devuelve su mensaje.
+ */
+export async function confirmarRecepcion(
+    datos: DatosConfirmacionRecepcion,
+): Promise<string | undefined> {
+    if (conexion.recepcion) return confirmarRecepcionApi(datos);
+
     actualizarCompras(actual => {
         const recepcion = actual.recepcionesRegistradas.find(
             item => item.idRecepcion === datos.idRecepcion,

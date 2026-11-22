@@ -1,0 +1,148 @@
+# ERP Supermercado · entorno local con Docker
+#
+#   docker compose up --build -d     → todo (bases de datos, microservicios, correo y front)
+#
+# Front:                     http://localhost:5173
+# Correo de prueba (Mailpit): http://localhost:8025   (correos que envía Órdenes de compra)
+# ms-proveedores-catalogo:   http://localhost:8080   · BD localhost:5433 (bd_proveedores)
+# ms-cotizaciones-requis.:   http://localhost:8082   · BD localhost:5434 (bd_cotizaciones)
+# ms-ordenes-compra:         http://localhost:8083   · BD localhost:5435 (bd_ordenes)
+# ms-recepcion-control:      http://localhost:8084   · BD localhost:5436 (bd_recepcion)
+#
+# Cada microservicio tiene su propia base de datos (como en el plan del proyecto).
+# Los datos iniciales están en docker/<servicio>/datos-iniciales.sql.
+
+x-postgres: &postgres
+  image: postgres:16-alpine
+  environment: &postgres-env
+    POSTGRES_USER: ${POSTGRES_USER:-postgres}
+    POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+
+x-spring: &spring-env
+  SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
+  SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+  SPRING_JPA_SHOW_SQL: "false"
+  SERVER_ERROR_INCLUDEMESSAGE: always
+  # Datos iniciales: se cargan después de que Hibernate crea las tablas
+  SPRING_JPA_DEFER_DATASOURCE_INITIALIZATION: "true"
+  SPRING_SQL_INIT_MODE: always
+  SPRING_SQL_INIT_DATA_LOCATIONS: file:/datos/datos-iniciales.sql
+
+services:
+  # ------------------------------------------------------------ Proveedores
+  bd-proveedores:
+    <<: *postgres
+    environment:
+      <<: *postgres-env
+      POSTGRES_DB: bd_proveedores
+    ports: ["5433:5432"]
+    volumes: [datos-proveedores:/var/lib/postgresql/data]
+    healthcheck: &salud-bd
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  proveedores:
+    build: ./back/ms-proveedores-catalogo
+    depends_on:
+      bd-proveedores: { condition: service_healthy }
+    environment:
+      <<: *spring-env
+      SPRING_DATASOURCE_URL: jdbc:postgresql://bd-proveedores:5432/bd_proveedores
+    volumes: [./docker/proveedores/datos-iniciales.sql:/datos/datos-iniciales.sql:ro]
+    ports: ["8080:8080"]
+
+  # --------------------------------------------- Cotizaciones y requisiciones
+  bd-cotizaciones:
+    <<: *postgres
+    environment:
+      <<: *postgres-env
+      POSTGRES_DB: bd_cotizaciones
+    ports: ["5434:5432"]
+    volumes: [datos-cotizaciones:/var/lib/postgresql/data]
+    healthcheck: *salud-bd
+
+  cotizaciones:
+    build: ./back/ms-cotizaciones-requisiciones
+    depends_on:
+      bd-cotizaciones: { condition: service_healthy }
+    environment:
+      <<: *spring-env
+      SPRING_DATASOURCE_URL: jdbc:postgresql://bd-cotizaciones:5432/bd_cotizaciones
+      INTEGRACIONES_PROVEEDORES_URL: http://proveedores:8080
+    volumes: [./docker/cotizaciones/datos-iniciales.sql:/datos/datos-iniciales.sql:ro]
+    ports: ["8082:8082"]
+
+  # ------------------------------------------------------ Órdenes de compra
+  bd-ordenes:
+    <<: *postgres
+    environment:
+      <<: *postgres-env
+      POSTGRES_DB: bd_ordenes
+    ports: ["5435:5432"]
+    volumes: [datos-ordenes:/var/lib/postgresql/data]
+    healthcheck: *salud-bd
+
+  ordenes:
+    build: ./back/ms-ordenes-compra
+    depends_on:
+      bd-ordenes: { condition: service_healthy }
+    environment:
+      <<: *spring-env
+      SPRING_DATASOURCE_URL: jdbc:postgresql://bd-ordenes:5432/bd_ordenes
+      SERVICIOS_COTIZACIONES_URL: http://cotizaciones:8082
+      SERVICIOS_PROVEEDORES_URL: http://proveedores:8080
+      SERVICIOS_RECEPCION_URL: http://recepcion:8084
+      SPRING_MAIL_HOST: correo
+      SPRING_MAIL_PORT: "1025"
+    volumes: [./docker/ordenes/datos-iniciales.sql:/datos/datos-iniciales.sql:ro]
+    ports: ["8083:8083"]
+
+  # ---------------------------------------------------- Recepción y control
+  bd-recepcion:
+    <<: *postgres
+    environment:
+      <<: *postgres-env
+      POSTGRES_DB: bd_recepcion
+    ports: ["5436:5432"]
+    volumes: [datos-recepcion:/var/lib/postgresql/data]
+    healthcheck: *salud-bd
+
+  recepcion:
+    build: ./back/ms-recepcion-control
+    depends_on:
+      bd-recepcion: { condition: service_healthy }
+    environment:
+      <<: *spring-env
+      SPRING_DATASOURCE_URL: jdbc:postgresql://bd-recepcion:5432/bd_recepcion
+      SERVICIOS_ORDENESCOMPRA_BASEURL: http://ordenes:8083
+      SERVICIOS_ORDENES_COMPRA_BASE_URL: http://ordenes:8083
+      SERVICIOS_ORDENES_URL: http://ordenes:8083/api/ordenes-compra
+    volumes: [./docker/recepcion/datos-iniciales.sql:/datos/datos-iniciales.sql:ro]
+    ports: ["8084:8084"]
+
+  # ------------------------------------------------------ Correo de prueba
+  correo:
+    image: axllent/mailpit:v1.20
+    ports:
+      - "8025:8025"   # bandeja web
+      - "1025:1025"   # SMTP
+
+  # ------------------------------------------------------------------ Front
+  front:
+    build:
+      context: ./front
+      args:
+        # Rutas del proxy de nginx (front/nginx.conf): mismo origen, sin CORS
+        VITE_API_PROVEEDORES: /srv/proveedores
+        VITE_API_COTIZACIONES: /srv/cotizaciones
+        VITE_API_ORDENES: /srv/ordenes
+        VITE_API_RECEPCION: /srv/recepcion
+    ports: ["5173:80"]
+
+volumes:
+  datos-proveedores:
+  datos-cotizaciones:
+  datos-ordenes:
+  datos-recepcion:

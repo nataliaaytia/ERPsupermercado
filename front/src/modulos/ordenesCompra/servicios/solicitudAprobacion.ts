@@ -1,6 +1,10 @@
 import {
   actualizarCompras,
+  obtenerCompras,
 } from "../../../estado/almacenCompras";
+import { conexion } from "../../../servicios/api/configuracion";
+import * as api from "./ordenesApi";
+import { finalizarOperacion } from "./operacionApi";
 
 import type {
   OrdenCompra,
@@ -60,16 +64,34 @@ function validarBorrador(orden: OrdenCompra): void {
   }
 }
 
-export function solicitarAprobacionOrden(
+export async function solicitarAprobacionOrden(
   idOrden: number,
   usuario: string
-): void {
+): Promise<void> {
   const responsable = usuario.trim();
 
   if (!responsable) {
     throw new Error(
       "Debes identificar al usuario que solicita la aprobación."
     );
+  }
+
+  if (conexion.ordenes) {
+    const orden = obtenerCompras().ordenes.find(
+      (item) => item.idOrden === idOrden
+    );
+
+    if (!orden) {
+      throw new Error("No se encontró la orden de compra.");
+    }
+
+    validarBorrador(orden);
+
+    const respuesta = await api.solicitarAprobacion(idOrden);
+    await finalizarOperacion(
+      respuesta?.mensaje ?? "La orden fue enviada a aprobación."
+    );
+    return;
   }
 
   actualizarCompras((actual) => {

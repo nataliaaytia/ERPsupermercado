@@ -3,10 +3,8 @@ import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Lock, User } from 'lucide-react';
 import { modulos } from '../../app/modulos';
 import { useSesion } from '../../contexto/SesionContext';
-import { obtenerUsuarios } from '../../servicios/datosPrueba';
 import './Login.css';
 
-const usuariosDemo = obtenerUsuarios();
 
 export default function Login() {
   const { usuario, iniciarSesion } = useSesion();
@@ -18,23 +16,20 @@ export default function Login() {
   const [contrasena, setContrasena] = useState('');
   const [mostrarContrasena, setMostrarContrasena] = useState(false);
   const [error, setError] = useState('');
+  const [ingresando, setIngresando] = useState(false);
 
   if (usuario) return <Navigate to={destino} replace />;
 
-  const enviar = (evento: FormEvent<HTMLFormElement>) => {
+  const enviar = async (evento: FormEvent<HTMLFormElement>) => {
     evento.preventDefault();
-    const fallo = iniciarSesion(nombreUsuario, contrasena);
+    setIngresando(true);
+    const fallo = await iniciarSesion(nombreUsuario, contrasena);
+    setIngresando(false);
     if (fallo) {
       setError(fallo);
       return;
     }
     navegar(destino, { replace: true });
-  };
-
-  const usarDemo = (usuarioDemo: (typeof usuariosDemo)[number]) => {
-    setNombreUsuario(usuarioDemo.usuario);
-    setContrasena(usuarioDemo.contrasena);
-    setError('');
   };
 
   return (
@@ -90,25 +85,11 @@ export default function Login() {
             </span>
           </label>
 
-          <button type="submit" className="login__enviar">
-            Ingresar
+          <button type="submit" className="login__enviar" disabled={ingresando}>
+            {ingresando ? 'Ingresando...' : 'Ingresar'}
           </button>
         </form>
 
-        <details className="login__demo">
-          <summary>Usuarios de prueba</summary>
-          <p>Haz clic en un usuario para completar el formulario.</p>
-          <ul>
-            {usuariosDemo.map((item) => (
-              <li key={item.idUsuario}>
-                <button type="button" onClick={() => usarDemo(item)}>
-                  <strong>{item.usuario}</strong>
-                  <span>{item.rol}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        </details>
       </div>
     </div>
   );

@@ -137,12 +137,26 @@ public class SolicitudCotizacionService {
                 ? solicitud.getRequisicion().getIdRequisicion()
                 : null;
 
+        var consolidacion = solicitud.getConsolidacion();
+
         return new SolicitudCotizacionResponse(
                 solicitud.getIdSolicitud(),
                 idRequisicion,
                 solicitud.getFecha(),
                 solicitud.getFechaLimite(),
-                solicitud.getEstado()
+                solicitud.getEstado(),
+                consolidacion != null ? consolidacion.getIdConsolidacion() : null,
+                consolidacion != null
+                        ? consolidacion.getRequisiciones().stream()
+                                .map(requisicion -> requisicion.getIdRequisicion())
+                                .toList()
+                        : null,
+                consolidacion != null
+                        ? consolidacion.getDetalles().stream()
+                                .map(detalle -> new SolicitudCotizacionResponse.ProductoConsolidado(
+                                        detalle.getProductoId(), detalle.getCantidad()))
+                                .toList()
+                        : null
         );
     }
 

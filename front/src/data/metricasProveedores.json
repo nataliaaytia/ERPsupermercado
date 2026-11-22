@@ -1,8 +1,0 @@
-[
-  { "idProveedor": 1, "porcentajeAceptados": 98, "porcentajeEntregasCompletas": 96 },
-  { "idProveedor": 2, "porcentajeAceptados": 95, "porcentajeEntregasCompletas": 92 },
-  { "idProveedor": 3, "porcentajeAceptados": 81, "porcentajeEntregasCompletas": 74 },
-  { "idProveedor": 4, "porcentajeAceptados": 97, "porcentajeEntregasCompletas": 94 },
-  { "idProveedor": 5, "porcentajeAceptados": 90, "porcentajeEntregasCompletas": 85 },
-  { "idProveedor": 6, "porcentajeAceptados": 70, "porcentajeEntregasCompletas": 62 }
-]

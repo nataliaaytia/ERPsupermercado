@@ -73,6 +73,8 @@ export interface AnulacionOrden {
 export interface OrdenCompra {
   idOrden: number;
   idOfertaOrigen?: number;
+  /** Proveedor de la orden (solo en órdenes que vienen del servidor). */
+  proveedorId?: number;
   numero: string;
   fecha: string;
   estado: string;

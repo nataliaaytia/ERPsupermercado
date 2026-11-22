@@ -1,4 +1,5 @@
 import { obtenerCompras } from "../../../estado/almacenCompras";
+import { consultarConciliacionApi, lineaOrdenDeProducto } from "./recepcionApi";
 
 export interface LineaOrdenConciliable {
     idDetalle: number;
@@ -119,4 +120,61 @@ export async function consultarOrdenParaConciliacion(
     }
 
     return validarOrden(datos, idOrden);
+}
+
+/* ---------- Conciliación calculada por el servidor (conexión activa) ---------- */
+
+export interface FilaConciliacionServidor {
+    idDetalleOrden: number;
+    producto: string;
+    cantidadSolicitada: number;
+    cantidadRecibida: number;
+    cantidadAceptada: number;
+    diferencia: number;
+    estadoLinea: string;
+}
+
+export interface ConciliacionServidor {
+    conforme: boolean;
+    tieneDiferenciasPendientes: boolean;
+    mensaje: string;
+    filas: FilaConciliacionServidor[];
+}
+
+const ESTADOS_LINEA: Record<string, string> = {
+    CONFORME: "Conforme",
+    FALTANTE: "Faltante",
+    FALTANTE_TOTAL: "No recibido en esta entrega",
+    EXCESO: "Exceso",
+    PRODUCTO_NO_ORDENADO: "No está en la orden",
+};
+
+/** Consulta la conciliación de una recepción contra su orden en el servidor. */
+export async function conciliarRecepcionServidor(
+    idRecepcion: number,
+    idOrden: number,
+): Promise<ConciliacionServidor> {
+    const respuesta = await consultarConciliacionApi(idRecepcion, idOrden);
+    const orden = obtenerCompras().ordenes.find(item => item.idOrden === idOrden);
+
+    return {
+        conforme: respuesta.estadoConciliacion === "CONFORME",
+        tieneDiferenciasPendientes: respuesta.tieneDiferenciasPendientes,
+        mensaje: respuesta.mensaje?.trim() ?? "",
+        filas: respuesta.lineas.map(linea => {
+            const idDetalleOrden = lineaOrdenDeProducto(orden, linea.productoId);
+            const descripcion = orden?.detalles.find(
+                item => item.idDetalle === idDetalleOrden,
+            )?.producto.descripcion;
+            return {
+                idDetalleOrden,
+                producto: descripcion?.trim() || `Producto ${linea.productoId}`,
+                cantidadSolicitada: linea.cantidadSolicitada ?? 0,
+                cantidadRecibida: linea.cantidadRecibida ?? 0,
+                cantidadAceptada: linea.cantidadAceptada ?? 0,
+                diferencia: linea.diferencia ?? 0,
+                estadoLinea: ESTADOS_LINEA[linea.estadoLinea] ?? linea.estadoLinea,
+            };
+        }),
+    };
 }

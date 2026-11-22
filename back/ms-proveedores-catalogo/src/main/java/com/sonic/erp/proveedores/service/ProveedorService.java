@@ -393,6 +393,8 @@ public class ProveedorService {
                 .fechaFin(fechaFin)
                 .condiciones(condiciones)
                 .archivo(archivo)
+                // La columna precio es obligatoria: se toma el precio referencial del producto
+                .precio(producto.getPrecioReferencial())
                 .build();
 
         return catalogoComercialRepository.save(catalogo);

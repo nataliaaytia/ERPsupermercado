@@ -3,10 +3,15 @@ import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import type { OrdenCompra } from "../tipos";
 import {
+  ESTADO_PARA_COMPROMISOS,
   cantidadComprometida,
   fechaHoy,
   registrarCompromiso,
 } from "../servicios/compromisosEntrega";
+
+/** Texto del estado de las órdenes que admiten compromisos ("confirmada" o "aprobada"). */
+const ESTADO_TEXTO = ESTADO_PARA_COMPROMISOS.toLowerCase();
+const ESTADO_PLURAL = `${ESTADO_TEXTO.slice(0, -1)}as`;
 
 interface CompromisosEntregaOrdenProps {
   ordenes: OrdenCompra[];
@@ -22,6 +27,7 @@ export default function CompromisosEntregaOrden({
   const [observacion, setObservacion] = useState("");
   const [error, setError] = useState("");
   const [mensaje, setMensaje] = useState("");
+  const [guardando, setGuardando] = useState(false);
 
   useEffect(() => {
     if (!mensaje) return;
@@ -35,7 +41,7 @@ export default function CompromisosEntregaOrden({
   }, [mensaje]);
 
   const confirmadas = ordenes.filter(
-    orden => orden.estado === "Confirmada"
+    orden => orden.estado === ESTADO_PARA_COMPROMISOS
   );
 
   const orden = confirmadas.find(
@@ -73,19 +79,22 @@ export default function CompromisosEntregaOrden({
     setMensaje("");
   }
 
-  function guardar(evento: FormEvent<HTMLFormElement>) {
+  async function guardar(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault();
+    if (guardando) return;
     limpiarAvisos();
 
     if (!orden || !detalle) {
       setError(
-        "Selecciona una orden confirmada y una de sus líneas."
+        `Selecciona una orden ${ESTADO_TEXTO} y una de sus líneas.`
       );
       return;
     }
 
+    setGuardando(true);
+
     try {
-      registrarCompromiso({
+      await registrarCompromiso({
         idOrden: orden.idOrden,
         idDetalle: detalle.idDetalle,
         fechaEntrega,
@@ -104,6 +113,8 @@ export default function CompromisosEntregaOrden({
           ? fallo.message
           : "No se pudo guardar el compromiso."
       );
+    } finally {
+      setGuardando(false);
     }
   }
 
@@ -111,7 +122,7 @@ export default function CompromisosEntregaOrden({
     return (
       <div className="tarjeta">
         <p>
-          No hay órdenes confirmadas disponibles para
+          No hay órdenes {ESTADO_PLURAL} disponibles para
           programar entregas.
         </p>
       </div>
@@ -120,8 +131,15 @@ export default function CompromisosEntregaOrden({
 
   return (
     <>
+      {ESTADO_PARA_COMPROMISOS === "Aprobada" && (
+        <p>
+          Las entregas se programan con el proveedor cuando la
+          orden está aprobada, antes de enviarla.
+        </p>
+      )}
+
       <label className="campo">
-        Orden confirmada
+        Orden {ESTADO_TEXTO}
         <select
           value={idOrden}
           onChange={evento => {
@@ -213,7 +231,7 @@ export default function CompromisosEntregaOrden({
             )}
 
             <fieldset
-              disabled={!detalle || pendiente <= 0}
+              disabled={!detalle || pendiente <= 0 || guardando}
             >
               <div className="fila-campos">
                 <label className="campo">
@@ -264,7 +282,7 @@ export default function CompromisosEntregaOrden({
               </label>
 
               <button type="submit">
-                Guardar compromiso
+                {guardando ? "Procesando…" : "Guardar compromiso"}
               </button>
             </fieldset>
 

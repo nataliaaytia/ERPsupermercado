@@ -18,7 +18,7 @@ interface Props {
     recepciones: readonly RecepcionRegistrada[];
     validadas: readonly RecepcionValidada[];
     inspecciones: readonly DatosInspeccion[];
-    onRegistrarInspeccion: (datos: DatosInspeccionCalidad) => void;
+    onRegistrarInspeccion: (datos: DatosInspeccionCalidad) => Promise<string | undefined>;
 }
 
 interface Filtros {

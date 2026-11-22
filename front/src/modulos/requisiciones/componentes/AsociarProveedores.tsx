@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { Dispatch } from "react";
 
 import type { AccionCompras } from "../servicios/modeloCompras";
+import { useGuardandoCotizaciones } from "../servicios/despachoCotizaciones";
 import type {
   ProveedorReferencia,
   SolicitudCotizacion,
@@ -23,6 +24,7 @@ export default function AsociarProveedores({
   const [seleccionados, setSeleccionados] =
     useState<number[]>([]);
   const [busqueda, setBusqueda] = useState("");
+  const guardando = useGuardandoCotizaciones();
 
   const activos = proveedores.filter(
     proveedor => proveedor.estado === "Activo",
@@ -119,11 +121,12 @@ export default function AsociarProveedores({
           className="selector-proveedores-boton"
           disabled={
             seleccionados.length === 0 ||
-            solicitud.fechaLimite < hoy
+            solicitud.fechaLimite < hoy ||
+            guardando
           }
           onClick={asociarProveedores}
         >
-          Asociar proveedores
+          {guardando ? "Guardando…" : "Asociar proveedores"}
         </button>
       </div>
 

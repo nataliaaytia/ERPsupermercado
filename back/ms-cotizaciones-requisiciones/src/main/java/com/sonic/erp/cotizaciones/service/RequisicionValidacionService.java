@@ -42,6 +42,16 @@ public class RequisicionValidacionService {
         return validar(buscarRequisicion(idRequisicion));
     }
 
+    /** Lista todas las requisiciones (mismo formato que la consulta por id). */
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> listar() {
+        return requisicionRepository.findAll(
+                        org.springframework.data.domain.Sort.by("idRequisicion"))
+                .stream()
+                .map(requisicion -> consultarPorId(requisicion.getIdRequisicion()))
+                .toList();
+    }
+
     @Transactional(readOnly = true)
     public Map<String, Object> consultarPorId(Long idRequisicion) {
         validarId(idRequisicion);

@@ -4,6 +4,10 @@ import {
     cargarOrdenesCompra,
     guardarOrdenesCompra,
 } from "./compromisosEntrega";
+import { obtenerCompras } from "../../../estado/almacenCompras";
+import { conexion } from "../../../servicios/api/configuracion";
+import * as api from "./ordenesApi";
+import { finalizarOperacion } from "./operacionApi";
 import type {
     CondicionesLogisticas,
     OrdenCompra,
@@ -17,10 +21,10 @@ export function puedeEditarLogistica(
     return estado !== "cerrada" && estado !== "anulada";
 }
 
-export function guardarCondicionesLogisticas(
+export async function guardarCondicionesLogisticas(
     idOrden: number,
     datos: CondicionesLogisticas,
-): OrdenCompra[] {
+): Promise<OrdenCompra[]> {
     const ordenes = cargarOrdenesCompra();
 
     const orden = ordenes.find(
@@ -51,6 +55,14 @@ export function guardarCondicionesLogisticas(
         throw new Error(
             "Completa el destino, el horario y el responsable de entrega.",
         );
+    }
+
+    if (conexion.ordenes) {
+        await api.guardarCondiciones(idOrden, condicionesLogisticas);
+        await finalizarOperacion(
+            `Condiciones logísticas de ${orden.numero} guardadas.`,
+        );
+        return obtenerCompras().ordenes;
     }
 
     const actualizadas = ordenes.map(item =>

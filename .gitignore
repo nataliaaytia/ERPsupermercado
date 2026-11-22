@@ -1,0 +1,5 @@
+# Credenciales locales de Docker
+.env
+
+# Sistema / IDE
+.DS_Store

@@ -1,13 +1,17 @@
 
 import { useId, useRef, useState } from "react";
 import type { FormEvent } from "react";
-import { simularEnvioOrden } from "../servicios/simulacionEnvioOrden";
+import { enviarOrdenProveedor } from "../servicios/simulacionEnvioOrden";
+import { conexion } from "../../../servicios/api/configuracion";
 import type {
   OrdenCompra,
   RegistroEnvioOrden,
 } from "../tipos";
 import "./EnvioOrdenProveedor.css";
 import { moneda } from "../../../utilidades/formato";
+
+/** Con el servidor conectado el correo se envía de verdad (sin opciones de simulación). */
+const envioReal = conexion.ordenes;
 
 interface Props {
   orden: OrdenCompra;
@@ -22,7 +26,7 @@ export default function EnvioOrdenProveedor({
   const tituloId = useId();
 
   const [canal, setCanal] = useState(
-    "Correo electrónico (simulado)"
+    envioReal ? "Correo electrónico" : "Correo electrónico (simulado)"
   );
 
   const [resultadoPrueba, setResultadoPrueba] = useState<
@@ -63,7 +67,7 @@ export default function EnvioOrdenProveedor({
     dialogoRef.current?.close();
   }
 
-  function confirmarEnvio(
+  async function confirmarEnvio(
     evento: FormEvent<HTMLFormElement>
   ) {
     evento.preventDefault();
@@ -74,7 +78,7 @@ export default function EnvioOrdenProveedor({
     setError("");
 
     try {
-      simularEnvioOrden({
+      await enviarOrdenProveedor({
         idOrden: orden.idOrden,
         proveedor,
         canal,
@@ -86,7 +90,9 @@ export default function EnvioOrdenProveedor({
       setError(
         fallo instanceof Error
           ? fallo.message
-          : "No se pudo realizar la simulación."
+          : envioReal
+            ? "No se pudo enviar la orden."
+            : "No se pudo realizar la simulación."
       );
     } finally {
       setProcesando(false);
@@ -107,7 +113,9 @@ export default function EnvioOrdenProveedor({
           <p>
             {ordenEnviada
               ? "Consulta los resultados registrados del envío al proveedor."
-              : "Simula el envío de una orden aprobada y consulta los resultados registrados."}
+              : envioReal
+                ? "Envía por correo la orden aprobada al proveedor y consulta los resultados registrados."
+                : "Simula el envío de una orden aprobada y consulta los resultados registrados."}
           </p>
         </div>
 
@@ -154,7 +162,7 @@ export default function EnvioOrdenProveedor({
             className="envio-proveedor__error"
             role="alert"
           >
-            No se puede simular el envío porque falta
+            No se puede {envioReal ? "enviar" : "simular el envío"} porque falta
             información válida del proveedor.
           </p>
         )}
@@ -167,14 +175,14 @@ export default function EnvioOrdenProveedor({
             className="envio-proveedor__error"
             role="alert"
           >
-            No se puede simular el envío porque falta
+            No se puede {envioReal ? "enviar" : "simular el envío"} porque falta
             información válida del proveedor.
           </p>
         )}
 
       {historial.length > 0 && (
         <div className="envio-proveedor__historial">
-          <h4>Historial de envíos simulados</h4>
+          <h4>{envioReal ? "Historial de envíos" : "Historial de envíos simulados"}</h4>
 
           <div className="envio-proveedor__tabla">
             <table>
@@ -184,6 +192,7 @@ export default function EnvioOrdenProveedor({
                   <th>Fecha</th>
                   <th>Canal</th>
                   <th>Resultado</th>
+                  {envioReal && <th>Detalle</th>}
                 </tr>
               </thead>
 
@@ -198,6 +207,7 @@ export default function EnvioOrdenProveedor({
                     </td>
                     <td>{intento.canal}</td>
                     <td>{intento.estado}</td>
+                    {envioReal && <td>{intento.mensaje}</td>}
                   </tr>
                 ))}
               </tbody>
@@ -208,8 +218,9 @@ export default function EnvioOrdenProveedor({
 
       {ordenEnviada && historial.length === 0 && (
         <p className="envio-proveedor__aviso">
-          Esta orden figura como enviada, pero no tiene
-          intentos de envío simulados registrados.
+          {envioReal
+            ? "Esta orden figura como enviada. Los intentos de envío se registraron desde otro equipo."
+            : "Esta orden figura como enviada, pero no tiene intentos de envío simulados registrados."}
         </p>
       )}
 
@@ -230,8 +241,9 @@ export default function EnvioOrdenProveedor({
             </h3>
 
             <p className="envio-proveedor__aviso">
-              Esta es una simulación. No se enviará ningún
-              correo ni documento real.
+              {envioReal
+                ? "Se enviará un correo al proveedor con el documento de la orden."
+                : "Esta es una simulación. No se enviará ningún correo ni documento real."}
             </p>
 
             <div className="envio-proveedor__datos">
@@ -283,6 +295,8 @@ export default function EnvioOrdenProveedor({
               </strong>
             </p>
 
+            {!envioReal && (
+            <>
             <label className="envio-proveedor__campo">
               Canal de envío
               <select
@@ -322,6 +336,14 @@ export default function EnvioOrdenProveedor({
                 </option>
               </select>
             </label>
+            </>
+            )}
+
+            {envioReal && (
+              <p>
+                <strong>Canal:</strong> Correo electrónico
+              </p>
+            )}
 
             {error && (
               <p
@@ -349,7 +371,9 @@ export default function EnvioOrdenProveedor({
               >
                 {procesando
                   ? "Procesando..."
-                  : "Confirmar envío simulado"}
+                  : envioReal
+                    ? "Confirmar envío"
+                    : "Confirmar envío simulado"}
               </button>
             </div>
           </form>

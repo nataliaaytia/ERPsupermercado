@@ -92,7 +92,7 @@ export default function SolicitudAprobacionOrden({
     setModalAbierto(false);
   }
 
-  function confirmarAprobacion() {
+  async function confirmarAprobacion() {
     if (procesando || deshabilitado) return;
 
     setProcesando(true);
@@ -100,7 +100,7 @@ export default function SolicitudAprobacionOrden({
     setMensaje("");
 
     try {
-      solicitarAprobacionOrden(idOrden, "Comprador");
+      await solicitarAprobacionOrden(idOrden, "Comprador");
 
       setMensaje(
         "La orden fue enviada a aprobación correctamente."
