@@ -6,6 +6,8 @@ import { fechaHoy } from '../../../utilidades/fechas';
 import { moneda, redondear } from '../../../utilidades/formato';
 import type { OrdenCompra } from '../../ordenesCompra/tipos';
 import { lineasFacturables, ordenesFacturables, proveedorDeOrden, registrarFactura } from '../servicios/facturas';
+import { conciliarConRecepciones } from '../servicios/conciliacionRecepciones';
+import ConciliacionRecepciones from '../componentes/ConciliacionRecepciones';
 
 interface LineaFormulario {
   cantidad: string;
@@ -41,6 +43,14 @@ function FormularioFactura({ orden }: { orden: OrdenCompra }) {
       0,
     ),
   );
+
+  // SCRUM-673: conciliación en vivo con las recepciones parciales de la orden.
+  const conciliacion = conciliarConRecepciones(
+    compras,
+    orden.idOrden,
+    new Map(Object.entries(valores).map(([id, valor]) => [Number(id), Number(valor.cantidad) || 0])),
+  );
+  const excedeLoAceptado = conciliacion !== null && !conciliacion.conforme;
 
   const cambiar = (id: number, campo: keyof LineaFormulario, valor: string) =>
     setValores((actuales) => ({ ...actuales, [id]: { ...actuales[id], [campo]: valor } }));
@@ -141,6 +151,8 @@ function FormularioFactura({ orden }: { orden: OrdenCompra }) {
         dice otra cosa, cámbialo: la validación de tres vías detectará las diferencias.
       </p>
 
+      {conciliacion && <ConciliacionRecepciones resultado={conciliacion} />}
+
       <div className="resumen">
         <span>Total facturado:</span>
         <strong>{moneda(total)}</strong>
@@ -153,7 +165,9 @@ function FormularioFactura({ orden }: { orden: OrdenCompra }) {
       )}
 
       <div className="acciones">
-        <button type="submit">Registrar factura</button>
+        <button type="submit" disabled={excedeLoAceptado}>
+          Registrar factura
+        </button>
       </div>
     </form>
   );

@@ -4,6 +4,8 @@ import { notificarMensaje } from '../../../estado/almacenCompras';
 import { formatearFecha } from '../../../utilidades/fechas';
 import { moneda } from '../../../utilidades/formato';
 import { enviarAPagos, rechazarFactura, validarFactura } from '../servicios/facturas';
+import { conciliarConRecepciones } from '../servicios/conciliacionRecepciones';
+import ConciliacionRecepciones from '../componentes/ConciliacionRecepciones';
 import type { EstadoFactura, Factura } from '../tipos';
 
 const CLASE_ESTADO: Record<EstadoFactura, string> = {
@@ -70,9 +72,21 @@ function DetalleMatching({ factura }: { factura: Factura }) {
   );
 }
 
+/** SCRUM-673: conciliación de una factura ya registrada con las recepciones parciales de su orden. */
+function ConciliacionFactura({ compras, factura }: { compras: ReturnType<typeof useCompras>; factura: Factura }) {
+  const resultado = conciliarConRecepciones(
+    compras,
+    factura.idOrden,
+    new Map(factura.detalles.map((detalle) => [detalle.idDetalleOrden, detalle.cantidad])),
+    factura.idFactura,
+  );
+  return resultado ? <ConciliacionRecepciones resultado={resultado} /> : null;
+}
+
 /** Validación de facturas con 3-way matching y envío a Gestión de Pagos. */
 export default function ValidacionFacturas() {
-  const { facturas, ordenes } = useCompras();
+  const compras = useCompras();
+  const { facturas, ordenes } = compras;
   const [idAbierta, setIdAbierta] = useState<number | null>(null);
 
   if (facturas.length === 0) {
@@ -145,6 +159,7 @@ export default function ValidacionFacturas() {
             </div>
 
             {abierta && <DetalleMatching factura={factura} />}
+            {abierta && <ConciliacionFactura compras={compras} factura={factura} />}
           </article>
         );
       })}

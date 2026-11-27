@@ -8,6 +8,7 @@ import { fechaHoy, sumarDias } from '../../../utilidades/fechas';
 import { redondear } from '../../../utilidades/formato';
 import type { OrdenCompra } from '../../ordenesCompra/tipos';
 import type { DatosRegistroFactura, Factura, LineaMatching, ResultadoMatching } from '../tipos';
+import { verificarNoExcedeLoAceptado } from './conciliacionRecepciones';
 
 /** Estados de factura que ya "consumen" cantidades de la orden. */
 const ESTADOS_ACTIVOS: Factura['estado'][] = ['Registrada', 'Validada', 'Con inconsistencias', 'Enviada a pagos'];
@@ -133,6 +134,13 @@ export function registrarFactura(datos: DatosRegistroFactura): Factura {
     });
 
   if (detalles.length === 0) throw new Error('Ingresa al menos una línea facturada.');
+
+  // SCRUM-673: no se puede facturar más de lo aceptado en las recepciones parciales.
+  verificarNoExcedeLoAceptado(
+    compras,
+    orden.idOrden,
+    new Map(detalles.map((detalle) => [detalle.idDetalleOrden, detalle.cantidad])),
+  );
 
   const factura: Factura = {
     idFactura: siguienteId(compras.facturas.map((item) => item.idFactura)),
