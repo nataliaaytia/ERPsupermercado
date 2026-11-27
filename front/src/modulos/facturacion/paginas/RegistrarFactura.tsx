@@ -8,6 +8,8 @@ import type { OrdenCompra } from '../../ordenesCompra/tipos';
 import { lineasFacturables, ordenesFacturables, proveedorDeOrden, registrarFactura } from '../servicios/facturas';
 import { conciliarConRecepciones } from '../servicios/conciliacionRecepciones';
 import ConciliacionRecepciones from '../componentes/ConciliacionRecepciones';
+import { analizarDiferenciasPrecio } from '../servicios/diferenciasPrecio';
+import DiferenciasPrecio from '../componentes/DiferenciasPrecio';
 
 interface LineaFormulario {
   cantidad: string;
@@ -51,6 +53,17 @@ function FormularioFactura({ orden }: { orden: OrdenCompra }) {
     new Map(Object.entries(valores).map(([id, valor]) => [Number(id), Number(valor.cantidad) || 0])),
   );
   const excedeLoAceptado = conciliacion !== null && !conciliacion.conforme;
+
+  // SCRUM-674: diferencias de precio frente a la orden, en vivo.
+  const diferenciasPrecio = analizarDiferenciasPrecio(
+    compras,
+    orden.idOrden,
+    Object.entries(valores).map(([id, valor]) => ({
+      idDetalleOrden: Number(id),
+      cantidad: Number(valor.cantidad) || 0,
+      precioUnitario: Number(valor.precioUnitario) || 0,
+    })),
+  );
 
   const cambiar = (id: number, campo: keyof LineaFormulario, valor: string) =>
     setValores((actuales) => ({ ...actuales, [id]: { ...actuales[id], [campo]: valor } }));
@@ -152,6 +165,7 @@ function FormularioFactura({ orden }: { orden: OrdenCompra }) {
       </p>
 
       {conciliacion && <ConciliacionRecepciones resultado={conciliacion} />}
+      {diferenciasPrecio && <DiferenciasPrecio resultado={diferenciasPrecio} />}
 
       <div className="resumen">
         <span>Total facturado:</span>
