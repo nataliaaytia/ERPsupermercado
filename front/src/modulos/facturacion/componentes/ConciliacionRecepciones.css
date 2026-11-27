@@ -1,0 +1,33 @@
+.conciliacion-recepciones {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.conciliacion-recepciones__cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.conciliacion-recepciones__entregas {
+  display: grid;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.85rem;
+}
+
+.conciliacion-recepciones__exceso {
+  margin: 0.25rem 0 0;
+  color: var(--danger);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.conciliacion-recepciones__asignacion {
+  display: block;
+  font-size: 0.8rem;
+}
