@@ -2,9 +2,11 @@
  * SCRUM-673 · Conciliación de una factura con las recepciones parciales.
  *
  * Una orden puede recibirse en varias entregas. Solo lo ACEPTADO en las
- * recepciones validadas puede facturarse, descontando lo ya facturado en otras
- * facturas de la misma orden. Este servicio arma, por línea de la orden, el
- * detalle de cada recepción parcial y detecta si la factura excede lo aceptado.
+ * recepciones validadas puede facturarse. Por cada línea, la cantidad facturada
+ * se distribuye entre las recepciones aceptadas en orden de llegada: primero se
+ * ocupan con lo ya facturado en otras facturas y luego con esta, de modo que una
+ * misma unidad aceptada nunca se asigna dos veces. Lo que no entra en el saldo
+ * queda como exceso y se rechaza.
  */
 import type { EstadoCompartido } from '../../../estado/almacenCompras';
 import type { Factura } from '../tipos';
@@ -20,6 +22,12 @@ export interface RecepcionParcialLinea {
   cantidadAceptada: number;
   /** false mientras la recepción no tenga revisión final: todavía no se puede facturar. */
   validada: boolean;
+  /** Unidades de esta recepción ya asignadas a otras facturas. */
+  asignadoEnOtras: number;
+  /** Unidades de esta recepción asignadas a la factura que se concilia. */
+  asignadoEnEstaFactura: number;
+  /** Unidades aceptadas de esta recepción que siguen libres después de la asignación. */
+  saldoRestante: number;
 }
 
 export type EstadoLineaConciliacion = 'Conforme' | 'Excede lo aceptado' | 'Sin recepción aceptada';
@@ -77,8 +85,13 @@ export function conciliarConRecepciones(
     }
   }
 
+  // Orden de llegada: las primeras entregas se facturan primero.
+  const porLlegada = [...registradas].sort(
+    (a, b) => a.fecha.localeCompare(b.fecha) || a.idRecepcion - b.idRecepcion,
+  );
+
   const lineas = orden.detalles.map((detalle): LineaConciliacion => {
-    const recepciones: RecepcionParcialLinea[] = registradas.flatMap((recepcion) => {
+    const recepciones: RecepcionParcialLinea[] = porLlegada.flatMap((recepcion) => {
       const recibida = recepcion.detalles.find((linea) => linea.idDetalleOrden === detalle.idDetalle);
       if (!recibida) return [];
       const validacion = validadas.find((item) => item.idRecepcion === recepcion.idRecepcion);
@@ -91,6 +104,9 @@ export function conciliarConRecepciones(
           cantidadRecibida: recibida.cantidadRecibida,
           cantidadAceptada: aceptada?.cantidadAceptada ?? 0,
           validada: Boolean(validacion),
+          asignadoEnOtras: 0,
+          asignadoEnEstaFactura: 0,
+          saldoRestante: 0,
         },
       ];
     });
@@ -101,7 +117,22 @@ export function conciliarConRecepciones(
     const otras = facturadoEnOtras.get(detalle.idDetalle) ?? 0;
     const saldoFacturable = Math.max(0, totalAceptado - otras);
     const cantidadFacturada = cantidades.get(detalle.idDetalle) ?? 0;
-    const exceso = Math.max(0, cantidadFacturada - saldoFacturable);
+
+    // Distribución sin duplicar: primero lo facturado antes, después esta factura.
+    let pendienteOtras = otras;
+    let pendienteEsta = cantidadFacturada;
+    for (const recepcion of recepciones) {
+      if (!recepcion.validada) continue;
+      let libre = recepcion.cantidadAceptada;
+      recepcion.asignadoEnOtras = Math.min(libre, pendienteOtras);
+      libre -= recepcion.asignadoEnOtras;
+      pendienteOtras -= recepcion.asignadoEnOtras;
+      recepcion.asignadoEnEstaFactura = Math.min(libre, pendienteEsta);
+      libre -= recepcion.asignadoEnEstaFactura;
+      pendienteEsta -= recepcion.asignadoEnEstaFactura;
+      recepcion.saldoRestante = libre;
+    }
+    const exceso = pendienteEsta;
 
     let estado: EstadoLineaConciliacion = 'Conforme';
     if (exceso > 0) estado = 'Excede lo aceptado';

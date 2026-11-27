@@ -56,6 +56,13 @@ export default function ConciliacionRecepciones({ resultado }: Props) {
                               ? ` · ${recepcion.cantidadAceptada} de ${recepcion.cantidadRecibida} aceptadas`
                               : ` · ${recepcion.cantidadRecibida} recibidas, en inspección`}
                           </span>
+                          {recepcion.validada && (
+                            <span className="conciliacion-recepciones__asignacion">
+                              {recepcion.asignadoEnOtras > 0 && `${recepcion.asignadoEnOtras} ya facturadas · `}
+                              <strong>{recepcion.asignadoEnEstaFactura} en esta factura</strong> · {recepcion.saldoRestante}{' '}
+                              libres
+                            </span>
+                          )}
                         </li>
                       ))}
                     </ul>
